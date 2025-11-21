@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Component
-public class User {
+public class EVUser {
     @Id String id;
     String role;
     String name;
