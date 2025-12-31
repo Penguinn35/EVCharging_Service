@@ -1,15 +1,24 @@
 "use client";
-import { createContext, useState, useContext } from "react";
+import { createContext, useState, useContext, ReactNode } from "react";
 
-const AuthContext = createContext<any>(null);
+/* 1. Interface */
+interface AuthContextType {
+  token: string | null;
+  login: (token: string) => void;
+  logout: () => void;
+}
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+/* 2. Context */
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+/* 3. Provider */
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
 
-  const login = (fakeToken: string) => {
-  console.log("Logged in with:", fakeToken);
-  setToken(fakeToken);
-};
+  const login = (token: string) => {
+    console.log("Logged in with:", token);
+    setToken(token);
+  };
 
   const logout = () => setToken(null);
 
@@ -20,4 +29,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+/* 4. Hook */
+export const useAuth = (): AuthContextType => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};
