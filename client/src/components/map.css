@@ -1,0 +1,49 @@
+.custom-marker {
+  background: none;
+  border: none;
+}
+
+/* Outer pin */
+.pin {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  background: green; /* status color */
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+}
+
+/* Inner white circle */
+.pin-inner {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 30px;
+  height: 30px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(45deg);
+}
+
+/* Brand text/logo */
+.brand {
+  font-size: 12px;
+  font-weight: bold;
+  color: black;
+}
+
+/* Status colors */
+.status-active {
+  background: #34c759;
+}
+
+.status-busy {
+  background: #ff9500;
+}
+
+.status-offline {
+  background: #ff3b30;
+}
