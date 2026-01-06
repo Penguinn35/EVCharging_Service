@@ -1,26 +1,41 @@
 import { create } from "zustand";
-import { ChargingPoint } from "@/types/Station";
-import { getStationPoints } from "@/services/stationService";
+import { ChargingStation, ChargingPoint, Connector } from "@/models/station";
 
-interface StationState {
-  points: ChargingPoint[];
-  loading: boolean;
-  error: string | null;
-  fetchPoints: (stationId: number) => Promise<void>;
-}
+
+type StationState = {
+  stations: ChargingStation[];
+  selectedStation: ChargingStation | null;
+  routeTo: ChargingStation | null;
+  // actions
+  setStations: (stations: ChargingStation[]) => void;
+  addStation: (station: ChargingStation) => void;
+  updateStation: (station: ChargingStation) => void;
+  selectStation: (station: ChargingStation | null) => void;
+  setRouteTo: (s: ChargingStation | null) => void;
+};
 
 export const useStationStore = create<StationState>((set) => ({
-  points: [],
-  loading: false,
-  error: null,
+  stations: [],
+  selectedStation: null,
+  routeTo: null,
+  setStations: (stations) => set({ stations }),
 
-  fetchPoints: async (stationId) => {
-    set({ loading: true, error: null });
-    try {
-      const data = await getStationPoints(stationId);
-      set({ points: data, loading: false });
-    } catch (err) {
-      set({ error: (err as Error).message, loading: false });
-    }
-  },
+  addStation: (station) =>
+    set((state) => ({
+      stations: [...state.stations, station],
+    })),
+
+  updateStation: (updatedStation) =>
+    set((state) => ({
+      stations: state.stations.map((s) =>
+        s.id === updatedStation.id ? updatedStation : s
+      ),
+      selectedStation:
+        state.selectedStation?.id === updatedStation.id
+          ? updatedStation
+          : state.selectedStation,
+    })),
+
+  selectStation: (station) => set({ selectedStation: station }),
+  setRouteTo: (s) => set({ routeTo: s }),
 }));
