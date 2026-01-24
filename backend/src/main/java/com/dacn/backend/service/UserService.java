@@ -1,6 +1,5 @@
 package com.dacn.backend.service;
 
-import java.security.Key;
 // import java.security.Key;
 // import java.security.NoSuchAlgorithmException;
 // import java.util.Base64;
@@ -13,9 +12,6 @@ import java.util.function.Function;
 import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -26,8 +22,6 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 // import io.jsonwebtoken.io.Decoders;
 // import io.jsonwebtoken.security.Keys;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
 
 @Service
 public class UserService {

@@ -37,7 +37,14 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(customizer -> customizer.disable())
             .authorizeHttpRequests(request -> request.requestMatchers("/auth/*").permitAll()
-                                                                .anyRequest().hasAuthority("USER"))
+                                                    .requestMatchers("/api/client/*").hasAuthority("CLIENT")
+                                                    .requestMatchers("/api/business/*").hasAnyAuthority("BUSINESS"))
+    /*
+        Phân quyền:
+        - CLIENT: dành cho khách
+        - BUSINESS: dành cho doanh nghiệp (CPO)
+        - ADMIN: dành cho admin
+    */
             .httpBasic(Customizer.withDefaults())
             .sessionManagement(session -> 
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
