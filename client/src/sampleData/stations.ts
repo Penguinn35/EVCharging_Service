@@ -8,8 +8,7 @@ export const sampleStations: ChargingStation[] = [
         addressInfor: "District 1, Ho Chi Minh City",
         totalPoints: 2,
         status: "active",
-        latitude: 10.7769,
-        longtitude: 106.7009,
+        location: { latitude: 10.7769, longitude: 106.7009 },
         chargingPoints: [
             {
                 id: 101,
@@ -47,6 +46,11 @@ export const sampleStations: ChargingStation[] = [
                 ],
             },
         ],
+        ratings: [
+            { user: "Alice", point: 5, comment: "Great station!" },
+            { user: "Bob", point: 4, comment: "Convenient location." },
+        ],
+        usageData: [80, 55, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230],
     },
 
     {
@@ -56,8 +60,7 @@ export const sampleStations: ChargingStation[] = [
         addressInfor: "District 2, Ho Chi Minh City",
         totalPoints: 1,
         status: "maintenance",
-        latitude: 10.7798,
-        longtitude: 106.7153,
+        location: { latitude: 10.7798, longitude: 106.7153 },
         chargingPoints: [
             {
                 id: 201,
@@ -74,6 +77,10 @@ export const sampleStations: ChargingStation[] = [
                 ],
             },
         ],
+        ratings: [
+            { user: "Charlie", point: 3, comment: "Average experience." },
+        ],
+        usageData: [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240],
     },
 
     {
@@ -83,8 +90,7 @@ export const sampleStations: ChargingStation[] = [
         addressInfor: "123 Hai Bà Trưng, Phường 6, Hồ Chí Minh",
         totalPoints: 5,
         status: "Đang hoạt động",
-        latitude: 10.7842,
-        longtitude: 106.6968,
+        location: { latitude: 10.7842, longitude: 106.6968 },
         img: ["https://th.bing.com/th/id/R.1c6f8aee48e94773128c686db96a5320?rik=xxLQoQs3YtfAVg&pid=ImgRaw&r=0"],
         chargingPoints: [
             {
@@ -173,8 +179,7 @@ export const sampleStations: ChargingStation[] = [
         totalPoints: 3,
         chargingPoints: [],
         status: "active",
-        latitude: 10.7644,
-        longtitude: 106.7042,
+        location: { latitude: 10.7644, longitude: 106.7042 },
     },
     {
         id: 5,
@@ -184,8 +189,7 @@ export const sampleStations: ChargingStation[] = [
         totalPoints: 7,
         chargingPoints: [],
         status: "busy",
-        latitude: 10.7596,
-        longtitude: 106.6828,
+        location: { latitude: 10.7596, longitude: 106.6828 },
     },
     {
         id: 6,
@@ -195,8 +199,7 @@ export const sampleStations: ChargingStation[] = [
         totalPoints: 4,
         chargingPoints: [],
         status: "offline",
-        latitude: 10.7522,
-        longtitude: 106.6358,
+        location: { latitude: 10.7522, longitude: 106.6358 },
     },
     {
         id: 7,
@@ -206,8 +209,7 @@ export const sampleStations: ChargingStation[] = [
         totalPoints: 8,
         chargingPoints: [],
         status: "active",
-        latitude: 10.7306,
-        longtitude: 106.7218,
+        location: { latitude: 10.7306, longitude: 106.7218 },
     },
     {
         id: 8,
@@ -217,8 +219,7 @@ export const sampleStations: ChargingStation[] = [
         totalPoints: 5,
         chargingPoints: [],
         status: "maintenance",
-        latitude: 10.7382,
-        longtitude: 106.6702,
+        location: { latitude: 10.7382, longitude: 106.6702 },
     },
     {
         id: 9,
@@ -228,8 +229,7 @@ export const sampleStations: ChargingStation[] = [
         totalPoints: 6,
         chargingPoints: [],
         status: "active",
-        latitude: 10.8478,
-        longtitude: 106.7852,
+        location: { latitude: 10.8478, longitude: 106.7852 },
     },
     {
         id: 10,
@@ -239,7 +239,6 @@ export const sampleStations: ChargingStation[] = [
         totalPoints: 3,
         chargingPoints: [],
         status: "inactive",
-        latitude: 10.7766,
-        longtitude: 106.6676,
+        location: { latitude: 10.7766, longitude: 106.6676 },
     },
 ];

@@ -1,5 +1,6 @@
 import { ChargingPoint } from "@/types/Station";
 
+
 const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export async function getStationPoints(stationId: number): Promise<ChargingPoint[]> {
@@ -25,3 +26,6 @@ export async function getChargingStations() {
   console.log(data);
   return data;
 }
+
+
+

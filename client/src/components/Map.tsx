@@ -10,17 +10,21 @@ import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import { useStationStore } from "@/store/useStationStore";
+import { useUserStore } from "@/store/useUserStore";
+import { useRoutingStore } from "@/store/useRoutingStore";
+import RoutingMachine from "./RoutingMachine";
 
 type Position = {
   lat: number;
-  lng: number;
+  long: number;
 };
+
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 function FlyToUser({ position }: { position: Position }) {
   const map = useMap();
 
   useEffect(() => {
-    map.flyTo([position.lat, position.lng], 15);
+    map.flyTo([position.lat, position.long], 15);
   }, [position, map]);
 
   return null;
@@ -30,16 +34,6 @@ L.Icon.Default.mergeOptions({
   iconUrl: markerIcon,
   shadowUrl: markerShadow,
 });
-
-function Recenter({ position }: { position: Position }) {
-  const map = useMap();
-
-  useEffect(() => {
-    map.setView([position.lat, position.lng]);
-  }, [position, map]);
-
-  return null;
-}
 
 const CustomMarker = ({ station }: { station: ChargingStation }) => {
   const [L, setLeaflet] = useState<any>(null);
@@ -69,25 +63,22 @@ const CustomMarker = ({ station }: { station: ChargingStation }) => {
   });
 
   return (
-    <Marker 
-    position={[station.latitude, station.longtitude]}
-    icon={markerIcon}
-    eventHandlers={
-      {click: () => {
-        selectStation(station);
+    <Marker
+      position={[station.location.latitude, station.location.longitude]}
+      icon={markerIcon}
+      eventHandlers={{
+        click: () => {
+          selectStation(station);
+        },
       }}
-    }
-    >
-      
-    </Marker>
+    ></Marker>
   );
 };
 
-
-
 export default function Map() {
-  const [position, setPosition] = useState<Position | null>(null);
-
+  // const [position, setPosition] = useState<Position | null>(null);
+  const { user, setLocation } = useUserStore();
+  const { isOpen, location } = useRoutingStore();
   useEffect(() => {
     if (!navigator.geolocation) {
       console.error("Geolocation not supported");
@@ -96,18 +87,17 @@ export default function Map() {
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setPosition({
+        setLocation({
           lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
+          long: pos.coords.longitude,
         });
       },
       (err) => {
         console.error(err);
       },
-      { enableHighAccuracy: true }
+      { enableHighAccuracy: true },
     );
   }, []);
-
 
   return (
     <MapContainer
@@ -120,18 +110,24 @@ export default function Map() {
         attribution="&copy; OpenStreetMap"
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      {position && (
+      {user.location && (
         <>
-          <Marker position={[position.lat, position.lng]}>
+          <Marker position={[user.location.lat, user.location.long]}>
             <Popup>You are here</Popup>
           </Marker>
-          <FlyToUser position={position} />
+          <FlyToUser position={user.location} />
         </>
       )}
       {sampleStations.map((station) => (
         <CustomMarker key={station.id} station={station} />
       ))}
 
+      {user.location && isOpen && (
+        <RoutingMachine
+          from={[user.location.lat, user.location.long]}
+          to={[location?.latitude||0, location?.longitude||0]}
+        />
+      )}
     </MapContainer>
   );
 }

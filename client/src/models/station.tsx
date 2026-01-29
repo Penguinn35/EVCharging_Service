@@ -6,9 +6,17 @@ export interface ChargingStation {
   totalPoints: number;
   chargingPoints: ChargingPoint[];
   status: 'active' | 'inactive' | 'maintenance' | string;
-  latitude: number;
-  longtitude: number;
+  location: {
+    latitude: number;
+    longitude: number;
+  };
   img?: string[];
+  ratings?: {
+    user: string;
+    point: number;
+    comment: string;
+  }[];
+  usageData?: number[];
 }
 export interface ChargingPoint {
   id: number;
