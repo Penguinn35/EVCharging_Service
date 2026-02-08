@@ -6,8 +6,9 @@ import { Saira } from "next/font/google";
 import Filter from "@/components/Filter";
 import QuickSearch from "@/components/QuickSearch";
 import { useStationStore } from "@/store/useStationStore";
+import { useRoutingStore } from "@/store/useRoutingStore";
 import StationDetail from "@/components/StationDetail";
-import { useUserStore } from "@/store/useUserStore";
+import UserProfile from "@/components/UserProfile";
 
 const sairaFont = Saira({
   subsets: ["vietnamese"],
@@ -17,12 +18,11 @@ const Map = dynamic(() => import("@/components/Map"), {
   ssr: false,
 });
 
-export default function HomePage() {
+export default function Page() {
   const [distance, setDistance] = useState<number | null>(null); // Updated type to number | null
   const selectedStation = useStationStore((state) => state.selectedStation);
   const selectStation = useStationStore((state) => state.selectStation);
-  const { user } = useUserStore();
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const clearRouting = useRoutingStore((state) => state.clearRouting);
   return (
     <>
       <div className={`relative ${sairaFont.className}`}>
@@ -35,40 +35,17 @@ export default function HomePage() {
             <QuickSearch />
           </div>
           {/* User Profile */}
-          <div className="absolute top-4 right-4">
-            <div
-              className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center cursor-pointer"
-              onClick={() => setIsProfileOpen(!isProfileOpen)}
-            >
-              {user.name[0]}
-            </div>
-            {isProfileOpen && (
-              <div className="absolute top-12 right-0 bg-white shadow-lg p-4 rounded-lg">
-                <p>
-                  <strong>Name:</strong> {user.name}
-                </p>
-                <p>
-                  <strong>Email:</strong> {user.email}
-                </p>
-                <p>
-                  <strong>Plug Type:</strong> {user.vehiclePlug}
-                </p>
-                <button
-                  className="mt-2 text-sm text-blue-500 underline"
-                  onClick={() => setIsProfileOpen(false)}
-                >
-                  Close
-                </button>
-              </div>
-            )}
-          </div>
+          <UserProfile />
         </div>
 
         {selectedStation && (
           <StationDetail
             station={selectedStation}
             distance={distance || undefined} // Ensure distance is undefined if null
-            onClose={() => selectStation(null)}
+            onClose={() => {
+              selectStation(null);
+              clearRouting();
+            }}
           />
         )}
         <Map />

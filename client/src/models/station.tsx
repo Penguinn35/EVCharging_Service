@@ -1,15 +1,14 @@
+import { Coordinate } from "./shared";
+
 export interface ChargingStation {
   id: number;
   name: string;
-  operatorId: number;    
+  operatorId: number;
   addressInfor: string;
   totalPoints: number;
   chargingPoints: ChargingPoint[];
-  status: 'active' | 'inactive' | 'maintenance' | string;
-  location: {
-    latitude: number;
-    longitude: number;
-  };
+  status: "active" | "inactive" | "maintenance" | string;
+  coordinate: Coordinate;
   img?: string[];
   ratings?: {
     user: string;
@@ -21,14 +20,14 @@ export interface ChargingStation {
 export interface ChargingPoint {
   id: number;
   stationId: number;
-  Connectors: Connector[]
-  status: 'available' | 'busy' | 'offline' | string;
+  Connectors: Connector[];
+  status: "available" | "busy" | "offline" | string;
 }
 
 export interface Connector {
   id: number;
-  pointId: number;       
-  type: 'Type 1' | 'Type 2' | 'CCS' | 'CHAdeMO' | string;
+  pointId: number;
+  type: "Type 1" | "Type 2" | "CCS" | "CHAdeMO" | string;
   maxPowerKW: number;
   voltageV: number;
 }

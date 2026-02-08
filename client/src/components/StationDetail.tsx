@@ -24,6 +24,7 @@ const statusColor = {
 };
 
 const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
+  console.log("StationDetail render");
   const chartData = {
     labels: Array.from({ length: 24 }, (_, i) => `${i}:00`),
     datasets: [
@@ -37,12 +38,12 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
   const isSaved = useUserStore((state) =>
     state.user.savedStation.includes(station.id),
   );
-  const { setRouting} = useRoutingStore();
+  const { setRouting } = useRoutingStore();
   const { saveStation, deleteStation } = useUserStore();
 
-  const toggleSave = () =>{
-    isSaved? deleteStation(station.id): saveStation(station.id);
-  }
+  const toggleSave = () => {
+    isSaved ? deleteStation(station.id) : saveStation(station.id);
+  };
 
   return (
     <div className="fixed bottom-0 left-0  z-[1000] h-[86%] w-sm rounded-tr-xl bg-white  shadow-xl flex flex-col ">
@@ -187,8 +188,9 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
           <p>Đánh giá</p>
         </div>
         <div
-        onClick={toggleSave}
-        className=" text-green-600 flex flex-col  items-center gap-2 cursor-pointer">
+          onClick={toggleSave}
+          className=" text-green-600 flex flex-col  items-center gap-2 cursor-pointer"
+        >
           {!isSaved ? (
             <>
               <FaRegStar className="text-xl  hover:text-green-700" />
@@ -201,9 +203,10 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
             </>
           )}
         </div>
-        <div 
-         onClick={() => setRouting(station.location)}
-        className=" text-green-600 flex flex-col  items-center gap-2 cursor-pointer hover:text-green-700">
+        <div
+          onClick={() => setRouting(station.coordinate)}
+          className=" text-green-600 flex flex-col  items-center gap-2 cursor-pointer hover:text-green-700"
+        >
           <FaRoute className="text-xl" />
           <p>Dẫn đường</p>
         </div>

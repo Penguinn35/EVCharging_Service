@@ -27,3 +27,6 @@ body {
   color: var(--foreground);
 }
 
+.leaflet-routing-container {
+  display: none !important;
+}

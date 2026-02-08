@@ -1,22 +1,19 @@
 import {create} from "zustand";
+import { Coordinate } from "@/models/shared";
 
-type Location = {
-  long: number;
-  lat: number;
-};
 
 interface User {
   email: string;
   name: string;
   vehiclePlug: "Type 2" | "CCS2" | "Both";
-  location: Location|null;
+  coordinate: Coordinate|null;
   savedStation: number[];
 }
 
 interface UserStore {
   user: User;
   setUser: (user: User) => void;
-  setLocation: (location: Location) => void;
+  setLocation: (coordinate: Coordinate) => void;
   saveStation: (stationId: number) => void;
   deleteStation: (stationId: number) => void;
 }
@@ -26,14 +23,14 @@ export const useUserStore = create<UserStore>((set) => ({
     email: "example@example.com",
     name: "John Doe",
     vehiclePlug: "Both",
-    location:null,
+    coordinate:null,
     savedStation: [],
   },
   setUser: (user) => set({ user }),
-  setLocation: (location) => set((state) => ({
+  setLocation: (coordinate) => set((state) => ({
     user: {
         ...state.user,
-        location,
+        coordinate,
     }
   })),
   saveStation: (stationId) =>

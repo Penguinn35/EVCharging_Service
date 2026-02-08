@@ -1,6 +1,6 @@
 "use client";
 import L from "leaflet";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import { useEffect, useState } from "react";
 import "leaflet/dist/leaflet.css";
 import "../components/map.css";
@@ -13,22 +13,10 @@ import { useStationStore } from "@/store/useStationStore";
 import { useUserStore } from "@/store/useUserStore";
 import { useRoutingStore } from "@/store/useRoutingStore";
 import RoutingMachine from "./RoutingMachine";
-
-type Position = {
-  lat: number;
-  long: number;
-};
+import FlyTo from "@/app/Map/FlyTo";
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
-function FlyToUser({ position }: { position: Position }) {
-  const map = useMap();
 
-  useEffect(() => {
-    map.flyTo([position.lat, position.long], 15);
-  }, [position, map]);
-
-  return null;
-}
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: markerIcon2x,
   iconUrl: markerIcon,
@@ -38,6 +26,8 @@ L.Icon.Default.mergeOptions({
 const CustomMarker = ({ station }: { station: ChargingStation }) => {
   const [L, setLeaflet] = useState<any>(null);
   const selectStation = useStationStore((state) => state.selectStation);
+  // const { clearRouting } = useRoutingStore();
+  const clearRouting = useRoutingStore((s) => s.clearRouting);
 
   useEffect(() => {
     import("leaflet").then((leaflet) => {
@@ -61,14 +51,14 @@ const CustomMarker = ({ station }: { station: ChargingStation }) => {
     iconSize: [42, 48],
     iconAnchor: [21, 48],
   });
-
   return (
     <Marker
-      position={[station.location.latitude, station.location.longitude]}
+      position={[station.coordinate.latitude, station.coordinate.longitude]}
       icon={markerIcon}
       eventHandlers={{
         click: () => {
           selectStation(station);
+          clearRouting();
         },
       }}
     ></Marker>
@@ -76,9 +66,14 @@ const CustomMarker = ({ station }: { station: ChargingStation }) => {
 };
 
 export default function Map() {
-  // const [position, setPosition] = useState<Position | null>(null);
-  const { user, setLocation } = useUserStore();
-  const { isOpen, location } = useRoutingStore();
+  console.log("Map render");
+
+  const coordinate = useUserStore((state) => state.user.coordinate);
+  const setLocation = useUserStore((state) => state.setLocation);
+
+  const isOpen = useRoutingStore((s) => s.isOpen);
+  const location = useRoutingStore((s) => s.location);
+
   useEffect(() => {
     if (!navigator.geolocation) {
       console.error("Geolocation not supported");
@@ -88,8 +83,8 @@ export default function Map() {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setLocation({
-          lat: pos.coords.latitude,
-          long: pos.coords.longitude,
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
         });
       },
       (err) => {
@@ -98,7 +93,6 @@ export default function Map() {
       { enableHighAccuracy: true },
     );
   }, []);
-
   return (
     <MapContainer
       center={[10.814889, 106.697906]}
@@ -110,22 +104,22 @@ export default function Map() {
         attribution="&copy; OpenStreetMap"
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      {user.location && (
+      {coordinate && (
         <>
-          <Marker position={[user.location.lat, user.location.long]}>
+          <Marker position={[coordinate.latitude, coordinate.longitude]}>
             <Popup>You are here</Popup>
           </Marker>
-          <FlyToUser position={user.location} />
+          <FlyTo coordinate={coordinate} />
         </>
       )}
       {sampleStations.map((station) => (
         <CustomMarker key={station.id} station={station} />
       ))}
 
-      {user.location && isOpen && (
+      {coordinate && isOpen && (
         <RoutingMachine
-          from={[user.location.lat, user.location.long]}
-          to={[location?.latitude||0, location?.longitude||0]}
+          from={[coordinate.latitude, coordinate.longitude]}
+          to={[location?.latitude || 0, location?.longitude || 0]}
         />
       )}
     </MapContainer>
