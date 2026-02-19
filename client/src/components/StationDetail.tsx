@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { ChargingStation } from "@/models/station";
 import { BsFillLightningChargeFill } from "react-icons/bs";
 import { FaRegStar } from "react-icons/fa";
@@ -10,6 +10,7 @@ import { useRoutingStore } from "@/store/useRoutingStore";
 import { useUserStore } from "@/store/useUserStore";
 
 import "chart.js/auto";
+import RatingModal from "./RatingModal";
 
 type StationDetailProps = {
   station: ChargingStation;
@@ -24,7 +25,6 @@ const statusColor = {
 };
 
 const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
-  console.log("StationDetail render");
   const chartData = {
     labels: Array.from({ length: 24 }, (_, i) => `${i}:00`),
     datasets: [
@@ -40,10 +40,28 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
   );
   const { setRouting } = useRoutingStore();
   const { saveStation, deleteStation } = useUserStore();
+  const [openRating, setOpenRating] = useState(false);
 
   const toggleSave = () => {
     isSaved ? deleteStation(station.id) : saveStation(station.id);
   };
+
+  //helper for rating section
+
+  const ratings = station.ratings ?? [];
+
+  const totalRatings = ratings.length;
+
+  const avgRating =
+    totalRatings === 0
+      ? 0
+      : ratings.reduce((s, r) => s + r.point, 0) / totalRatings;
+
+  const distribution = [5, 4, 3, 2, 1].map((star) => ({
+    star,
+    count: ratings.filter((r) => r.point === star).length,
+  }));
+  //
 
   return (
     <div className="fixed bottom-0 left-0  z-[1000] h-[86%] w-sm rounded-tr-xl bg-white  shadow-xl flex flex-col ">
@@ -169,7 +187,41 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
         </div>
         {/* Ratings and Comments */}
         <div className="px-4 py-3">
-          <h3 className="text-md font-semibold">Ratings and Comments</h3>
+          <div className="px-4 py-3">
+            <h3 className="text-md font-semibold mb-3">Ratings & Reviews</h3>
+
+            <div className="flex gap-6">
+              {/* Average */}
+              <div className="flex flex-col items-center">
+                <p className="text-3xl font-bold">{avgRating.toFixed(1)}</p>
+                <p className="text-sm text-gray-500">{totalRatings} reviews</p>
+              </div>
+
+              {/* Distribution */}
+              <div className="flex-1 space-y-1">
+                {distribution.map((d) => (
+                  <div key={d.star} className="flex items-center gap-2">
+                    <span className="text-sm w-4">{d.star}</span>
+
+                    <div className="flex-1 h-2 bg-gray-200 rounded">
+                      <div
+                        className="h-2 bg-green-500 rounded"
+                        style={{
+                          width:
+                            totalRatings === 0
+                              ? "0%"
+                              : `${(d.count / totalRatings) * 100}%`,
+                        }}
+                      />
+                    </div>
+
+                    <span className="text-xs text-gray-500 w-6">{d.count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
           {station.ratings?.map((rating, index) => (
             <div key={index} className="mt-2">
               <p>
@@ -180,10 +232,23 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
           ))}
         </div>
       </div>
+      {openRating && (
+        <RatingModal
+          onClose={() => setOpenRating(false)}
+          onSubmit={(rating, comment) => {
+            console.log("FAKE SUBMIT", rating, comment);
+            // later:
+            // POST /api/stations/:id/review
+          }}
+        />
+      )}
 
       {/* Actions */}
       <div className="border-t border-green-400 px-4 py-3 flex  place-content-around ">
-        <div className=" text-green-600 flex flex-col  items-center gap-2 cursor-pointer hover:text-green-700">
+        <div
+          onClick={() => setOpenRating(true)}
+          className=" text-green-600 flex flex-col  items-center gap-2 cursor-pointer hover:text-green-700"
+        >
           <TfiWrite className="text-xl" />
           <p>Đánh giá</p>
         </div>

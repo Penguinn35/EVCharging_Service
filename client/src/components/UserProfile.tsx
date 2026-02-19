@@ -4,6 +4,7 @@ import { useUserStore } from "@/store/useUserStore";
 import { useStationStore } from "@/store/useStationStore";
 import { useRoutingStore } from "@/store/useRoutingStore";
 import { getStationById } from "@/services/stationService";
+import { useMapStore } from "@/store/useMapStore";
 import FlyTo from "@/app/Map/FlyTo";
 // React Icons imports
 import {
@@ -22,8 +23,7 @@ const UserProfile = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { selectStation, selectedStation } = useStationStore();
   const { clearRouting } = useRoutingStore();
-  const [flyCoordinate, setFlyCoordinate] = useState<Coordinate | null>(null);
-
+  const setFlyTo = useMapStore((s) => s.setFlyTo);
   // Ref to handle clicking outside to close
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -49,13 +49,11 @@ const UserProfile = () => {
   const handleSelectSavedStation = async (stationId: number) => {
     const station = await getStationById(stationId);
     if (station !== null) {
-      setFlyCoordinate(station.coordinate);
+      setFlyTo(station.coordinate);
     }
   };
 
   const handleDeleteStation = (stationId: number) => {
-    
-    
     deleteStation(stationId);
     if (stationId === selectedStation?.id) {
       selectStation(null);
@@ -173,7 +171,6 @@ const UserProfile = () => {
           </div>
         </div>
       )}
-      {flyCoordinate && <FlyTo coordinate={flyCoordinate} />}
     </div>
   );
 };

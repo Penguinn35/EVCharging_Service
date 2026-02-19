@@ -9,6 +9,7 @@ import { useStationStore } from "@/store/useStationStore";
 import { useRoutingStore } from "@/store/useRoutingStore";
 import StationDetail from "@/components/StationDetail";
 import UserProfile from "@/components/UserProfile";
+import LocateMe from "@/components/locateMe";
 
 const sairaFont = Saira({
   subsets: ["vietnamese"],
@@ -34,9 +35,9 @@ export default function Page() {
           <div className="mt-4">
             <QuickSearch />
           </div>
-          {/* User Profile */}
           <UserProfile />
         </div>
+          <LocateMe />
 
         {selectedStation && (
           <StationDetail
