@@ -5,7 +5,7 @@ import { useStationStore } from "@/store/useStationStore";
 import { useRoutingStore } from "@/store/useRoutingStore";
 import { getStationById } from "@/services/stationService";
 import { useMapStore } from "@/store/useMapStore";
-import FlyTo from "@/app/Map/FlyTo";
+import FlyTo from "@/app/(public)/Map/FlyTo";
 // React Icons imports
 import {
   IoClose,
@@ -16,7 +16,6 @@ import {
   IoPersonCircleOutline,
 } from "react-icons/io5";
 import { MdOutlineElectricalServices, MdLogout } from "react-icons/md";
-import { Coordinate } from "@/models/shared";
 
 const UserProfile = () => {
   const { user, setUser, deleteStation } = useUserStore();
@@ -49,7 +48,9 @@ const UserProfile = () => {
   const handleSelectSavedStation = async (stationId: number) => {
     const station = await getStationById(stationId);
     if (station !== null) {
+      selectStation(station);
       setFlyTo(station.coordinate);
+      
     }
   };
 

@@ -13,7 +13,7 @@ import { useStationStore } from "@/store/useStationStore";
 import { useUserStore } from "@/store/useUserStore";
 import { useRoutingStore } from "@/store/useRoutingStore";
 import RoutingMachine from "./RoutingMachine";
-import FlyTo from "@/app/Map/FlyTo";
+import FlyTo from "@/app/(public)/Map/FlyTo";
 import { useMapStore } from "@/store/useMapStore";
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
