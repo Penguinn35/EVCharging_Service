@@ -18,7 +18,8 @@ public class StationService {
     }
 
     public List<ChargingStation> searchByKeyword(String keyword) {
-        // TODO Auto-generated method stub
+        // TODO Auto-generated method 
+        keyword = "%" + keyword + "%";
         return stationRepo.findByKeyword(keyword);
     }
 }
