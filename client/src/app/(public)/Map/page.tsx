@@ -1,13 +1,15 @@
 "use client";
 import dynamic from "next/dynamic";
-import { getChargingStations } from "@/services/stationService";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import SearchBar from "@/components/searchBar";
 import { Saira } from "next/font/google";
 import Filter from "@/components/Filter";
 import QuickSearch from "@/components/QuickSearch";
 import { useStationStore } from "@/store/useStationStore";
+import { useRoutingStore } from "@/store/useRoutingStore";
 import StationDetail from "@/components/StationDetail";
+import UserProfile from "@/components/UserProfile";
+import LocateMe from "@/components/locateMe";
 
 const sairaFont = Saira({
   subsets: ["vietnamese"],
@@ -17,14 +19,11 @@ const Map = dynamic(() => import("@/components/Map"), {
   ssr: false,
 });
 
-export default function HomePage() {
+export default function Page() {
+  const [distance, setDistance] = useState<number | null>(null); // Updated type to number | null
   const selectedStation = useStationStore((state) => state.selectedStation);
   const selectStation = useStationStore((state) => state.selectStation);
-  const setRouteTo = useStationStore((state) => state.setRouteTo);
-  const handleRouting = () => {
-    if (!selectedStation) return;
-    setRouteTo(selectedStation);
-  };
+  const clearRouting = useRoutingStore((state) => state.clearRouting);
   return (
     <>
       <div className={`relative ${sairaFont.className}`}>
@@ -36,12 +35,18 @@ export default function HomePage() {
           <div className="mt-4">
             <QuickSearch />
           </div>
+          <UserProfile />
         </div>
+          <LocateMe />
+
         {selectedStation && (
           <StationDetail
             station={selectedStation}
-            onClose={() => selectStation(null)}
-            handleRouting={() => handleRouting()}
+            distance={distance || undefined} // Ensure distance is undefined if null
+            onClose={() => {
+              selectStation(null);
+              clearRouting();
+            }}
           />
         )}
         <Map />

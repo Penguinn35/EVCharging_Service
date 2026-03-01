@@ -1,4 +1,6 @@
 
+@import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
+
 @import "tailwindcss";
 
 :root {
@@ -25,3 +27,6 @@ body {
   color: var(--foreground);
 }
 
+.leaflet-routing-container {
+  display: none !important;
+}
