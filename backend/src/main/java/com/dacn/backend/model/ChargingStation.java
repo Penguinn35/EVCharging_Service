@@ -19,7 +19,7 @@ public class ChargingStation {
     String name;
     Double longitude;
     Double latitude;
-    String locationName;
+    String address;
     Long totalPoints;
     String status;
 }

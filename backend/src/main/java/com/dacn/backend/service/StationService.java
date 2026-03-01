@@ -16,4 +16,9 @@ public class StationService {
     public List<ChargingStation> getAllStations() {
         return stationRepo.findAll();
     }
+
+    public List<ChargingStation> searchByKeyword(String keyword) {
+        // TODO Auto-generated method stub
+        return stationRepo.findByKeyword(keyword);
+    }
 }

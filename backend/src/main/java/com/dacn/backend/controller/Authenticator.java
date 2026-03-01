@@ -3,7 +3,7 @@ package com.dacn.backend.controller;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.dacn.backend.dto.LoginDTO;
-import com.dacn.backend.model.EVUser;
+import com.dacn.backend.dto.UserRegisterDTO;
 import com.dacn.backend.service.UserService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,10 +32,10 @@ public class Authenticator {
 
 
     @PostMapping("register")
-    public ResponseEntity<EVUser> registerUser(@RequestBody EVUser user) {
+    public ResponseEntity<Boolean> registerUser(@RequestBody UserRegisterDTO user) {
         //TODO: process POST request
         user.setPassword(bEncoder.encode(user.getPassword()));
-        return new ResponseEntity<EVUser>(userService.saveUser(user), HttpStatus.CREATED);
+        return new ResponseEntity<Boolean>(userService.saveUser(user), HttpStatus.CREATED);
     }
 
     @PostMapping("login")

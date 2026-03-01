@@ -6,6 +6,8 @@ import com.dacn.backend.model.ChargingStation;
 import com.dacn.backend.model.Rating;
 import com.dacn.backend.service.StationService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,13 +29,14 @@ public class ClientController {
     StationService stationService;
 
     @GetMapping("stations")
+    @Tag(name = "Trả về tất cả các trạm sạc")
     public ResponseEntity<List<ChargingStation>> getAllStations() {
         return new ResponseEntity<List<ChargingStation>>(stationService.getAllStations(), HttpStatus.OK);
     }
 
     @GetMapping("station-search")
     public ResponseEntity<List<ChargingStation>> getStationByKeywords(@RequestParam String keyword) {
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(stationService.searchByKeyword(keyword), HttpStatus.OK);
     }
     
     @GetMapping("station-filter")
