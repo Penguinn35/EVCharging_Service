@@ -1,50 +1,96 @@
 "use client";
-import { useEffect } from "react";
-import { useStationStore } from "@/store/useStationStore";
-import { useRouter } from "next/navigation";
+
+import { useState } from "react";
+import { ManageStations } from "@/components/dashboard/manage-stations/ManageStations";
+import { SystemStatistics } from "@/components/dashboard/system-statistics/SystemStatistics";
+import { HighDemandHeatmap } from "@/components/dashboard/heatmap/HighDemandHeatmap";
+import { FiLayers, FiBarChart, FiMap } from "react-icons/fi";
+
+type TabType = "stations" | "statistics" | "heatmap";
 
 export default function DashboardPage() {
-  const { points, loading, error, fetchPoints } = useStationStore();
-  const router = useRouter();
+  const [activeTab, setActiveTab] = useState<TabType>("stations");
 
-  useEffect(() => {
-    fetchPoints(1);
-  }, [fetchPoints]);
-  const navigateMap = () => {
-    router.push("/Map");
-  };
-  if (loading) return <p className="text-center">Loading...</p>;
-  if (error) return <p className="text-center text-red-600">{error}</p>;
+  const tabs = [
+    {
+      id: "stations" as TabType,
+      label: "Manage Stations",
+      icon: FiLayers,
+    },
+    {
+      id: "statistics" as TabType,
+      label: "System Statistics",
+      icon: FiBarChart,
+    },
+    {
+      id: "heatmap" as TabType,
+      label: "High Demand Spots",
+      icon: FiMap,
+    },
+  ];
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-semibold mb-4">Charging Points</h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {points.map((p) => (
-          <div
-            key={p.id}
-            className="border rounded-xl p-4 shadow-sm bg-white hover:shadow-md transition"
-          >
-            <h2 className="font-bold text-lg mb-2">
-              #{p.id} - {p.type}
-            </h2>
-            <p>Power: {p.power} kW</p>
-            <p
-              className={
-                p.status === "Available" ? "text-green-600" : "text-yellow-600"
-              }
-            >
-              Status: {p.status}
-            </p>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Charging Station Dashboard
+              </h1>
+              <p className="text-gray-600 mt-1">
+                Enterprise-wide charging infrastructure management system
+              </p>
+            </div>
+            <div className="hidden md:flex items-center gap-3">
+              <div className="w-3 h-3 rounded-full bg-green-600 animate-pulse"></div>
+              <span className="text-sm font-medium text-gray-700">System Online</span>
+            </div>
           </div>
-        ))}
+        </div>
+      </header>
+
+      {/* Navigation Tabs */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex gap-1">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-2 px-6 py-4 border-b-2 font-medium text-sm transition-colors ${
+                    activeTab === tab.id
+                      ? "border-green-600 text-green-600"
+                      : "border-transparent text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
-      <button
-        onClick={navigateMap}
-        className="bg-blue-600 text-white px-4 py-2 rounded"
-      >
-        Map
-      </button>
+
+      {/* Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {activeTab === "stations" && <ManageStations />}
+        {activeTab === "statistics" && <SystemStatistics />}
+        {activeTab === "heatmap" && <HighDemandHeatmap />}
+      </main>
+
+      {/* Footer */}
+      <footer className="bg-white border-t border-gray-200 mt-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <p className="text-center text-sm text-gray-600">
+            Charging Station Management System v1.0 | Last Updated: {new Date().toLocaleString()}
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }
