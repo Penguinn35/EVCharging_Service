@@ -2,6 +2,8 @@ package com.dacn.backend.model;
 
 import org.springframework.stereotype.Component;
 
+import com.dacn.backend.model.type.Coordinate;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
@@ -17,9 +19,10 @@ public class ChargingStation {
     @Id
     String id;
     String name;
-    Double longitude;
-    Double latitude;
+    String manufacturer;
+    Coordinate position;
     String address;
+    String district;
     Long totalPoints;
     String status;
 }
