@@ -39,7 +39,7 @@ public class ClientController {
     // }
 
     @GetMapping("search")
-    @Operation(summary = "API tìm kiếm trạm sạc", description = "Trả về tên và id của 5 trạm sạc dựa trên keyword.")
+    @Operation(summary = "API tìm kiếm trạm sạc", description = "Trả về tên và id của 5 trạm sạc dựa trên keyword. Nhớ thêm vào extension 'unaccent' cho db")
     public ResponseEntity<List<StationResponseDTO>> getStationByKeywords(@RequestParam String keyword) {
         // return new ResponseEntity<>(stationService.searchByKeyword(keyword), HttpStatus.OK);
         List<StationResponseDTO> responses = stationService.searchByKeyword(keyword);

@@ -19,11 +19,12 @@ public class ChargingStationRepoImpl {
     private String deAccent(String str) {
         String nfdNormalizedString = Normalizer.normalize(str, Normalizer.Form.NFD); 
         Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
-        return pattern.matcher(nfdNormalizedString).replaceAll("");
+        return pattern.matcher(nfdNormalizedString).replaceAll("").replaceAll("đ", "d");
     }
 
     public List<StationResponseDTO> findByKeyword(String keyword, int limit) {
-        return entityManager.createQuery("SELECT s.id, s.name FROM ChargingStation s WHERE LOWER(s.name) LIKE LOWER(:keyword) OR s.address LIKE LOWER(:keyword)", StationResponseDTO.class)
+        keyword = deAccent(keyword);
+        return entityManager.createQuery("SELECT s.id, s.name FROM ChargingStation s WHERE LOWER(FUNCTION('unaccent', s.name)) LIKE LOWER(:keyword) OR LOWER(FUNCTION('unaccent', s.address)) LIKE LOWER(:keyword)", StationResponseDTO.class)
             .setParameter("keyword", keyword)    
             .setMaxResults(limit).getResultList();
     }
