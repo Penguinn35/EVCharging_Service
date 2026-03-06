@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { FiUser, FiMail, FiLock, FiEye, FiEyeOff, FiCheck } from 'react-icons/fi'
 import { FcGoogle } from 'react-icons/fc'
 
-export default function RegisterForm()  {
+export function RegisterForm() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -27,7 +27,7 @@ export default function RegisterForm()  {
   }
 
   return (
-    <div className="w-full max-w-md absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 ">
+    <div className="w-full max-w-md">
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Name Input */}
         <div>

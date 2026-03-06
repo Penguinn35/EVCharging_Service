@@ -1,17 +1,14 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Saira } from "next/font/google";
+
 import "leaflet/dist/leaflet.css";
 import { AuthProvider } from "../context/AuthContext";
+import { Header } from "@/components/homePage/Header";
 import Head from "next/head";
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const sairaFont = Saira({
+  subsets: ["vietnamese"],
+  weight: "400",
 });
 
 export const metadata: Metadata = {
@@ -37,9 +34,13 @@ export default function RootLayout({
         />
       </Head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        // className={`${geistSans.variable} ${geistMono.variable} `}
+        className={`${sairaFont.className}`}
       >
-        <AuthProvider>{children}</AuthProvider>
+        <Header/>
+        <AuthProvider>
+          <main className="pt-18">{children}</main>
+        </AuthProvider>
       </body>
     </html>
   );
