@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.dacn.backend.dto.search_by_keyword.StationResponseDTO;
 import com.dacn.backend.model.ChargingStation;
 import com.dacn.backend.model.Rating;
+import com.dacn.backend.model.type.Coordinate;
 import com.dacn.backend.service.StationService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -48,6 +49,17 @@ public class ClientController {
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
+
+    @PostMapping("near")
+    @Operation(
+        summary = "API tìm trạm sạc gần đây", 
+        description = "Trả về tên và id của 5 trạm sạc gần đây nhất. Sử dụng Euclidean distance để tính toán khoảng cách"
+    )
+    public ResponseEntity<List<StationResponseDTO>> getStationByLocation(@RequestBody Coordinate position) {
+        List<StationResponseDTO> responses = stationService.searchByLocation(position);
+        return new ResponseEntity<>(responses, HttpStatus.OK);
+    }
+    
     
     @GetMapping("station-filter")
     public ResponseEntity<List<ChargingStation>> findStationWithFilters(@RequestBody String filter) {

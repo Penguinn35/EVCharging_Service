@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.dacn.backend.dto.search_by_keyword.StationResponseDTO;
 import com.dacn.backend.model.ChargingStation;
+import com.dacn.backend.model.type.Coordinate;
 import com.dacn.backend.repository.ChargingStationRepo;
 import com.dacn.backend.repository.impl.ChargingStationRepoImpl;
 
@@ -26,5 +27,10 @@ public class StationService {
         keyword = "%" + keyword + "%";
         int limit = 5; // to limit the rows returned
         return stationRepoImpl.findByKeyword(keyword, limit);
+    }
+
+    public List<StationResponseDTO> searchByLocation(Coordinate position) {
+        // TODO Auto-generated method stub
+        return stationRepo.findByLongitudeAndLatitude(position.getLongitude(), position.getLatitude());
     }
 }
