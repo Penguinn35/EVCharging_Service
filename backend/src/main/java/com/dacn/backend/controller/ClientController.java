@@ -9,6 +9,8 @@ import com.dacn.backend.model.type.Coordinate;
 import com.dacn.backend.service.StationService;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.List;
@@ -40,7 +42,16 @@ public class ClientController {
     // }
 
     @GetMapping("search")
-    @Operation(summary = "API tìm kiếm trạm sạc", description = "Trả về tên và id của 5 trạm sạc dựa trên keyword. Nhớ thêm vào extension 'unaccent' cho db")
+    @Operation(
+        summary = "API tìm kiếm trạm sạc theo từ khóa", 
+        description = "Trả về tên và id của 5 trạm sạc dựa trên keyword.\n Note: Nhớ thêm vào extension 'unaccent' cho db"
+    )
+    @ApiResponses(
+        value = {
+            @ApiResponse(responseCode = "200", description = "Trả về thành công các trạm sạc"),
+            @ApiResponse(responseCode = "404", description = "Không tìm thấy trạm sạc")
+        }
+    )
     public ResponseEntity<List<StationResponseDTO>> getStationByKeywords(@RequestParam String keyword) {
         // return new ResponseEntity<>(stationService.searchByKeyword(keyword), HttpStatus.OK);
         List<StationResponseDTO> responses = stationService.searchByKeyword(keyword);

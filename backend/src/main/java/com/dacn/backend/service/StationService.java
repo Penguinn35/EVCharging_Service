@@ -1,6 +1,8 @@
 package com.dacn.backend.service;
 
+import java.text.Normalizer;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -9,14 +11,20 @@ import com.dacn.backend.dto.search_by_keyword.StationResponseDTO;
 import com.dacn.backend.model.ChargingStation;
 import com.dacn.backend.model.type.Coordinate;
 import com.dacn.backend.repository.ChargingStationRepo;
-import com.dacn.backend.repository.impl.ChargingStationRepoImpl;
 
 @Service
 public class StationService {
     @Autowired
     private ChargingStationRepo stationRepo;
-    @Autowired
-    private ChargingStationRepoImpl stationRepoImpl;
+
+    private String deAccent(String str) {
+        String nfdNormalizedString = Normalizer.normalize(str, Normalizer.Form.NFD); 
+        Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+        return pattern.matcher(nfdNormalizedString)
+            .replaceAll("")
+            .toLowerCase()
+            .replaceAll("đ", "d");
+    }
 
     public List<ChargingStation> getAllStations() {
         return stationRepo.findAll();
@@ -24,9 +32,11 @@ public class StationService {
 
     public List<StationResponseDTO> searchByKeyword(String keyword) {
         // TODO Auto-generated method 
-        keyword = "%" + keyword + "%";
+
+        keyword = "%" + deAccent(keyword) + "%";
+        System.out.println("Keyword accepted: " + keyword);
         int limit = 5; // to limit the rows returned
-        return stationRepoImpl.findByKeyword(keyword, limit);
+        return stationRepo.findByKeyword(keyword, limit);
     }
 
     public List<StationResponseDTO> searchByLocation(Coordinate position) {

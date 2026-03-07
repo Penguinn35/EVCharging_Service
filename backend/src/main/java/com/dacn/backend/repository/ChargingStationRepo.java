@@ -12,7 +12,19 @@ import com.dacn.backend.model.ChargingStation;
 
 @Repository
 public interface ChargingStationRepo extends JpaRepository<ChargingStation, String> {    
-    @Query("SELECT s.id, s.name FROM ChargingStation s WHERE s.name LIKE :keyword OR s.address LIKE :keyword")
+    // @Query("SELECT s.id, s.name FROM ChargingStation s WHERE s.name LIKE :keyword OR s.address LIKE :keyword")
+    // public List<StationResponseDTO> findByKeyword(String keyword, int limit);
+
+    @Query(
+        value = """
+                SELECT id, name
+                FROM charging_station s
+                WHERE LOWER(unaccent(s.name)) LIKE ?1 OR LOWER(unaccent(s.address)) LIKE ?1
+                ORDER BY s.name
+                LIMIT ?2
+                """,
+        nativeQuery = true
+    )
     public List<StationResponseDTO> findByKeyword(String keyword, int limit);
 
     @Query(value = """
