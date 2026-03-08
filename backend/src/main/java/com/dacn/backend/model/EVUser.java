@@ -23,7 +23,7 @@ public class EVUser {
     @Column(unique = true, nullable = false)
     String username;
     String role;
-    String name;
+    String fullName;
     String email;
     String password;
     
