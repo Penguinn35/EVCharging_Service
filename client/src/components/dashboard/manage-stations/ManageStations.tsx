@@ -34,10 +34,7 @@ export function ManageStations() {
             <FiRefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} />
             Refresh
           </button>
-          <button className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 transition-colors">
-            <FiPlus className="w-4 h-4" />
-            Add Station
-          </button>
+          
         </div>
       </div>
 

@@ -6,6 +6,7 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+   --primary: #2563eb;
 }
 
 @theme inline {
