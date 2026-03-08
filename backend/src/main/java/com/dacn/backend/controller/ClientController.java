@@ -2,6 +2,7 @@ package com.dacn.backend.controller;
 
 import org.springframework.web.bind.annotation.RestController;
 
+import com.dacn.backend.dto.StationDetailResponseDTO;
 import com.dacn.backend.dto.search_by_keyword.StationResponseDTO;
 import com.dacn.backend.model.ChargingStation;
 import com.dacn.backend.model.Rating;
@@ -71,7 +72,25 @@ public class ClientController {
         return new ResponseEntity<>(responses, HttpStatus.OK);
     }
     
-    
+    @GetMapping("{id}")
+    @Operation(
+        summary = "API thông tin chi tiết trạm sạc",
+        description = "Input là id của trạm sạc, trả về các thông tin của trạm sạc với id đó"
+    )
+    @ApiResponses(
+        value = {
+            @ApiResponse(responseCode = "200", description = "Trả về thành công thông tin trạm sạc"),
+            @ApiResponse(responseCode = "404", description = "Không có trạm sạc với id đó")
+        }
+    )
+    public ResponseEntity<StationDetailResponseDTO> viewStationDetails(@PathVariable String id) {
+        StationDetailResponseDTO stationDetail = stationService.getStationDetail(id);
+        if (stationDetail == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(stationDetail, HttpStatus.OK);
+    }
+
     @GetMapping("station-filter")
     public ResponseEntity<List<ChargingStation>> findStationWithFilters(@RequestBody String filter) {
         return new ResponseEntity<>(HttpStatus.OK);
@@ -82,10 +101,7 @@ public class ClientController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping("{id}")
-    public ResponseEntity<ChargingStation> viewStationDetails(@PathVariable String id) {
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
+    
     
     @PostMapping("rating")
     public ResponseEntity<Rating> postMethodName(@RequestBody Rating rating) {

@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.dacn.backend.dto.StationDetailResponseDTO;
 import com.dacn.backend.dto.search_by_keyword.StationResponseDTO;
 import com.dacn.backend.model.ChargingStation;
 import com.dacn.backend.model.type.Coordinate;
@@ -42,5 +43,20 @@ public class StationService {
     public List<StationResponseDTO> searchByLocation(Coordinate position) {
         // TODO Auto-generated method stub
         return stationRepo.findByLongitudeAndLatitude(position.getLongitude(), position.getLatitude());
+    }
+
+    public StationDetailResponseDTO getStationDetail(String id) {
+        ChargingStation station = stationRepo.findById(id).orElse(null);
+        if (station == null) {
+            return null;
+        }
+        StationDetailResponseDTO response = new StationDetailResponseDTO();
+        response.setId(id);
+        response.setName(station.getName());
+        response.setManufacturer(station.getManufacturer());
+        response.setAddress(station.getAddress());
+        response.setStatus(station.getStatus());
+        response.setPosition(station.getPosition());
+        return response;
     }
 }
