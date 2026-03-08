@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import com.dacn.backend.dto.StationDetailResponseDTO;
 import com.dacn.backend.dto.UserStationCategoriesRequestDTO;
 import com.dacn.backend.dto.search_by_keyword.StationResponseDTO;
-import com.dacn.backend.model.ChargingPoint;
 import com.dacn.backend.model.ChargingStation;
 import com.dacn.backend.model.type.Coordinate;
 import com.dacn.backend.repository.ChargingPointRepo;
@@ -68,6 +67,5 @@ public class StationService {
     public StationResponseDTO getSuggestedStation(UserStationCategoriesRequestDTO categories) {
         // TODO Auto-generated method stub
         return stationRepo.findByCableType(categories.getChargeCableType(), categories.getPosition().getLongitude(), categories.getPosition().getLatitude());
-
     }
 }
