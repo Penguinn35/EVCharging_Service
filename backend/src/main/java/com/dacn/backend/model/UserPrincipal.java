@@ -19,13 +19,7 @@ public class UserPrincipal implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         // TODO Auto-generated method stub
-        return Collections.singleton(new SimpleGrantedAuthority(user.getRole()));
-        /*
-        Phân quyền:
-        - CLIENT: dành cho khách
-        - BUSINESS: dành cho doanh nghiệp (CPO)
-        - ADMIN: dành cho admin
-        */
+        return Collections.singleton(new SimpleGrantedAuthority("USER"));
     }
 
     @Override
