@@ -6,10 +6,10 @@ import lombok.Data;
 
 @Data
 public class StationDetailResponseDTO {
-    String id;
-    String name;
-    String manufacturer;
-    Coordinate position;
-    String address;
-    String status;
+    private String id;
+    private String name;
+    private String manufacturer;
+    private Coordinate position;
+    private String address;
+    private String status;
 }

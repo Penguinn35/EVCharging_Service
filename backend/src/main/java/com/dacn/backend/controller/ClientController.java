@@ -3,6 +3,7 @@ package com.dacn.backend.controller;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.dacn.backend.dto.StationDetailResponseDTO;
+import com.dacn.backend.dto.UserStationCategoriesRequestDTO;
 import com.dacn.backend.dto.search_by_keyword.StationResponseDTO;
 import com.dacn.backend.model.ChargingStation;
 import com.dacn.backend.model.Rating;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.PostMapping;
 
 
@@ -91,14 +93,9 @@ public class ClientController {
         return new ResponseEntity<>(stationDetail, HttpStatus.OK);
     }
 
-    @GetMapping("station-filter")
-    public ResponseEntity<List<ChargingStation>> findStationWithFilters(@RequestBody String filter) {
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-    @GetMapping("route")
-    public ResponseEntity<String> getRoute(@RequestBody ChargingStation station) {
-        return new ResponseEntity<>(HttpStatus.OK);
+    @PostMapping("suggestion")
+    public ResponseEntity<StationResponseDTO> suggestStation(@RequestBody UserStationCategoriesRequestDTO categories) {
+        
     }
 
     
