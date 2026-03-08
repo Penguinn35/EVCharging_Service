@@ -8,15 +8,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.dacn.backend.dto.StationDetailResponseDTO;
+import com.dacn.backend.dto.UserStationCategoriesRequestDTO;
 import com.dacn.backend.dto.search_by_keyword.StationResponseDTO;
+import com.dacn.backend.model.ChargingPoint;
 import com.dacn.backend.model.ChargingStation;
 import com.dacn.backend.model.type.Coordinate;
+import com.dacn.backend.repository.ChargingPointRepo;
 import com.dacn.backend.repository.ChargingStationRepo;
 
 @Service
 public class StationService {
     @Autowired
     private ChargingStationRepo stationRepo;
+    @Autowired
+    private ChargingPointRepo chargingPointRepo;
 
     private String deAccent(String str) {
         String nfdNormalizedString = Normalizer.normalize(str, Normalizer.Form.NFD); 
@@ -58,5 +63,11 @@ public class StationService {
         response.setStatus(station.getStatus());
         response.setPosition(station.getPosition());
         return response;
+    }
+
+    public StationResponseDTO getSuggestedStation(UserStationCategoriesRequestDTO categories) {
+        // TODO Auto-generated method stub
+        return stationRepo.findByCableType(categories.getChargeCableType(), categories.getPosition().getLongitude(), categories.getPosition().getLatitude());
+
     }
 }

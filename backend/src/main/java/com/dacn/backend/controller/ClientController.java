@@ -18,6 +18,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.graphql.GraphQlProperties.Http;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -94,8 +95,12 @@ public class ClientController {
     }
 
     @PostMapping("suggestion")
+    @Operation(
+        summary = "API gợi ý trạm sạc",
+        description = "Trả về 1 trạm sạc phù hợp với loại đầu sạc thường được sử dụng và vị trí hiện tại gần nhất của người dùng"
+    )
     public ResponseEntity<StationResponseDTO> suggestStation(@RequestBody UserStationCategoriesRequestDTO categories) {
-        
+        return new ResponseEntity<>(stationService.getSuggestedStation(categories), HttpStatus.OK);
     }
 
     
