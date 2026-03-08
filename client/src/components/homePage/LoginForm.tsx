@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi'
 import { FcGoogle } from 'react-icons/fc'
 
-export default function LoginForm() {
+export function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -16,8 +16,8 @@ export default function LoginForm() {
   }
 
   return (
-    <div className="w-full max-w-md absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-      <form onSubmit={handleSubmit} className="space-y-6 ">
+    <div className="w-full max-w-md">
+      <form onSubmit={handleSubmit} className="space-y-6">
         {/* Email Input */}
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
