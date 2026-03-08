@@ -1,11 +1,15 @@
 package com.dacn.backend.service;
 
+import java.text.Normalizer;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.dacn.backend.dto.search_by_keyword.StationResponseDTO;
 import com.dacn.backend.model.ChargingStation;
+import com.dacn.backend.model.type.Coordinate;
 import com.dacn.backend.repository.ChargingStationRepo;
 
 @Service
@@ -13,7 +17,30 @@ public class StationService {
     @Autowired
     private ChargingStationRepo stationRepo;
 
+    private String deAccent(String str) {
+        String nfdNormalizedString = Normalizer.normalize(str, Normalizer.Form.NFD); 
+        Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+        return pattern.matcher(nfdNormalizedString)
+            .replaceAll("")
+            .toLowerCase()
+            .replaceAll("đ", "d");
+    }
+
     public List<ChargingStation> getAllStations() {
         return stationRepo.findAll();
+    }
+
+    public List<StationResponseDTO> searchByKeyword(String keyword) {
+        // TODO Auto-generated method 
+
+        keyword = "%" + deAccent(keyword) + "%";
+        System.out.println("Keyword accepted: " + keyword);
+        int limit = 5; // to limit the rows returned
+        return stationRepo.findByKeyword(keyword, limit);
+    }
+
+    public List<StationResponseDTO> searchByLocation(Coordinate position) {
+        // TODO Auto-generated method stub
+        return stationRepo.findByLongitudeAndLatitude(position.getLongitude(), position.getLatitude());
     }
 }
