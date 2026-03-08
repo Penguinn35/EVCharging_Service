@@ -1,11 +1,14 @@
 package com.dacn.backend.model;
 
+import java.util.List;
+
 import org.springframework.stereotype.Component;
 
 import com.dacn.backend.model.type.Coordinate;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,12 +20,14 @@ import lombok.NoArgsConstructor;
 @Component
 public class ChargingStation {
     @Id
-    String id;
-    String name;
-    String manufacturer;
-    Coordinate position;
-    String address;
-    String district;
-    Long totalPoints;
-    String status;
+    private String id;
+    private String name;
+    private String manufacturer;
+    private Coordinate position;
+    private String address;
+    private String district;
+    private Long totalPoints;
+    private String status;
+    @OneToMany(mappedBy = "chargingStation")
+    private List<ChargingPoint> chargingPoints;
 }

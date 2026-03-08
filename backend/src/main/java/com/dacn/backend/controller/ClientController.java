@@ -2,6 +2,8 @@ package com.dacn.backend.controller;
 
 import org.springframework.web.bind.annotation.RestController;
 
+import com.dacn.backend.dto.StationDetailResponseDTO;
+import com.dacn.backend.dto.UserStationCategoriesRequestDTO;
 import com.dacn.backend.dto.search_by_keyword.StationResponseDTO;
 import com.dacn.backend.model.ChargingStation;
 import com.dacn.backend.model.Rating;
@@ -16,6 +18,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.graphql.GraphQlProperties.Http;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +26,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.PostMapping;
 
 
@@ -71,21 +75,35 @@ public class ClientController {
         return new ResponseEntity<>(responses, HttpStatus.OK);
     }
     
-    
-    @GetMapping("station-filter")
-    public ResponseEntity<List<ChargingStation>> findStationWithFilters(@RequestBody String filter) {
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-    @GetMapping("route")
-    public ResponseEntity<String> getRoute(@RequestBody ChargingStation station) {
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-
     @GetMapping("{id}")
-    public ResponseEntity<ChargingStation> viewStationDetails(@PathVariable String id) {
-        return new ResponseEntity<>(HttpStatus.OK);
+    @Operation(
+        summary = "API thông tin chi tiết trạm sạc",
+        description = "Input là id của trạm sạc, trả về các thông tin của trạm sạc với id đó"
+    )
+    @ApiResponses(
+        value = {
+            @ApiResponse(responseCode = "200", description = "Trả về thành công thông tin trạm sạc"),
+            @ApiResponse(responseCode = "404", description = "Không có trạm sạc với id đó")
+        }
+    )
+    public ResponseEntity<StationDetailResponseDTO> viewStationDetails(@PathVariable String id) {
+        StationDetailResponseDTO stationDetail = stationService.getStationDetail(id);
+        if (stationDetail == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(stationDetail, HttpStatus.OK);
     }
+
+    @PostMapping("suggestion")
+    @Operation(
+        summary = "API gợi ý trạm sạc",
+        description = "Trả về 1 trạm sạc phù hợp với loại đầu sạc thường được sử dụng và vị trí hiện tại gần nhất của người dùng"
+    )
+    public ResponseEntity<StationResponseDTO> suggestStation(@RequestBody UserStationCategoriesRequestDTO categories) {
+        return new ResponseEntity<>(stationService.getSuggestedStation(categories), HttpStatus.OK);
+    }
+
+    
     
     @PostMapping("rating")
     public ResponseEntity<Rating> postMethodName(@RequestBody Rating rating) {
