@@ -4,14 +4,20 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { FiUser, FiMail, FiLock, FiEye, FiEyeOff, FiCheck } from 'react-icons/fi'
 import { FcGoogle } from 'react-icons/fc'
+import { Header } from '@/components/homePage/Header'
 
-export default function RegisterForm()  {
-  const [formData, setFormData] = useState({
-    name: '',
+import { registerType } from '@/models/user'
+import { createUser } from '@/services/userService'
+
+export default function RegisterForm() {
+  const [formData, setFormData] = useState<registerType>({
+    userName: '',
+    fullName: '',
     email: '',
-    password: '',
-    confirmPassword: '',
+    password: ''
   })
+
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [agreeTerms, setAgreeTerms] = useState(false)
@@ -21,177 +27,161 @@ export default function RegisterForm()  {
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Mock submission - no actual logic
+
+    if (formData.password !== confirmPassword) {
+      alert('Password confirmation does not match')
+      return
+    }
+
+    try {
+      await createUser(formData)
+      alert('Register success')
+    } catch (error) {
+      console.error(error)
+      alert('Register failed')
+    }
   }
 
   return (
-    <div className="w-full max-w-md absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 ">
+<><Header/>
+    <div className="w-full max-w-md absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+      
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Name Input */}
+
+        {/* Username */}
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Username
+          </label>
+          <input
+            name="userName"
+            type="text"
+            value={formData.userName}
+            onChange={handleChange}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg"
+          />
+        </div>
+
+        {/* Full Name */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Họ và Tên
           </label>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <FiUser className="w-5 h-5 text-gray-400" />
-            </div>
+            <FiUser className="absolute left-3 top-3 text-gray-400"/>
             <input
-              id="name"
-              name="name"
+              name="fullName"
               type="text"
-              value={formData.name}
+              value={formData.fullName}
               onChange={handleChange}
-              placeholder="Nguyễn Văn A"
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg"
             />
           </div>
         </div>
 
-        {/* Email Input */}
+        {/* Email */}
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Email
           </label>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <FiMail className="w-5 h-5 text-gray-400" />
-            </div>
+            <FiMail className="absolute left-3 top-3 text-gray-400"/>
             <input
-              id="email"
               name="email"
               type="email"
               value={formData.email}
               onChange={handleChange}
-              placeholder="you@example.com"
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg"
             />
           </div>
         </div>
 
-        {/* Password Input */}
+        {/* Password */}
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Mật khẩu
           </label>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <FiLock className="w-5 h-5 text-gray-400" />
-            </div>
+            <FiLock className="absolute left-3 top-3 text-gray-400"/>
             <input
-              id="password"
               name="password"
               type={showPassword ? 'text' : 'password'}
               value={formData.password}
               onChange={handleChange}
-              placeholder="••••••••"
-              className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
+              className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-3"
             >
-              {showPassword ? (
-                <FiEyeOff className="w-5 h-5" />
-              ) : (
-                <FiEye className="w-5 h-5" />
-              )}
+              {showPassword ? <FiEyeOff/> : <FiEye/>}
             </button>
           </div>
         </div>
 
-        {/* Confirm Password Input */}
+        {/* Confirm password */}
         <div>
-          <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Xác Nhận Mật Khẩu
           </label>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <FiLock className="w-5 h-5 text-gray-400" />
-            </div>
+            <FiLock className="absolute left-3 top-3 text-gray-400"/>
             <input
-              id="confirmPassword"
-              name="confirmPassword"
               type={showConfirmPassword ? 'text' : 'password'}
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              placeholder="••••••••"
-              className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg"
             />
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-3"
             >
-              {showConfirmPassword ? (
-                <FiEyeOff className="w-5 h-5" />
-              ) : (
-                <FiEye className="w-5 h-5" />
-              )}
+              {showConfirmPassword ? <FiEyeOff/> : <FiEye/>}
             </button>
           </div>
         </div>
 
-        {/* Terms & Conditions */}
+        {/* Terms */}
         <label className="flex items-start gap-2 text-sm text-gray-700 cursor-pointer">
           <input
             type="checkbox"
             checked={agreeTerms}
             onChange={(e) => setAgreeTerms(e.target.checked)}
-            className="w-4 h-4 rounded border-gray-300 text-primary cursor-pointer mt-0.5"
           />
           <span>
-            Tôi đồng ý với{' '}
-            <Link href="/terms" className="text-primary hover:text-primary-dark transition font-semibold">
-              Điều Khoản Dịch Vụ
-            </Link>
-            {' '}và{' '}
-            <Link href="/privacy" className="text-primary hover:text-primary-dark transition font-semibold">
-              Chính Sách Riêng Tư
-            </Link>
+            Tôi đồng ý với <Link href="/terms" className="text-primary">Điều Khoản</Link>
           </span>
         </label>
 
-        {/* Register Button */}
         <button
           type="submit"
           disabled={!agreeTerms}
-          className="w-full bg-primary text-white py-3 rounded-lg hover:bg-primary-dark transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full bg-primary text-white py-3 rounded-lg flex items-center justify-center gap-2"
         >
-          <FiCheck className="w-5 h-5" />
+          <FiCheck/>
           Tạo Tài Khoản
         </button>
 
-        {/* Divider */}
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300"></div>
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">Hoặc đăng kí với</span>
-          </div>
-        </div>
-
-        {/* Google Button */}
         <button
           type="button"
-          className="w-full flex items-center justify-center gap-3 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium"
+          className="w-full flex items-center justify-center gap-3 py-3 border border-gray-300 rounded-lg"
         >
-          <FcGoogle className="w-5 h-5" />
+          <FcGoogle/>
           Đăng Kí với Google
         </button>
       </form>
 
-      {/* Login Link */}
       <p className="text-center text-gray-600 mt-6">
         Đã có tài khoản?{' '}
-        <Link href="/login" className="text-primary hover:text-primary-dark transition font-semibold">
+        <Link href="/login" className="text-primary font-semibold">
           Đăng Nhập Ngay
         </Link>
       </p>
-    </div>
+    </div></>
+    
   )
 }

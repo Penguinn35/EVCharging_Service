@@ -1,3 +1,4 @@
+
 import type { Metadata } from "next";
 import "./globals.css";
 import { Saira } from "next/font/google";
@@ -21,6 +22,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
   return (
     <html lang="en">
        <Head>
@@ -34,12 +36,10 @@ export default function RootLayout({
         />
       </Head>
       <body
-        // className={`${geistSans.variable} ${geistMono.variable} `}
         className={`${sairaFont.className}`}
       >
-        <Header/>
         <AuthProvider>
-          <main className="pt-18">{children}</main>
+          <main >{children}</main>
         </AuthProvider>
       </body>
     </html>
