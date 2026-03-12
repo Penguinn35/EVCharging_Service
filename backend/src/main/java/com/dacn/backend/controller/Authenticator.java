@@ -1,5 +1,7 @@
 package com.dacn.backend.controller;
 
+import com.dacn.backend.dto.LoginResponseDTO;
+import com.dacn.backend.object.ResponseObject;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.dacn.backend.dto.LoginDTO;
@@ -32,17 +34,39 @@ public class Authenticator {
 
 
     @PostMapping("register")
-    public ResponseEntity<Boolean> registerUser(@RequestBody UserRegisterDTO user) {
+    public ResponseEntity<ResponseObject<Boolean>> registerUser(@RequestBody UserRegisterDTO user) {
         //TODO: process POST request
         user.setPassword(bEncoder.encode(user.getPassword()));
-        return new ResponseEntity<Boolean>(userService.saveUser(user), HttpStatus.CREATED);
+//        return new ResponseEntity<Boolean>(userService.saveUser(user), HttpStatus.CREATED);
+        try {
+            Boolean isCreatedUser = userService.saveUser(user);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ResponseObject<>(Boolean.FALSE, "Unable to create account! Error message: " + e.getMessage()), HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(new ResponseObject<>(true, "Created account successfully"), HttpStatus.OK);
     }
 
     @PostMapping("login")
-    public ResponseEntity<String> loginUser(@RequestBody LoginDTO user) {
+    public ResponseEntity<ResponseObject<LoginResponseDTO>> loginUser(@RequestBody LoginDTO user) {
         //TODO: process POST request
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
-        return authentication.isAuthenticated() ? new ResponseEntity<String>(userService.generateToken(user.getUsername()), HttpStatus.OK) : new ResponseEntity<String>("Login failed", HttpStatusCode.valueOf(403));
+        Authentication authentication;
+        try {
+            authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ResponseObject<>(null, "Wrong password and username"), HttpStatus.FORBIDDEN);
+        }
+//        return authentication.isAuthenticated() ?
+//                new ResponseEntity<>(userService.generateToken(user.getUsername()), HttpStatus.OK) :
+//                new ResponseEntity<String>("Login failed", HttpStatusCode.valueOf(403));
+        if (authentication.isAuthenticated()) {
+            LoginResponseDTO response = new LoginResponseDTO(
+                    userService.generateToken(user.getUsername()),
+                    userService.getUserId(user.getUsername())
+            );
+            return new ResponseEntity<>(new ResponseObject<>(response, "Successfully return token and user info"), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(new ResponseObject<>(null, "Wrong password and username"), HttpStatus.FORBIDDEN);
+        }
     }
     
     

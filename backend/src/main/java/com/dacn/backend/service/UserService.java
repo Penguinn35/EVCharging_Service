@@ -11,6 +11,7 @@ import java.util.function.Function;
 // import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
+import com.dacn.backend.dto.UserResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -90,4 +91,9 @@ public class UserService {
     }
 
 
+    public UserResponseDTO getUserId(String username) {
+        UserResponseDTO user;
+        user = eVUserRepo.findIdByUsername(username);
+        return user;
+    }
 }
