@@ -1,3 +1,15 @@
+export type registerType = {
+  userName: string,
+  password: string,
+  email: string,
+  fullName: string
+}
+
+export type loginType = {
+  username: string,
+  password: string
+}
+
 export interface User {
   id: number;
   name: string;
