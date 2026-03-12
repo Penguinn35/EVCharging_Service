@@ -39,7 +39,6 @@ public class StationService {
         // TODO Auto-generated method 
 
         keyword = "%" + deAccent(keyword) + "%";
-        System.out.println("Keyword accepted: " + keyword);
         int limit = 5; // to limit the rows returned
         return stationRepo.findByKeyword(keyword, limit);
     }

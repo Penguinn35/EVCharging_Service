@@ -37,11 +37,12 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
     public List<StationResponseDTO> findByLongitudeAndLatitude(@Param("longitude") Double longitude, @Param ("latitude") Double latitude);
 
     @Query(value = """
-            SELECT id, name
+            SELECT s.id, s.name
             FROM charging_station s, charging_point p, connector c
             WHERE p.charging_station_id = s.id AND c.charging_point_id = p.id
                 AND c.type = :cableType 
                 AND SQRT(POWER(:longitude - s.longitude, 2) + POWER(:latitude - s.latitude, 2)) < 0.045
+                AND p.status = 'AVAILABLE'
             LIMIT 1
             """, nativeQuery = true)
     public StationResponseDTO findByCableType(
