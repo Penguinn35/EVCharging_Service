@@ -10,7 +10,6 @@ import com.dacn.backend.service.UserService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -26,7 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class Authenticator {
     @Autowired
     private UserService userService;
-    private BCryptPasswordEncoder bEncoder = new BCryptPasswordEncoder(12);
+    private final BCryptPasswordEncoder bEncoder = new BCryptPasswordEncoder(12);
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -39,7 +38,7 @@ public class Authenticator {
         user.setPassword(bEncoder.encode(user.getPassword()));
 //        return new ResponseEntity<Boolean>(userService.saveUser(user), HttpStatus.CREATED);
         try {
-            Boolean isCreatedUser = userService.saveUser(user);
+            userService.saveUser(user);
         } catch (Exception e) {
             return new ResponseEntity<>(new ResponseObject<>(Boolean.FALSE, "Unable to create account! Error message: " + e.getMessage()), HttpStatus.BAD_REQUEST);
         }
