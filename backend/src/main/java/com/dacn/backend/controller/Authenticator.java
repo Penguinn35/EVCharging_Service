@@ -2,7 +2,12 @@ package com.dacn.backend.controller;
 
 import com.dacn.backend.dto.LoginResponseDTO;
 import com.dacn.backend.object.ResponseObject;
-import org.springframework.http.HttpStatusCode;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.dacn.backend.dto.LoginDTO;
@@ -23,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @RestController
 @RequestMapping("auth")
+@Tag(name = "API đăng kí/ đăng nhập", description = "Dành cho việc đăng nhập, đăng kí và phân quyền")
 public class Authenticator {
     @Autowired
     private UserService userService;
@@ -30,10 +36,18 @@ public class Authenticator {
 
     @Autowired
     private AuthenticationManager authenticationManager;
-    
-
 
     @PostMapping("register")
+    @Operation(
+            summary = "Đăng ký tài khoản người dùng mới",
+            description = "Nhập tên người dùng, tài khoản, mật khẩu, email"
+    )
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "Đăng kí thành công và trả về id user"),
+                    @ApiResponse(responseCode = "400", description = "Đăng kí thất bại")
+            }
+    )
     public ResponseEntity<ResponseObject<Boolean>> registerUser(@RequestBody UserRegisterDTO user) {
         //TODO: process POST request
         user.setPassword(bEncoder.encode(user.getPassword()));
@@ -47,6 +61,16 @@ public class Authenticator {
     }
 
     @PostMapping("login")
+    @Operation(
+            summary = "Đăng nhập tài khoản mật khẩu",
+            description = "Nhập tên tài khoản mật khẩu, trả về token và userId"
+    )
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "Đăng nhập thành công"),
+                    @ApiResponse(responseCode = "401", description = "Đăng nhập thất bại, sai tên tài khoản, mật khẩu")
+            }
+    )
     public ResponseEntity<ResponseObject<LoginResponseDTO>> loginUser(@RequestBody LoginDTO user) {
         //TODO: process POST request
         Authentication authentication;
