@@ -2,6 +2,7 @@ package com.dacn.backend.controller;
 
 import com.dacn.backend.dto.LoginResponseDTO;
 import com.dacn.backend.object.ResponseObject;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.dacn.backend.dto.LoginDTO;
@@ -40,9 +41,9 @@ public class Authenticator {
         try {
             userService.saveUser(user);
         } catch (Exception e) {
-            return new ResponseEntity<>(new ResponseObject<>(Boolean.FALSE, "Unable to create account! Error message: " + e.getMessage()), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ResponseObject<>(HttpStatus.BAD_REQUEST, "Unable to create account! Error message: " + e.getMessage(), Boolean.FALSE), HttpStatus.BAD_REQUEST);
         }
-        return new ResponseEntity<>(new ResponseObject<>(true, "Created account successfully"), HttpStatus.OK);
+        return new ResponseEntity<>(new ResponseObject<>(HttpStatus.OK, "Created account successfully", Boolean.TRUE), HttpStatus.OK);
     }
 
     @PostMapping("login")
@@ -52,7 +53,7 @@ public class Authenticator {
         try {
             authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
         } catch (Exception e) {
-            return new ResponseEntity<>(new ResponseObject<>(null, "Wrong password and username"), HttpStatus.FORBIDDEN);
+            return new ResponseEntity<>(new ResponseObject<>(HttpStatus.UNAUTHORIZED, "Wrong password and username", null), HttpStatus.UNAUTHORIZED);
         }
 //        return authentication.isAuthenticated() ?
 //                new ResponseEntity<>(userService.generateToken(user.getUsername()), HttpStatus.OK) :
@@ -62,9 +63,9 @@ public class Authenticator {
                     userService.generateToken(user.getUsername()),
                     userService.getUserId(user.getUsername())
             );
-            return new ResponseEntity<>(new ResponseObject<>(response, "Successfully return token and user info"), HttpStatus.OK);
+            return new ResponseEntity<>(new ResponseObject<>(HttpStatus.OK, "Successfully return token and user info", response), HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(new ResponseObject<>(null, "Wrong password and username"), HttpStatus.FORBIDDEN);
+            return new ResponseEntity<>(new ResponseObject<>(HttpStatus.UNAUTHORIZED, "Wrong password and username"), HttpStatus.UNAUTHORIZED);
         }
     }
     

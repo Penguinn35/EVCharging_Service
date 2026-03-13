@@ -6,9 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
@@ -38,17 +36,17 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         response.setCharacterEncoding("UTF-8");
 
         // Tạo cấu trúc trả về (có thể thay bằng class ErrorResponse DTO của riêng bạn)
-//        Map<String, Object> errorDetails = new HashMap<>();
-//        errorDetails.put("status", HttpStatus.UNAUTHORIZED.value());
-//        errorDetails.put("error", "Unauthorized");
-//        errorDetails.put("message", "Bạn chưa đăng nhập hoặc token đã hết hạn. Vui lòng đăng nhập để sử dụng trạm sạc.");
+        Map<String, Object> errorDetails = new HashMap<>();
+        errorDetails.put("status", HttpStatus.UNAUTHORIZED.value());
+        errorDetails.put("error", "Unauthorized");
+        errorDetails.put("message", "Login failed or token expired");
 //        errorDetails.put("path", request.getRequestURI());
 
-        ResponseEntity<ResponseObject<String>> errorResponse = new ResponseEntity<>(new ResponseObject<>(
-                null, "Login failed or token expired"
-        ), HttpStatusCode.valueOf(401));
+//        ResponseObject<String> errorResponse = new ResponseObject<>(
+//                null, "Login failed or token expired"
+//        );
 
         // Ghi JSON vào body của response
-        response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
+        response.getWriter().write(objectMapper.writeValueAsString(errorDetails));
     }
 }
