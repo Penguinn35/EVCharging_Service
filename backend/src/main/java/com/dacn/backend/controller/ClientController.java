@@ -1,6 +1,7 @@
 package com.dacn.backend.controller;
 
 import com.dacn.backend.object.ResponseObject;
+import org.jspecify.annotations.NonNull;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.dacn.backend.dto.StationDetailResponseDTO;
@@ -57,6 +58,21 @@ public class ClientController {
     public ResponseEntity<ResponseObject<List<StationResponseDTO>>> getStationByKeywords(@RequestParam String keyword) {
         // return new ResponseEntity<>(stationService.searchByKeyword(keyword), HttpStatus.OK);
         List<StationResponseDTO> responses = stationService.searchByKeyword(keyword);
+        return getResponseObjectResponseEntity(responses);
+    }
+
+    @PostMapping("near")
+    @Operation(
+        summary = "API tìm trạm sạc gần đây", 
+        description = "Trả về tên và id của 5 trạm sạc gần đây nhất. Sử dụng Euclidean distance để tính toán khoảng cách"
+    )
+    public ResponseEntity<ResponseObject<List<StationResponseDTO>>> getStationByLocation(@RequestBody Coordinate position) {
+        List<StationResponseDTO> responses = stationService.searchByLocation(position);
+        return getResponseObjectResponseEntity(responses);
+    }
+
+    @NonNull
+    private ResponseEntity<ResponseObject<List<StationResponseDTO>>> getResponseObjectResponseEntity(List<StationResponseDTO> responses) {
         if (!responses.isEmpty()) {
             return new ResponseEntity<>(
                     new ResponseObject<>(HttpStatus.OK, "Returned successfully", responses, responses.size()),
@@ -69,19 +85,6 @@ public class ClientController {
         );
     }
 
-    @PostMapping("near")
-    @Operation(
-        summary = "API tìm trạm sạc gần đây", 
-        description = "Trả về tên và id của 5 trạm sạc gần đây nhất. Sử dụng Euclidean distance để tính toán khoảng cách"
-    )
-    public ResponseEntity<ResponseObject<List<StationResponseDTO>>> getStationByLocation(@RequestBody Coordinate position) {
-        List<StationResponseDTO> responses = stationService.searchByLocation(position);
-        return new ResponseEntity<>(
-                new ResponseObject<>(HttpStatus.OK, "Successfully returned", responses, responses.size()),
-                HttpStatus.OK
-        );
-    }
-    
     @GetMapping("{id}")
     @Operation(
         summary = "API thông tin chi tiết trạm sạc",
@@ -93,12 +96,12 @@ public class ClientController {
             @ApiResponse(responseCode = "404", description = "Không có trạm sạc với id đó")
         }
     )
-    public ResponseEntity<StationDetailResponseDTO> viewStationDetails(@PathVariable String id) {
+    public ResponseEntity<ResponseObject<StationDetailResponseDTO>> viewStationDetails(@PathVariable String id) {
         StationDetailResponseDTO stationDetail = stationService.getStationDetail(id);
         if (stationDetail == null) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(new ResponseObject<>(HttpStatus.NOT_FOUND, "Cannot find the station with that id"), HttpStatus.NOT_FOUND);
         }
-        return new ResponseEntity<>(stationDetail, HttpStatus.OK);
+        return new ResponseEntity<>(new ResponseObject<>(HttpStatus.OK, "Successfully returned the station detail", stationDetail), HttpStatus.OK);
     }
 
     @PostMapping("suggestion")
@@ -106,8 +109,12 @@ public class ClientController {
         summary = "API gợi ý trạm sạc",
         description = "Trả về 1 trạm sạc phù hợp với loại đầu sạc thường được sử dụng và vị trí hiện tại gần nhất của người dùng"
     )
-    public ResponseEntity<StationResponseDTO> suggestStation(@RequestBody UserStationCategoriesRequestDTO categories) {
-        return new ResponseEntity<>(stationService.getSuggestedStation(categories), HttpStatus.OK);
+    public ResponseEntity<ResponseObject<StationResponseDTO>> suggestStation(@RequestBody UserStationCategoriesRequestDTO categories) {
+        StationResponseDTO response = stationService.getSuggestedStation(categories);
+        if (response == null) {
+            return new ResponseEntity<>(new ResponseObject<>(HttpStatus.NOT_FOUND, "Cannot find the suggested station"), HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(new ResponseObject<>(HttpStatus.OK, "Successfully returned the suggested station", response), HttpStatus.OK);
     }
 
     
