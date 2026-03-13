@@ -119,10 +119,10 @@ public class ClientController {
 
     
     
-    @PostMapping("rating")
-    public ResponseEntity<Rating> postMethodName(@RequestBody Rating rating) {
-        //TODO: process POST request
-        return new ResponseEntity<>(HttpStatus.CREATED);
-    }
+//    @PostMapping("rating")
+//    public ResponseEntity<Rating> postMethodName(@RequestBody Rating rating) {
+//        //TODO: process POST request
+//        return new ResponseEntity<>(HttpStatus.CREATED);
+//    }
     
 }
