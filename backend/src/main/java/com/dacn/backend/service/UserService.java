@@ -38,7 +38,7 @@ public class UserService {
         return secretKey;
     }
 
-    public Boolean saveUser(@NonNull UserRegisterDTO user) {
+    public void saveUser(@NonNull UserRegisterDTO user) {
         EVUser newUser = new EVUser();
         newUser.setEmail(user.getEmail());
         newUser.setFullName(user.getFullName());
@@ -48,7 +48,6 @@ public class UserService {
         newUser.setPassword(user.getPassword());
 
         eVUserRepo.save(newUser);
-        return true;
     }
 
     public String generateToken(String username) {

@@ -56,7 +56,7 @@ public class ClientController {
     public ResponseEntity<List<StationResponseDTO>> getStationByKeywords(@RequestParam String keyword) {
         // return new ResponseEntity<>(stationService.searchByKeyword(keyword), HttpStatus.OK);
         List<StationResponseDTO> responses = stationService.searchByKeyword(keyword);
-        if (responses.size() > 0) {
+        if (!responses.isEmpty()) {
             return new ResponseEntity<>(responses, HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -105,7 +105,6 @@ public class ClientController {
     @PostMapping("rating")
     public ResponseEntity<Rating> postMethodName(@RequestBody Rating rating) {
         //TODO: process POST request
-        
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
     

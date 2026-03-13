@@ -1,5 +1,6 @@
 package com.dacn.backend.config;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,11 +21,14 @@ import com.dacn.backend.config.filter.JwtFilter;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
     @Autowired
     private UserDetailsService userDetailsService;
     @Autowired
     private JwtFilter jwtFilter;
+
+    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
@@ -52,6 +56,9 @@ public class SecurityConfig {
         - BUSINESS: dành cho doanh nghiệp (CPO)
         - ADMIN: dành cho admin
     */
+            .exceptionHandling(exceptions -> exceptions
+                    .authenticationEntryPoint(authenticationEntryPoint)
+            )
             .httpBasic(Customizer.withDefaults())
             .sessionManagement(session -> 
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)

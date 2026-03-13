@@ -19,8 +19,9 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
         value = """
                 SELECT id, name
                 FROM charging_station s
-                WHERE LOWER(unaccent(s.name)) LIKE ?1 OR LOWER(unaccent(s.address)) LIKE ?1
-                ORDER BY s.name
+                WHERE LOWER(unaccent(s.name)) LIKE ?1 OR LOWER(unaccent(s.address)) LIKE ?1 
+                                   OR LOWER(unaccent(s.district)) LIKE ?1
+                ORDER BY s.name ASC
                 LIMIT ?2
                 """,
         nativeQuery = true
@@ -41,8 +42,8 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
             FROM charging_station s, charging_point p, connector c
             WHERE p.charging_station_id = s.id AND c.charging_point_id = p.id
                 AND c.type = :cableType 
-                AND SQRT(POWER(:longitude - s.longitude, 2) + POWER(:latitude - s.latitude, 2)) < 0.045
                 AND p.status = 'AVAILABLE'
+            ORDER BY SQRT(POWER(:longitude - s.longitude, 2) + POWER(:latitude - s.latitude, 2))
             LIMIT 1
             """, nativeQuery = true)
     public StationResponseDTO findByCableType(
