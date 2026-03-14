@@ -13,7 +13,6 @@ import com.dacn.backend.dto.UserStationCategoriesRequestDTO;
 import com.dacn.backend.dto.search_by_keyword.StationResponseDTO;
 import com.dacn.backend.model.ChargingStation;
 import com.dacn.backend.model.type.Coordinate;
-import com.dacn.backend.repository.ChargingPointRepo;
 import com.dacn.backend.repository.ChargingStationRepo;
 
 @Service
