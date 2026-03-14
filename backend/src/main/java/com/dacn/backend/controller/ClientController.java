@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.dacn.backend.dto.StationDetailResponseDTO;
 import com.dacn.backend.dto.UserStationCategoriesRequestDTO;
 import com.dacn.backend.dto.search_by_keyword.StationResponseDTO;
-import com.dacn.backend.model.Rating;
 import com.dacn.backend.model.type.Coordinate;
 import com.dacn.backend.service.StationService;
 
