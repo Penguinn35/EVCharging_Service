@@ -27,7 +27,7 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
                 """,
         nativeQuery = true
     )
-    public List<StationSearchResponseDTO> findByKeyword(String keyword, int limit);
+    List<StationSearchResponseDTO> findByKeyword(String keyword, int limit);
 
     @Query(value = """
         SELECT * FROM (
@@ -49,7 +49,7 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
         ORDER BY distance
         LIMIT 5
         """, nativeQuery = true)
-    public List<StationResponseDTO> findByLongitudeAndLatitude(@Param("longitude") Double longitude, @Param("latitude") Double latitude);
+    List<StationResponseDTO> findByLongitudeAndLatitude(@Param("longitude") Double longitude, @Param("latitude") Double latitude);
 
     @Query(value = """
             SELECT s.id, s.name
@@ -60,7 +60,7 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
             ORDER BY SQRT(POWER(:longitude - s.longitude, 2) + POWER(:latitude - s.latitude, 2))
             LIMIT 1
             """, nativeQuery = true)
-    public StationResponseDTO findByCableType(
+    StationResponseDTO findByCableType(
         @Param("cableType") String cableType, 
         @Param("longitude") Double longitude, 
         @Param ("latitude") Double latitude

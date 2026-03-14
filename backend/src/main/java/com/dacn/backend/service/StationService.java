@@ -20,8 +20,8 @@ import com.dacn.backend.repository.ChargingStationRepo;
 public class StationService {
     @Autowired
     private ChargingStationRepo stationRepo;
-    @Autowired
-    private ChargingPointRepo chargingPointRepo;
+//    @Autowired
+//    private ChargingPointRepo chargingPointRepo;
 
     private String deAccent(String str) {
         String nfdNormalizedString = Normalizer.normalize(str, Normalizer.Form.NFD); 
@@ -32,9 +32,9 @@ public class StationService {
             .replaceAll("đ", "d");
     }
 
-    public List<ChargingStation> getAllStations() {
-        return stationRepo.findAll();
-    }
+//    public List<ChargingStation> getAllStations() {
+//        return stationRepo.findAll();
+//    }
 
     public List<StationSearchResponseDTO> searchByKeyword(String keyword) {
         // TODO Auto-generated method 
