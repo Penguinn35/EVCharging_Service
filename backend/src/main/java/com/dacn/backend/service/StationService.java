@@ -4,6 +4,7 @@ import java.text.Normalizer;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import com.dacn.backend.dto.search_by_keyword.StationSearchResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +36,7 @@ public class StationService {
         return stationRepo.findAll();
     }
 
-    public List<StationResponseDTO> searchByKeyword(String keyword) {
+    public List<StationSearchResponseDTO> searchByKeyword(String keyword) {
         // TODO Auto-generated method 
 
         keyword = "%" + deAccent(keyword) + "%";

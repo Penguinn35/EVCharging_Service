@@ -2,6 +2,7 @@ package com.dacn.backend.repository;
 
 import java.util.List;
 
+import com.dacn.backend.dto.search_by_keyword.StationSearchResponseDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -26,7 +27,7 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
                 """,
         nativeQuery = true
     )
-    public List<StationResponseDTO> findByKeyword(String keyword, int limit);
+    public List<StationSearchResponseDTO> findByKeyword(String keyword, int limit);
 
     @Query(value = """
         SELECT * FROM (

@@ -1,5 +1,6 @@
 package com.dacn.backend.controller;
 
+import com.dacn.backend.dto.search_by_keyword.StationSearchResponseDTO;
 import com.dacn.backend.object.ResponseObject;
 import org.jspecify.annotations.NonNull;
 import org.springframework.web.bind.annotation.RestController;
@@ -54,10 +55,19 @@ public class ClientController {
             @ApiResponse(responseCode = "404", description = "Không tìm thấy trạm sạc")
         }
     )
-    public ResponseEntity<ResponseObject<List<StationResponseDTO>>> getStationByKeywords(@RequestParam String keyword) {
+    public ResponseEntity<ResponseObject<List<StationSearchResponseDTO>>> getStationByKeywords(@RequestParam String keyword) {
         // return new ResponseEntity<>(stationService.searchByKeyword(keyword), HttpStatus.OK);
-        List<StationResponseDTO> responses = stationService.searchByKeyword(keyword);
-        return getResponseObjectResponseEntity(responses);
+        List<StationSearchResponseDTO> responses = stationService.searchByKeyword(keyword);
+        if (!responses.isEmpty()) {
+            return new ResponseEntity<>(
+                    new ResponseObject<>(HttpStatus.OK, "Returned successfully", responses, responses.size()),
+                    HttpStatus.OK
+            );
+        }
+        return new ResponseEntity<>(
+                new ResponseObject<>(HttpStatus.NOT_FOUND, "Cannot find any stations", null),
+                HttpStatus.NOT_FOUND
+        );
     }
 
     @PostMapping("near")
@@ -67,11 +77,6 @@ public class ClientController {
     )
     public ResponseEntity<ResponseObject<List<StationResponseDTO>>> getStationByLocation(@RequestBody Coordinate position) {
         List<StationResponseDTO> responses = stationService.searchByLocation(position);
-        return getResponseObjectResponseEntity(responses);
-    }
-
-    @NonNull
-    private ResponseEntity<ResponseObject<List<StationResponseDTO>>> getResponseObjectResponseEntity(List<StationResponseDTO> responses) {
         if (!responses.isEmpty()) {
             return new ResponseEntity<>(
                     new ResponseObject<>(HttpStatus.OK, "Returned successfully", responses, responses.size()),

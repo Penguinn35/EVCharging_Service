@@ -5,8 +5,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class StationResponseDTO {
+public class StationSearchResponseDTO {
     private String id;
     private String name;
-    private Double distanceInKilometers;
 }
