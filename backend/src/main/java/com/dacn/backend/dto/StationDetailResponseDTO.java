@@ -11,5 +11,6 @@ public class StationDetailResponseDTO {
     private String manufacturer;
     private Coordinate position;
     private String address;
+    private String district;
     private String status;
 }

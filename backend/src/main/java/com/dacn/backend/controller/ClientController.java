@@ -109,6 +109,12 @@ public class ClientController {
         summary = "API gợi ý trạm sạc",
         description = "Trả về 1 trạm sạc phù hợp với loại đầu sạc thường được sử dụng và vị trí hiện tại gần nhất của người dùng"
     )
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "Trả về thành công thông tin trạm sạc được gợi ý"),
+                    @ApiResponse(responseCode = "404", description = "Không có trạm sạc phù hợp với yêu cầu của bạn, vui lòng kiểm tra input")
+            }
+    )
     public ResponseEntity<ResponseObject<StationResponseDTO>> suggestStation(@RequestBody UserStationCategoriesRequestDTO categories) {
         StationResponseDTO response = stationService.getSuggestedStation(categories);
         if (response == null) {

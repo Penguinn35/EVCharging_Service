@@ -58,6 +58,7 @@ public class StationService {
         response.setName(station.getName());
         response.setManufacturer(station.getManufacturer());
         response.setAddress(station.getAddress());
+        response.setDistrict(station.getDistrict());
         response.setStatus(station.getStatus());
         response.setPosition(station.getPosition());
         return response;

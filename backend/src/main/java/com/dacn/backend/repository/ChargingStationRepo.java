@@ -29,7 +29,7 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
     public List<StationResponseDTO> findByKeyword(String keyword, int limit);
 
     @Query(value = """
-            SELECT id, name
+            SELECT id, name, SQRT(POWER(:longitude - s.longitude, 2) + POWER(:latitude - s.latitude, 2)) * 100
             FROM charging_station s
             WHERE SQRT(POWER(:longitude - s.longitude, 2) + POWER(:latitude - s.latitude, 2)) < 0.045
             ORDER BY SQRT(POWER(:longitude - s.longitude, 2) + POWER(:latitude - s.latitude, 2))
