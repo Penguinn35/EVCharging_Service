@@ -1,21 +1,27 @@
 package com.dacn.backend.model;
 
+import jakarta.persistence.*;
 import org.springframework.stereotype.Component;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Entity
+@Table(uniqueConstraints = {
+        @UniqueConstraint(name = "uniqueUserAndStation", columnNames = {"station_id", "user_id"})
+})
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Component
 public class Rating {
     @Id
     private String id;
     private Double point; // on a scale from 1 to 5
     private String comment;
+
+    @ManyToOne
+    @JoinColumn(name = "station_id")
+    private ChargingStation station;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private EVUser user;
 }

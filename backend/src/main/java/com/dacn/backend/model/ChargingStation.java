@@ -30,4 +30,7 @@ public class ChargingStation {
     private String status;
     @OneToMany(mappedBy = "chargingStation")
     private List<ChargingPoint> chargingPoints;
+
+    @OneToMany(mappedBy = "station")
+    private List<Rating> ratings;
 }
