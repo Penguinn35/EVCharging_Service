@@ -19,12 +19,12 @@ import lombok.NoArgsConstructor;
 public class EVUser {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    String id;
+    private String id;
     @Column(unique = true, nullable = false)
-    String username;
-    String role;
-    String fullName;
-    String email;
-    String password;
+    private String username;
+    private String role;
+    private String fullName;
+    private String email;
+    private String password;
     
 }

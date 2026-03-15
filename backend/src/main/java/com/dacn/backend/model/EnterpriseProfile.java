@@ -15,9 +15,9 @@ import lombok.NoArgsConstructor;
 @Component
 public class EnterpriseProfile {
     @Id
-    String enterpriseId;
-    String companyName;
-    String taxCode;
-    String address;
+    private String enterpriseId;
+    private String companyName;
+    private String taxCode;
+    private String address;
 
 }

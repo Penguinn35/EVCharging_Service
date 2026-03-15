@@ -14,7 +14,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Component
 public class Rating {
-    @Id String id;
-    Double point;
-    String comment;
+    @Id
+    private String id;
+    private Double point; // on a scale from 1 to 5
+    private String comment;
 }

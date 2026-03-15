@@ -1,6 +1,7 @@
 package com.dacn.backend.controller;
 
 import com.dacn.backend.dto.search_by_keyword.StationSearchResponseDTO;
+import com.dacn.backend.model.Rating;
 import com.dacn.backend.object.ResponseObject;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -128,10 +129,10 @@ public class ClientController {
 
     
     
-//    @PostMapping("rating")
-//    public ResponseEntity<Rating> postMethodName(@RequestBody Rating rating) {
-//        //TODO: process POST request
-//        return new ResponseEntity<>(HttpStatus.CREATED);
-//    }
+    @PostMapping("rating")
+    public ResponseEntity<Rating> postMethodName(@RequestBody Rating rating) {
+        //TODO: process POST request
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
     
 }
