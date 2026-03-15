@@ -1,9 +1,11 @@
 package com.dacn.backend.controller;
 
+import com.dacn.backend.dto.RatingRequestDTO;
+import com.dacn.backend.dto.RatingResponseDTO;
 import com.dacn.backend.dto.search_by_keyword.StationSearchResponseDTO;
 import com.dacn.backend.model.Rating;
 import com.dacn.backend.object.ResponseObject;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.dacn.backend.dto.StationDetailResponseDTO;
 import com.dacn.backend.dto.UserStationCategoriesRequestDTO;
@@ -21,14 +23,6 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.PostMapping;
-
-
 
 
 @RestController
@@ -129,10 +123,13 @@ public class ClientController {
 
     
     
-    @PostMapping("rating")
-    public ResponseEntity<Rating> postMethodName(@RequestBody Rating rating) {
+    @PutMapping("rating")
+    public ResponseEntity<ResponseObject<RatingResponseDTO>> postMethodName(@RequestBody RatingRequestDTO rating) {
         //TODO: process POST request
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        RatingResponseDTO response = stationService.rateStation(rating);
+        return new ResponseEntity<>(new ResponseObject<>(
+                HttpStatus.CREATED, "Send rating from user successfully", response
+        ), HttpStatus.CREATED);
     }
     
 }

@@ -21,7 +21,7 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
                 SELECT id, name
                 FROM charging_station s
                 WHERE LOWER(unaccent(s.name)) LIKE ?1 OR LOWER(unaccent(s.address)) LIKE ?1
-                                   OR LOWER(unaccent(s.district)) LIKE ?1
+                                   OR LOWER(unaccent(s.district)) LIKE ?1 OR LOWER(unaccent(s.id)) LIKE ?1
                 ORDER BY s.name ASC
                 LIMIT ?2
                 """,

@@ -1,10 +1,17 @@
 package com.dacn.backend.service;
 
 import java.text.Normalizer;
+import java.util.Date;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import com.dacn.backend.dto.RatingRequestDTO;
+import com.dacn.backend.dto.RatingResponseDTO;
 import com.dacn.backend.dto.search_by_keyword.StationSearchResponseDTO;
+import com.dacn.backend.model.Rating;
+import com.dacn.backend.repository.EVUserRepo;
+import com.dacn.backend.repository.RatingRepo;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +26,10 @@ import com.dacn.backend.repository.ChargingStationRepo;
 public class StationService {
     @Autowired
     private ChargingStationRepo stationRepo;
+    @Autowired
+    private RatingRepo ratingRepo;
+    @Autowired
+    private EVUserRepo eVUserRepo;
 //    @Autowired
 //    private ChargingPointRepo chargingPointRepo;
 
@@ -67,5 +78,18 @@ public class StationService {
     public StationResponseDTO getSuggestedStation(UserStationCategoriesRequestDTO categories) {
         // TODO Auto-generated method stub
         return stationRepo.findByCableType(categories.getChargeCableType(), categories.getPosition().getLongitude(), categories.getPosition().getLatitude());
+    }
+
+    @Transactional
+    public RatingResponseDTO rateStation(RatingRequestDTO rating) throws RuntimeException {
+        Rating newRating = new Rating();
+        newRating.setDatePosted(new Date());
+        newRating.setPoint(rating.getPoint());
+        newRating.setComment(rating.getComment());
+        newRating.setStation(stationRepo.getReferenceById(rating.getStationId()));
+        newRating.setUser(eVUserRepo.getReferenceById(rating.getUserId()));
+
+        Rating savedRating = ratingRepo.save(newRating);
+        return new RatingResponseDTO(savedRating.getId());
     }
 }

@@ -13,7 +13,6 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Component
 public class EVUser {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
