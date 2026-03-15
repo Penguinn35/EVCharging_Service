@@ -2,6 +2,7 @@ package com.dacn.backend.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -18,6 +19,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.dacn.backend.config.filter.JwtFilter;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 @Configuration
 @EnableWebSecurity
@@ -27,6 +29,7 @@ public class SecurityConfig {
     private UserDetailsService userDetailsService;
     @Autowired
     private JwtFilter jwtFilter;
+
 
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
 
@@ -45,7 +48,7 @@ public class SecurityConfig {
                 "/v3/api-docs/**",
                 "/swagger-ui/**",
                 "/swagger-ui.html",
-                "/api/support-email"
+                "/error"
             ).permitAll()
             .requestMatchers("/api/client/**").hasAuthority("CLIENT")
             .requestMatchers("/api/business/**").hasAnyAuthority("BUSINESS")
@@ -60,7 +63,7 @@ public class SecurityConfig {
                     .authenticationEntryPoint(authenticationEntryPoint)
             )
             .httpBasic(Customizer.withDefaults())
-            .sessionManagement(session -> 
+            .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
