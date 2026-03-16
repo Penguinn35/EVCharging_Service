@@ -124,9 +124,20 @@ public class ClientController {
     
     
     @PutMapping("rating")
-    public ResponseEntity<ResponseObject<RatingResponseDTO>> postMethodName(@RequestBody RatingRequestDTO rating) {
+    public ResponseEntity<ResponseObject<RatingResponseDTO>> sendRating(@RequestBody RatingRequestDTO rating) {
         //TODO: process POST request
-        RatingResponseDTO response = stationService.rateStation(rating);
+        RatingResponseDTO response = null;
+        try {
+            response = stationService.rateStation(rating);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(
+                    new ResponseObject<>(
+                            HttpStatus.BAD_REQUEST,
+                            "Something wrong with input (either duplicate entries or no entities found with this id"
+                    ),
+                    HttpStatus.BAD_REQUEST
+            );
+        }
         return new ResponseEntity<>(new ResponseObject<>(
                 HttpStatus.CREATED, "Send rating from user successfully", response
         ), HttpStatus.CREATED);

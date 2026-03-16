@@ -47,7 +47,6 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
         -- BƯỚC 2: LỌC TINH (Chỉ lấy trong vòng bán kính 5000m)
         WHERE distance <= 5000
         ORDER BY distance
-        LIMIT 5
         """, nativeQuery = true)
     List<StationResponseDTO> findByLongitudeAndLatitude(@Param("longitude") Double longitude, @Param("latitude") Double latitude);
 
