@@ -8,4 +8,5 @@ import lombok.Data;
 public class StationSearchResponseDTO {
     private String id;
     private String name;
+    private String address;
 }

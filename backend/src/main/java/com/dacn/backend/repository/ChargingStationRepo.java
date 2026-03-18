@@ -18,10 +18,11 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
 
     @Query(
         value = """
-                SELECT id, name
+                SELECT id, name, address || ', ' || district
                 FROM charging_station s
-                WHERE LOWER(unaccent(s.name)) LIKE ?1 OR LOWER(unaccent(s.address)) LIKE ?1
-                                   OR LOWER(unaccent(s.district)) LIKE ?1 OR LOWER(unaccent(s.id)) LIKE ?1
+                WHERE (LOWER(unaccent(s.name)) LIKE ?1 OR LOWER(unaccent(s.address)) LIKE ?1
+                                   OR LOWER(unaccent(s.district)) LIKE ?1 OR LOWER(unaccent(s.id)) LIKE ?1)
+                                    AND s.is_available = TRUE
                 ORDER BY s.name ASC
                 LIMIT ?2
                 """,
@@ -41,8 +42,8 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
                 )) / 1000 AS distance
             FROM charging_station s
             -- BƯỚC 1: LỌC THÔ bằng Bounding Box (~5km = 0.045 độ)
-            WHERE s.latitude BETWEEN (:latitude - 0.045) AND (:latitude + 0.045)
-              AND s.longitude BETWEEN (:longitude - 0.045) AND (:longitude + 0.045)
+            WHERE s.isAvailable = TRUE AND (s.latitude BETWEEN (:latitude - 0.045) AND (:latitude + 0.045)
+              AND s.longitude BETWEEN (:longitude - 0.045) AND (:longitude + 0.045))
         ) AS station_distances
         -- BƯỚC 2: LỌC TINH (Chỉ lấy trong vòng bán kính 5000m)
         WHERE distance <= 5000
@@ -58,7 +59,7 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
             FROM charging_station s, charging_point p, connector c
             WHERE p.charging_station_id = s.id AND c.charging_point_id = p.id
                 AND c.type = :cableType
-                AND p.status = 'AVAILABLE'
+                AND p.isAvailable = TRUE
             ORDER BY SQRT(POWER(:longitude - s.longitude, 2) + POWER(:latitude - s.latitude, 2))
             LIMIT 1
             """, nativeQuery = true)

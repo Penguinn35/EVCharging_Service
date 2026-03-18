@@ -23,11 +23,12 @@ public class ChargingStation {
     private String id;
     private String name;
     private String manufacturer;
+    private String imageUrl;
     private Coordinate position;
     private String address;
     private String district;
     private Long totalPoints;
-    private String status;
+    private Boolean isAvailable;
     @OneToMany(mappedBy = "chargingStation")
     private List<ChargingPoint> chargingPoints;
 

@@ -12,5 +12,5 @@ public class StationDetailResponseDTO {
     private Coordinate position;
     private String address;
     private String district;
-    private String status;
+    private Boolean isAvailable;
 }
