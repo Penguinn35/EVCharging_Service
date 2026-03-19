@@ -51,13 +51,18 @@ public class Authenticator {
     public ResponseEntity<ResponseObject<Boolean>> registerUser(@RequestBody UserRegisterDTO user) {
         //TODO: process POST request
         user.setPassword(bEncoder.encode(user.getPassword()));
-//        return new ResponseEntity<Boolean>(userService.saveUser(user), HttpStatus.CREATED);
         try {
             userService.saveUser(user);
         } catch (Exception e) {
-            return new ResponseEntity<>(new ResponseObject<>(HttpStatus.BAD_REQUEST, "Unable to create account! Error message: " + e.getMessage(), Boolean.FALSE), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ResponseObject<>(
+                    HttpStatus.BAD_REQUEST,
+                    "Unable to create account! Error message: " + e.getMessage(), Boolean.FALSE),
+                    HttpStatus.BAD_REQUEST
+            );
         }
-        return new ResponseEntity<>(new ResponseObject<>(HttpStatus.OK, "Created account successfully", Boolean.TRUE), HttpStatus.OK);
+        return new ResponseEntity<>(new ResponseObject<>(HttpStatus.OK,
+                "Created account successfully", Boolean.TRUE),
+                HttpStatus.OK);
     }
 
     @PostMapping("login")
@@ -75,21 +80,27 @@ public class Authenticator {
         //TODO: process POST request
         Authentication authentication;
         try {
-            authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
+            authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword())
+            );
         } catch (Exception e) {
-            return new ResponseEntity<>(new ResponseObject<>(HttpStatus.UNAUTHORIZED, "Wrong password and username", null), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(new ResponseObject<>(HttpStatus.UNAUTHORIZED,
+                    "Wrong password and username", null),
+                    HttpStatus.UNAUTHORIZED
+            );
         }
-//        return authentication.isAuthenticated() ?
-//                new ResponseEntity<>(userService.generateToken(user.getUsername()), HttpStatus.OK) :
-//                new ResponseEntity<String>("Login failed", HttpStatusCode.valueOf(403));
         if (authentication.isAuthenticated()) {
             LoginResponseDTO response = new LoginResponseDTO(
                     userService.generateToken(user.getUsername()),
                     userService.getUserId(user.getUsername())
             );
-            return new ResponseEntity<>(new ResponseObject<>(HttpStatus.OK, "Successfully return token and user info", response), HttpStatus.OK);
+            return new ResponseEntity<>(new ResponseObject<>(
+                    HttpStatus.OK, "Successfully return token and user info", response), HttpStatus.OK
+            );
         } else {
-            return new ResponseEntity<>(new ResponseObject<>(HttpStatus.UNAUTHORIZED, "Wrong password and username"), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(new ResponseObject<>(
+                    HttpStatus.UNAUTHORIZED, "Wrong password and username"
+            ), HttpStatus.UNAUTHORIZED);
         }
     }
     
