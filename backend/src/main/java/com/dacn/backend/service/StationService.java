@@ -90,6 +90,10 @@ public class StationService {
         newRating.setUser(eVUserRepo.getReferenceById(rating.getUserId()));
 
         Rating savedRating = ratingRepo.save(newRating);
-        return new RatingResponseDTO(savedRating.getId());
+        return new RatingResponseDTO(savedRating.getId(), savedRating.getComment());
+    }
+
+    public List<RatingResponseDTO> getRatingListOfStation(String stationId) {
+        return ratingRepo.findByStation(stationId);
     }
 }

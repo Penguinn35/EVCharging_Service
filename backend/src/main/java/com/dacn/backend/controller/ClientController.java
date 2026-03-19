@@ -142,5 +142,24 @@ public class ClientController {
                 HttpStatus.CREATED, "Send rating from user successfully", response
         ), HttpStatus.CREATED);
     }
+
+    @GetMapping("ratings")
+    public ResponseEntity<ResponseObject<List<RatingResponseDTO>>> ratingsOfStation(@RequestParam String stationId) {
+        List<RatingResponseDTO> reviews = null;
+        try {
+            reviews = stationService.getRatingListOfStation(stationId);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(
+                    new ResponseObject<>(
+                            HttpStatus.BAD_REQUEST,
+                            "Something wrong with database"
+                    ),
+                    HttpStatus.BAD_REQUEST
+            );
+        }
+        return new ResponseEntity<>(new ResponseObject<>(
+                HttpStatus.CREATED, "Send rating from user successfully", reviews, reviews.size()
+        ), HttpStatus.CREATED);
+    }
     
 }

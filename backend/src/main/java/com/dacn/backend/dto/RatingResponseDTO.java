@@ -7,4 +7,5 @@ import lombok.Data;
 @AllArgsConstructor
 public class RatingResponseDTO {
     private String id;
+    private String comment;
 }
