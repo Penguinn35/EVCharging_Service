@@ -28,6 +28,12 @@ import org.springframework.http.ResponseEntity;
 @RestController
 @RequestMapping("api/client/stations")
 @Tag(name = "API trạm sạc khách hàng")
+@ApiResponses(
+        value = {
+                @ApiResponse(responseCode = "401", description = "Chưa đăng nhập hoặc token hết hạn"),
+                @ApiResponse(responseCode = "500", description = "Lỗi database hoặc lỗi hệ thống")
+        }
+)
 public class ClientController {
     @Autowired
     StationService stationService;
@@ -124,6 +130,16 @@ public class ClientController {
     
     
     @PutMapping("rating")
+    @Operation(
+            summary = "API thêm vào đánh giá cho 1 trạm sạc",
+            description = "Người dùng nhập vào đánh giá bằng số sao, comment, db sẽ lưu lại trạm sạc đó."
+    )
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "201", description = "Lưu thành công đánh giá"),
+                    @ApiResponse(responseCode = "400", description = "Input bị lỗi, cần kiểm tra lại input")
+            }
+    )
     public ResponseEntity<ResponseObject<RatingResponseDTO>> sendRating(@RequestBody RatingRequestDTO rating) {
         //TODO: process POST request
         RatingResponseDTO response = null;
