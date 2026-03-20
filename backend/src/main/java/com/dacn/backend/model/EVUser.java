@@ -22,6 +22,7 @@ public class EVUser {
     private String role;
     private String fullName;
     private String email;
+    private String address;
     private String password;
 
     @OneToMany(mappedBy = "user")

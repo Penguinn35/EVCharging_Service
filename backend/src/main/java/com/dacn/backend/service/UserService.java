@@ -11,6 +11,7 @@ import java.util.function.Function;
 // import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
+import com.dacn.backend.dto.UserDetailDTO;
 import com.dacn.backend.dto.UserResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
@@ -94,5 +95,14 @@ public class UserService {
         UserResponseDTO user;
         user = eVUserRepo.findIdByUsername(username);
         return user;
+    }
+
+    public UserDetailDTO getUserDetail(String userId) throws RuntimeException {
+        EVUser user = eVUserRepo.findById(userId).orElseThrow();
+        UserDetailDTO userDetail = new UserDetailDTO();
+        userDetail.setFullName(user.getFullName());
+        userDetail.setAddress(user.getAddress());
+        userDetail.setEmail(user.getEmail());
+        return userDetail;
     }
 }

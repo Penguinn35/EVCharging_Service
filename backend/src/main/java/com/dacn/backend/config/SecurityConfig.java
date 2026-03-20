@@ -50,8 +50,8 @@ public class SecurityConfig {
                 "/swagger-ui.html",
                 "/error"
             ).permitAll()
-            .requestMatchers("/api/client/**").hasAuthority("CLIENT")
-            .requestMatchers("/api/business/**").hasAnyAuthority("BUSINESS")
+            .requestMatchers("/api/client/**", "/api/user").hasAnyAuthority("CLIENT", "BUSINESS")
+            .requestMatchers("/api/business/**").hasAuthority("BUSINESS")
             .anyRequest().authenticated())
     /*
         Phân quyền:
