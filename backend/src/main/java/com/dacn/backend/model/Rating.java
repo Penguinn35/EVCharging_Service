@@ -17,7 +17,7 @@ public class Rating {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
-    private Double point; // on a scale from 1 to 5
+    private int point; // on a scale from 1 to 5
     private Date datePosted;
     private String comment;
 

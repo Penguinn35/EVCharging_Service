@@ -6,6 +6,6 @@ import lombok.Data;
 public class RatingRequestDTO {
     private String userId;
     private String stationId;
-    private Double point;
+    private int point;
     private String comment;
 }

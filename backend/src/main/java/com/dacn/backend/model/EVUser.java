@@ -1,7 +1,6 @@
 package com.dacn.backend.model;
 
 import jakarta.persistence.*;
-import org.springframework.stereotype.Component;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

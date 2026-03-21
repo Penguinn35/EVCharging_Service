@@ -3,8 +3,8 @@ package com.dacn.backend.controller;
 import com.dacn.backend.dto.RatingRequestDTO;
 import com.dacn.backend.dto.RatingResponseDTO;
 import com.dacn.backend.dto.search_by_keyword.StationSearchResponseDTO;
-import com.dacn.backend.model.Rating;
 import com.dacn.backend.object.ResponseObject;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import com.dacn.backend.dto.StationDetailResponseDTO;
@@ -142,7 +142,7 @@ public class ClientController {
     )
     public ResponseEntity<ResponseObject<RatingResponseDTO>> sendRating(@RequestBody RatingRequestDTO rating) {
         //TODO: process POST request
-        RatingResponseDTO response = null;
+        RatingResponseDTO response;
         try {
             response = stationService.rateStation(rating);
         } catch (RuntimeException e) {
@@ -160,10 +160,26 @@ public class ClientController {
     }
 
     @GetMapping("ratings")
-    public ResponseEntity<ResponseObject<List<RatingResponseDTO>>> ratingsOfStation(@RequestParam String stationId) {
-        List<RatingResponseDTO> reviews = null;
+    @Operation(
+            summary = "API lấy danh sách đánh giá của 1 trạm sạc",
+            description = "Trả về danh sách các đánh giá trong cùng 1 trạm sạc, hỗ trợ paging"
+    )
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "Trả về thành công"),
+                    @ApiResponse(responseCode = "404", description = "Không tìm thấy trạm sạc với tên đó")
+            }
+    )
+    public ResponseEntity<ResponseObject<Page<RatingResponseDTO>>> ratingsOfStation(
+            @RequestParam String stationId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
         try {
-            reviews = stationService.getRatingListOfStation(stationId);
+            Page<RatingResponseDTO> reviews = stationService.getRatingListOfStation(stationId, page, size);
+            return new ResponseEntity<>(new ResponseObject<>(
+                    HttpStatus.CREATED, "Send rating from user successfully", reviews, reviews.getTotalElements()
+            ), HttpStatus.CREATED);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(
                     new ResponseObject<>(
@@ -173,9 +189,6 @@ public class ClientController {
                     HttpStatus.BAD_REQUEST
             );
         }
-        return new ResponseEntity<>(new ResponseObject<>(
-                HttpStatus.CREATED, "Send rating from user successfully", reviews, reviews.size()
-        ), HttpStatus.CREATED);
     }
     
 }

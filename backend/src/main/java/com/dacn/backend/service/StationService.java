@@ -13,6 +13,9 @@ import com.dacn.backend.repository.EVUserRepo;
 import com.dacn.backend.repository.RatingRepo;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.dacn.backend.dto.StationDetailResponseDTO;
@@ -93,7 +96,9 @@ public class StationService {
         return new RatingResponseDTO(savedRating.getId(), savedRating.getComment());
     }
 
-    public List<RatingResponseDTO> getRatingListOfStation(String stationId) {
-        return ratingRepo.findByStation(stationId);
+    public Page<RatingResponseDTO> getRatingListOfStation(String stationId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        return ratingRepo.findByStation(stationId, pageable);
     }
 }
