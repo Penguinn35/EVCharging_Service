@@ -37,13 +37,13 @@ public class UserController {
         UserDetailDTO userDetail = null;
         try {
             userDetail = userService.getUserDetail(userId);
+            return new ResponseEntity<>(new ResponseObject<>(
+                    HttpStatus.OK, "Returned user detail", userDetail
+            ), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(new ResponseObject<>(
                     HttpStatus.NOT_FOUND, "No user found with that id"
             ), HttpStatus.NOT_FOUND);
         }
-        return new ResponseEntity<>(new ResponseObject<>(
-                HttpStatus.OK, "Returned user detail", userDetail
-        ), HttpStatus.OK);
     }
 }

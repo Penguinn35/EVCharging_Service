@@ -145,6 +145,9 @@ public class ClientController {
         RatingResponseDTO response;
         try {
             response = stationService.rateStation(rating);
+            return new ResponseEntity<>(new ResponseObject<>(
+                    HttpStatus.CREATED, "Send rating from user successfully", response
+            ), HttpStatus.CREATED);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(
                     new ResponseObject<>(
@@ -154,9 +157,6 @@ public class ClientController {
                     HttpStatus.BAD_REQUEST
             );
         }
-        return new ResponseEntity<>(new ResponseObject<>(
-                HttpStatus.CREATED, "Send rating from user successfully", response
-        ), HttpStatus.CREATED);
     }
 
     @GetMapping("ratings")
