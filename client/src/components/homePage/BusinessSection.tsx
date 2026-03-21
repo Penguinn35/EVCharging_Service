@@ -29,8 +29,8 @@ const businessFeatures: BusinessCard[] = [
 
 export function BusinessSection() {
   return (
-    <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-green-50 to-white">
-      <div className="max-w-6xl mx-auto">
+    <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-green-100 to-white min-h-[70vh] ">
+      <div className="max-w-6xl mx-auto ">
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
             Giải Pháp Cho Doanh Nghiệp
@@ -46,7 +46,7 @@ export function BusinessSection() {
               key={index}
               className="p-8 rounded-xl bg-white border border-gray-200 hover:border-primary hover:shadow-lg transition group"
             >
-              <div className="text-primary mb-4 group-hover:scale-110 transition text-2xl">
+              <div className="text-green-500 mb-4 group-hover:scale-110 transition text-2xl">
                 {feature.icon}
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-3">
@@ -59,19 +59,7 @@ export function BusinessSection() {
           ))}
         </div>
 
-        {/* CTA Section */}
-        <div className="bg-gradient-to-r from-primary to-primary-dark rounded-2xl p-8 sm:p-12 text-white text-center">
-          <h3 className="text-2xl sm:text-3xl font-bold mb-4">
-            Sẵn Sàng Quản Lý Trạm Sạc Thông Minh?
-          </h3>
-          <p className="text-green-50 mb-6 max-w-2xl mx-auto">
-            Liên hệ với chúng tôi ngay hôm nay để tìm hiểu cách ChargeHub có thể giúp kinh doanh của bạn phát triển
-          </p>
-          <button className="inline-flex items-center gap-2 bg-white text-primary px-8 py-3 rounded-lg hover:bg-green-50 transition font-semibold">
-            Liên Hệ Sales
-            <FiArrowRight className="w-5 h-5" />
-          </button>
-        </div>
+        
       </div>
     </section>
   )
