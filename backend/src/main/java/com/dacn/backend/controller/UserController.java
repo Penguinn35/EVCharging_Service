@@ -34,9 +34,8 @@ public class UserController {
             }
     )
     public ResponseEntity<ResponseObject<UserDetailDTO>> getUserInfo(@RequestParam String userId) {
-        UserDetailDTO userDetail = null;
         try {
-            userDetail = userService.getUserDetail(userId);
+            UserDetailDTO userDetail = userService.getUserDetail(userId);
             return new ResponseEntity<>(new ResponseObject<>(
                     HttpStatus.OK, "Returned user detail", userDetail
             ), HttpStatus.OK);
