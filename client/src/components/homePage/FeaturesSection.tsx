@@ -121,7 +121,7 @@ export function FeaturesSection() {
           <div className="max-w-6xl mx-auto py-20 px-4 scale-100">
             <div className="flex flex-wrap justify-center gap-6">
               {userFeatures.map((feature, index) => (
-                <MotionWrapper
+                <MotionWrapper 
                   key={index}
                   className={` w-full sm:w-[45%] lg:w-[30%]
                               p-6 rounded-2xl border-2 border-gray-200 bg-white

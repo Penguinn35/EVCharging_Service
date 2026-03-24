@@ -5,19 +5,12 @@ import { useMapStore } from "@/store/useMapStore";
 import { useState } from "react";
 
 export default function LocateMe() {
-  const coordinate = useUserStore((s) => s.user.coordinate);
-  const setLocation = useUserStore((s) => s.setLocation);
+  const updateUser = useUserStore((s) => s.updateUser);
   const setFlyTo = useMapStore((s) => s.setFlyTo);
 
   const [loading, setLoading] = useState(false);
 
   const handleLocate = () => {
-    // already known → trigger fly
-    if (coordinate) {
-      setFlyTo(coordinate);
-      return;
-    }
-
     if (!navigator.geolocation) return;
 
     setLoading(true);
@@ -29,18 +22,24 @@ export default function LocateMe() {
           longitude: pos.coords.longitude,
         };
 
-        setLocation(loc);
-        setFlyTo(loc); // ← this triggers <FlyTo />
+        updateUser({ coordinate: loc });
+        setFlyTo(loc);
 
         setLoading(false);
       },
-      () => setLoading(false),
+      (err) => {
+        console.error(err);
+        setLoading(false);
+      },
       { enableHighAccuracy: true }
     );
   };
 
   return (
-    <button className=" absolute bottom-16 right-8 z-1000 w-12 h-12 rounded-xl  cursor-pointer hover:border-green-500 hover:border-2   bg-white border-0 " onClick={handleLocate}>
+    <button
+      className="absolute bottom-16 right-8 z-1000 w-12 h-12 rounded-xl cursor-pointer hover:border-green-500 hover:border-2 bg-white border-0"
+      onClick={handleLocate}
+    >
       {loading ? "..." : "📍"}
     </button>
   );

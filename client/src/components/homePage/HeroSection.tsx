@@ -10,7 +10,7 @@ export function HeroSection() {
       <div className="w-full lg:w-4/5 mx-auto text-center flex flex-col h-full relative">
         <div className="mt-40 px-3   ">
           <MotionWrapper direction="down" duration={1.7}>
-            <h1 className=" text-3xl md:text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-6 flex flex-col md:gap-4 md:text-left">
+            <h1 className=" text-3xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-6 flex flex-col md:gap-4 md:text-left">
               <p>Tìm Trạm Sạc Xe Điện</p>
               <p>Gần Nhất & Nhanh Nhất</p>
             </h1>
@@ -29,7 +29,7 @@ export function HeroSection() {
           <Link
             href="/Map"
             className="  inline-flex items-center justify-center gap-2 bg-green-500
-          hover:bg-green-600 hover:gap-8 transition-all duration-300 text-white
+          hover:bg-green-600 hover:gap-8  duration-300 text-white
            px-8 py-4 rounded-lg hover:bg-primary-dark transition font-semibold text-lg
            h-16 w-60 scale-75 md:scale-100 z-2 mx-auto md:mx-0 "
           >

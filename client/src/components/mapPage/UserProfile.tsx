@@ -5,7 +5,7 @@ import { useStationStore } from "@/store/useStationStore";
 import { useRoutingStore } from "@/store/useRoutingStore";
 import { getStationById } from "@/services/stationService";
 import { useMapStore } from "@/store/useMapStore";
-import FlyTo from "@/app/(public)/Map/FlyTo";
+import FlyTo from "@/components/mapPage/FlyTo";
 // React Icons imports
 import {
   IoClose,
@@ -18,7 +18,7 @@ import {
 import { MdOutlineElectricalServices, MdLogout } from "react-icons/md";
 
 const UserProfile = () => {
-  const { user, setUser, deleteStation } = useUserStore();
+  const { user, updateUser, deleteStation } = useUserStore();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { selectStation, selectedStation } = useStationStore();
   const { clearRouting } = useRoutingStore();
@@ -40,7 +40,7 @@ const UserProfile = () => {
   }, []);
 
   const handlePlugChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setUser({
+    updateUser({
       ...user,
       vehiclePlug: e.target.value as "Type 2" | "CCS2" | "Both",
     });
