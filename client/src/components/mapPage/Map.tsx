@@ -14,7 +14,6 @@ import { useUserStore } from "@/store/useUserStore";
 import { useRoutingStore } from "@/store/useRoutingStore";
 import RoutingMachine from "./RoutingMachine";
 import FlyTo from "@/components/mapPage/FlyTo";
-import { useMapStore } from "@/store/useMapStore";
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 
@@ -70,34 +69,9 @@ export default function Map() {
   console.log("Map render");
 
   const coordinate = useUserStore((state) => state.user.coordinate);
-  debugger
-  const updateUser = useUserStore((state) => state.updateUser);
-
   const isOpen = useRoutingStore((s) => s.isOpen);
   const location = useRoutingStore((s) => s.location);
-  const flyCoordinate = useMapStore((s) => s.flyTo);
-  const flyTrigger = useMapStore((s) => s.flyTrigger);
-  useEffect(() => {
-    if (!navigator.geolocation) {
-      console.error("Geolocation not supported");
-      return;
-    }
 
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        updateUser({
-          coordinate: {
-            longitude: pos.coords.latitude,
-            latitude: pos.coords.longitude,
-          },
-        });
-      },
-      (err) => {
-        console.error(err);
-      },
-      { enableHighAccuracy: true },
-    );
-  }, []);
   return (
     <MapContainer
       center={[10.814889, 106.697906]}
@@ -114,13 +88,10 @@ export default function Map() {
           <Marker position={[coordinate.latitude, coordinate.longitude]}>
             <Popup>You are here</Popup>
           </Marker>
-          {/* <FlyTo coordinate={coordinate}/> */}
         </>
       )}
-      {flyCoordinate && (
-        <FlyTo coordinate={flyCoordinate} trigger={flyTrigger} />
-      )}
 
+      <FlyTo />
       {sampleStations.map((station) => (
         <CustomMarker key={station.id} station={station} />
       ))}

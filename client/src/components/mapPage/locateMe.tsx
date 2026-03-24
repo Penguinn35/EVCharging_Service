@@ -6,6 +6,7 @@ import { useState } from "react";
 
 export default function LocateMe() {
   const updateUser = useUserStore((s) => s.updateUser);
+  const userLocation = useUserStore((state) => state.user.coordinate);
   const setFlyTo = useMapStore((s) => s.setFlyTo);
 
   const [loading, setLoading] = useState(false);
@@ -15,24 +16,38 @@ export default function LocateMe() {
 
     setLoading(true);
 
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const loc = {
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude,
-        };
+    if (
+      userLocation !== null &&
+      userLocation.latitude * userLocation.longitude !== 0
+    ) {
+      setFlyTo(userLocation);
+      setLoading(false);
+      console.log("return rast and out");
+      
+      return;
+      
+    }
+      console.log("start new nav");
 
-        updateUser({ coordinate: loc });
-        setFlyTo(loc);
+      navigator.geolocation.getCurrentPosition(
+        
+        (pos) => {
+          const loc = {
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+          };
 
-        setLoading(false);
-      },
-      (err) => {
-        console.error(err);
-        setLoading(false);
-      },
-      { enableHighAccuracy: true }
-    );
+          updateUser({ coordinate: loc });
+          setFlyTo(loc);
+
+          setLoading(false);
+        },
+        (err) => {
+          console.error(err);
+          setLoading(false);
+        },
+        { enableHighAccuracy: true },
+      );
   };
 
   return (

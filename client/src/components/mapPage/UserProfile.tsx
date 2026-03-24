@@ -41,7 +41,6 @@ const UserProfile = () => {
 
   const handlePlugChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     updateUser({
-      ...user,
       vehiclePlug: e.target.value as "Type 2" | "CCS2" | "Both",
     });
   };
