@@ -9,6 +9,7 @@ import {
   FiSettings,
 } from "react-icons/fi";
 import { TbReload } from "react-icons/tb";
+import MotionWrapper from "../MotionWraper";
 
 interface FeatureCard {
   icon: React.ReactNode;
@@ -50,16 +51,15 @@ const userFeatures: FeatureCard[] = [
 ];
 
 export function FeaturesSection() {
-  
   return (
     <section
-      style={{ 
+      style={{
         backgroundImage: `
       linear-gradient(to right, oklch(95.1% 0.15 154.449) 1px, transparent 1px),
       linear-gradient(to bottom, oklch(95.1% 0.15 154.449) 1px, transparent 1px)
       
     `,
-        
+
         WebkitMaskImage: "linear-gradient(to bottom, transparent, black 30%)",
         maskImage: "linear-gradient(to bottom, transparent, black 30%)",
       }}
@@ -70,27 +70,35 @@ export function FeaturesSection() {
       <div className="max-w-7xl mx-auto px-6 md:px-0 ">
         <div className="w-full flex md:flex-row flex-col items-center  h-[100vh]  justify-center">
           <div className=" md:w-1/2 ">
-            <img src="/search.svg" alt="search" />
+            <MotionWrapper duration={1.5}>
+              <img src="/search.svg" alt="search" />
+            </MotionWrapper>
           </div>
-          <div className="md:w-1/2 flex flex-col  justify-center text-center md:ml-20 md:text-left
+          <div
+            className="md:w-1/2 flex flex-col  justify-center text-center md:ml-20 md:text-left
           bg-white backdrop-blur-5xl rounded-xl p-6
-          ">
-            <h1 className="text-3xl md:text-4xl  font-bold">
-              Tìm kiếm trạm sạc nhanh chóng
-            </h1>
-            
-            <p>
-              Tìm kiếm trạm sạc gần nhất với bộ lọc thông minh theo đầu sạc,
-              công suất, và gần bạn nhất.
-            </p>
+          "
+          >
+            <MotionWrapper duration={1.5}>
+              <h1 className="text-3xl md:text-4xl  font-bold">
+                Tìm kiếm trạm sạc nhanh chóng
+              </h1>
+
+              <p>
+                Tìm kiếm trạm sạc gần nhất với bộ lọc thông minh theo đầu sạc,
+                công suất, và gần bạn nhất.
+              </p>
+            </MotionWrapper>
           </div>
         </div>
 
         <div className="min-h-[100vh] ">
           <div className="text-center    ">
-            <h2 className="text-3xl sm:text-4xl font-bold  mb-4">
-              Và loạt tính năng hữu ích khác
-            </h2>
+            <MotionWrapper>
+              <h2 className="text-3xl sm:text-4xl font-bold  mb-4">
+                Và loạt tính năng hữu ích khác
+              </h2>
+            </MotionWrapper>
           </div>
 
           {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -113,33 +121,28 @@ export function FeaturesSection() {
           <div className="max-w-6xl mx-auto py-20 px-4 scale-100">
             <div className="flex flex-wrap justify-center gap-6">
               {userFeatures.map((feature, index) => (
-                <div
+                <MotionWrapper 
                   key={index}
-                  className={`
-  w-full sm:w-[45%] lg:w-[30%]
-  p-6 rounded-2xl border-2 border-gray-200 bg-white
-  hover:shadow-xl hover:-translate-y-2 transition group
-
-  flex flex-col justify-center
-
-  ${index % 2 === 0 ? "lg:mt-10" : ""}
-`}
+                  className={` w-full sm:w-[45%] lg:w-[30%]
+                              p-6 rounded-2xl border-2 border-gray-200 bg-white
+                              hover:shadow-xl hover:-translate-y-2 transition group
+                              flex flex-col justify-center
+                              ${index % 2 === 0 ? "lg:mt-10" : ""}`}
                 >
-                  <div className="text-green-500 mb-4 group-hover:scale-110 transition">
+                  <MotionWrapper  direction="left" className="text-green-500 mb-4 group-hover:scale-110 transition">
                     {feature.icon}
-                  </div>
+                  </MotionWrapper>
 
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  <MotionWrapper delay={0.2} className="text-lg font-semibold text-gray-900 mb-2">
                     {feature.title}
-                  </h3>
+                  </MotionWrapper>
 
-                  <p className="text-gray-600">{feature.description}</p>
+                  <MotionWrapper delay={0.5} className="text-gray-600">{feature.description}</MotionWrapper>
 
-                  {/* optional height variation */}
                   {index % 2 === 0 && (
                     <div className=" md:h-20 bg-white rounded-lg"></div>
                   )}
-                </div>
+                </MotionWrapper>
               ))}
             </div>
           </div>

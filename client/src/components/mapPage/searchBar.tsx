@@ -27,7 +27,7 @@ const SearchBar = () => {
 
   return (
     <div className="relative">
-      <div className="relative">
+      <div className="relative cursor-alias">
         <input
           type="text"
           placeholder="Tìm kiếm trạc sạc theo tên, khu vực,..."

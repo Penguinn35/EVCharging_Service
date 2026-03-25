@@ -15,11 +15,9 @@ type Props = {
 export default function RoutingMachine({ from, to }: Props) {
   console.log("RoutingMachine render");
   const map = useMap();
-  // const hasRun = useRef(false);
   useEffect(() => {
     if (!map) return;
-    // if (hasRun.current) return;
-    // hasRun.current = true;
+  
 
     const routingControl = L.Routing.control({
       waypoints: [L.latLng(from[0], from[1]), L.latLng(to[0], to[1])],

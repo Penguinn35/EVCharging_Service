@@ -1,7 +1,13 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { FaReact, FaJs, FaHtml5, FaCss3Alt } from "react-icons/fa";
-import { SiTypescript, SiTailwindcss } from "react-icons/si";
+import { FaJava ,FaDocker, FaGithub  } from "react-icons/fa";
+import {
+  SiSwagger 
+} from "react-icons/si";
+import { BiLogoSpringBoot, BiLogoPostgresql  } from "react-icons/bi";
+
+import Image from "next/image";
+
 type Tag = {
   id: number;
   x: number;
@@ -12,11 +18,10 @@ type Tag = {
   label: string;
   className: string;
 };
-const TAG_SIZE = 40;
-const NUM_TAGS = 6;
+const TAG_SIZE = 60;
 const SPEED = 0.5;
 
-export default function BERole() {
+export default function FERole() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [tags, setTags] = useState<Tag[]>([]);
   const [hover, setHover] = useState(false);
@@ -25,45 +30,95 @@ export default function BERole() {
   useEffect(() => {
     const techs = [
       {
-        icon: <FaJs />,
-        label: "JavaScript",
-        className: "text-yellow-400",
+        icon: <FaJava />,
+        label: "Java",
+        className: "text-orange-700",
       },
       {
-        icon: <FaReact />,
-        label: "React",
-        className: "text-cyan-400",
+        icon: <FaDocker />,
+        label: "Docker",
+        className: "text-blue-700",
       },
       {
-        icon: <SiTypescript />,
-        label: "TypeScript",
+        icon: <SiSwagger />,
+        label: "Swagger",
+        className: "text-green-500",
+      },
+      {
+        icon: <BiLogoSpringBoot />,
+        label: "SpringBoot",
+        className: "text-emerald-500",
+      },
+      {
+        icon: <BiLogoPostgresql />,
+        label: "Postgresql",
         className: "text-blue-500",
       },
-      {
-        icon: <FaHtml5 />,
-        label: "HTML",
-        className: "text-orange-500",
-      },
-      {
-        icon: <FaCss3Alt />,
-        label: "CSS",
-        className: "text-blue-400",
-      },
-      {
-        icon: <SiTailwindcss />,
-        label: "Tailwind",
-        className: "text-sky-400",
-      },
+     
     ];
 
-    const initial: Tag[] = techs.map((tech, i) => ({
-      id: i,
-      x: Math.random() * 300,
-      y: Math.random() * 300,
-      vx: (Math.random() - 0.5) * SPEED,
-      vy: (Math.random() - 0.5) * SPEED,
-      ...tech,
-    }));
+    const getSafePosition = (existing: Tag[]) => {
+  let tries = 0;
+
+  while (tries < 100) {
+    const x = Math.random() * 300;
+    const y = Math.random() * 300;
+
+    //  get center rect (relative to container)
+    let isInsideCenter = false;
+
+    if (containerRef.current && centerRef.current) {
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const centerRect = centerRef.current.getBoundingClientRect();
+
+      const cx = centerRect.left - containerRect.left;
+      const cy = centerRect.top - containerRect.top;
+      const cw = centerRect.width;
+      const ch = centerRect.height;
+
+      if (
+        x < cx + cw &&
+        x + TAG_SIZE > cx &&
+        y < cy + ch &&
+        y + TAG_SIZE > cy
+      ) {
+        isInsideCenter = true;
+      }
+    }
+
+    // ❗ check overlap with other tags
+    const isOverlapping = existing.some((t) => {
+      const dx = t.x - x;
+      const dy = t.y - y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      return dist < TAG_SIZE;
+    });
+
+    if (!isOverlapping && !isInsideCenter) {
+      return { x, y };
+    }
+
+    tries++;
+  }
+
+  // fallback (rare)
+  return { x: Math.random() * 300, y: Math.random() * 300 };
+};
+
+    const initial: Tag[] = [];
+
+    techs.forEach((tech, i) => {
+      const pos = getSafePosition(initial);
+
+      initial.push({
+        id: i,
+        x: pos.x,
+        y: pos.y,
+        vx: (Math.random() - 0.5) * SPEED,
+        vy: (Math.random() - 0.5) * SPEED,
+        ...tech,
+      });
+    });
 
     setTags(initial);
   }, []);
@@ -89,6 +144,36 @@ export default function BERole() {
           // wall collision
           if (nx <= 0 || nx + TAG_SIZE >= width) vx *= -1;
           if (ny <= 0 || ny + TAG_SIZE >= height) vy *= -1;
+
+          if (centerRef.current) {
+            const containerRect = containerRef.current!.getBoundingClientRect();
+            const centerRect = centerRef.current.getBoundingClientRect();
+
+            const cx = centerRect.left - containerRect.left;
+            const cy = centerRect.top - containerRect.top;
+            const cw = centerRect.width;
+            const ch = centerRect.height;
+
+            // AABB collision check
+            if (
+              nx < cx + cw &&
+              nx + TAG_SIZE > cx &&
+              ny < cy + ch &&
+              ny + TAG_SIZE > cy
+            ) {
+              // detect which side collision
+              const overlapX = Math.min(nx + TAG_SIZE - cx, cx + cw - nx);
+              const overlapY = Math.min(ny + TAG_SIZE - cy, cy + ch - ny);
+
+              if (overlapX < overlapY) {
+                vx *= -1;
+                nx = t.x; // revert X
+              } else {
+                vy *= -1;
+                ny = t.y; // revert Y
+              }
+            }
+          }
 
           return {
             ...t,
@@ -146,69 +231,93 @@ export default function BERole() {
     return () => window.removeEventListener("resize", updateCenter);
   }, []);
   return (
-    <div
-      ref={containerRef}
-      className="relative w-full md:w-1/2 h-[400px] border overflow-hidden "
-    >
-      {/* SVG lines */}
-      <svg className="absolute inset-0 w-full h-full pointer-events-none">
-        {tags.map((tag) => {
-          const tagCenterX = tag.x + TAG_SIZE / 2;
-          const tagCenterY = tag.y + TAG_SIZE / 2;
-
-          return (
-            <line
-              key={tag.id}
-              x1={centerPos.x}
-              y1={centerPos.y}
-              x2={tagCenterX}
-              y2={tagCenterY}
-              stroke="#999"
-              strokeWidth="1"
-            />
-          );
-        })}
-      </svg>
-
-      {/* center circle */}
+    <div className="w-full p-4 md:p-8  scale-75 md:scale-85 lg:scale-100 rounded-2xl shadow-xl bg-white  md:mx-12 md:mb-12">
       <div
-        ref={centerRef}
-        className="absolute w-24 h-24 rounded-full bg-black text-white flex items-center justify-center left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 cursor-pointer"
-        onMouseEnter={() => setHover(true)}
-        onMouseLeave={() => setHover(false)}
+        ref={containerRef}
+        className="relative w-full  h-[400px]  overflow-hidden  "
       >
-        Center
-        {hover && (
-          <div className="absolute top-full mt-2 px-3 py-1 bg-white text-black text-sm rounded shadow">
-            go github
-          </div>
-        )}
-      </div>
+        {/* SVG lines */}
+        <svg className="absolute inset-0 w-full h-full pointer-events-none">
+          {tags.map((tag) => {
+            const tagCenterX = tag.x + TAG_SIZE / 2;
+            const tagCenterY = tag.y + TAG_SIZE / 2;
 
-      {/* tags */}
-      {tags.map((tag) => (
+            return (
+              <line
+                key={tag.id}
+                x1={centerPos.x}
+                y1={centerPos.y}
+                x2={tagCenterX}
+                y2={tagCenterY}
+                stroke="#22c55e"
+                strokeWidth="0.5"
+              />
+            );
+          })}
+        </svg>
+
+        {/* center  */}
         <div
-          key={tag.id}
-          className="absolute flex items-center justify-center group border border-gray-400 rounded-md"
-          style={{
-            width: TAG_SIZE,
-            height: TAG_SIZE,
-            transform: `translate(${tag.x}px, ${tag.y}px)`,
-          }}
+          ref={centerRef}
+          className="absolute w-72 h-36 rounded-2xl bg-white border border-gray-300 flex items-center px-4 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 cursor-pointer "
         >
-          {/* icon */}
-          <div
-            className={`w-full h-full flex items-center text-3xl justify-center rounded-md bg-white ${tag.className}`}
-          >
-            {tag.icon}
+          <div>
+            <div className="w-18 h-16 rounded-full bg-gray-300 flex-shrink-0">
+              <Image
+                width={100}
+                height={100}
+                className="w-16 h-16 rounded-full"
+                src="/BEAvatar.jpg"
+                alt=""
+              />
+            </div>
+            <p className="text-center font-bold text-sm "> Nguyễn Minh Toàn</p>
           </div>
 
-          {/* tooltip */}
-          <div className="absolute top-full mt-1 px-2 py-1 text-xs bg-white text-black rounded shadow opacity-0 group-hover:opacity-100 transition whitespace-nowrap">
-            {tag.label}
+          <div className="ml-4 flex flex-col justify-center">
+            <h3 className="text-gray-800 font-semibold text-sm">
+              Backend developer
+            </h3>
+            <p className="text-gray-500 text-xs mt-1">
+              "Pointer pointing to a pointer, wich pointing to a pointer,..."
+            </p>
           </div>
+
+          <a
+            href="https://github.com/Penguinn35"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute top-2 right-2 text-gray-500 hover:text-black"
+          >
+            <FaGithub className="w-8 h-8" />
+          </a>
         </div>
-      ))}
+
+        {/* tags */}
+        {tags.map((tag) => (
+          <div
+            key={tag.id}
+            className="absolute flex items-center justify-center group border border-gray-400 rounded-md"
+            style={{
+              width: TAG_SIZE,
+              height: TAG_SIZE,
+              transform: `translate(${tag.x}px, ${tag.y}px)`,
+            }}
+          >
+            {/* icon */}
+            <div
+              className={`w-full h-full flex items-center text-5xl justify-center rounded-md bg-white ${tag.className}`}
+            >
+              {tag.icon}
+            </div>
+
+            {/* tooltip */}
+            <div className="absolute top-full mt-1 px-2 py-1 text-xs bg-white text-black rounded shadow opacity-0 group-hover:opacity-100 transition whitespace-nowrap">
+              {tag.label}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

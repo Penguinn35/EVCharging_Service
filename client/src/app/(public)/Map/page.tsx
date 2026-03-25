@@ -2,23 +2,22 @@
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { IoMdArrowRoundBack } from "react-icons/io";
-import SearchBar from "@/components/searchBar";
-import Filter from "@/components/Filter";
-import QuickSearch from "@/components/QuickSearch";
+import SearchBar from "@/components/mapPage/searchBar";
+import Filter from "@/components/mapPage/Filter";
+import QuickSearch from "@/components/mapPage/QuickSearch";
 import { useStationStore } from "@/store/useStationStore";
 import { useRoutingStore } from "@/store/useRoutingStore";
-import StationDetail from "@/components/StationDetail";
-import UserProfile from "@/components/UserProfile";
-import LocateMe from "@/components/locateMe";
+import StationDetail from "@/components/mapPage/StationDetail";
+import UserProfile from "@/components/mapPage/UserProfile";
+import LocateMe from "@/components/mapPage/locateMe";
+import Link from "next/link";
 
-
-
-const Map = dynamic(() => import("@/components/Map"), {
-  ssr: false, 
+const Map = dynamic(() => import("@/components/mapPage/Map"), {
+  ssr: false,
 });
 
 export default function Page() {
-  const [distance, setDistance] = useState<number | null>(null); 
+  const [distance, setDistance] = useState<number | null>(null);
   const selectedStation = useStationStore((state) => state.selectedStation);
   const selectStation = useStationStore((state) => state.selectStation);
   const clearRouting = useRoutingStore((state) => state.clearRouting);
@@ -28,7 +27,10 @@ export default function Page() {
         <div className="absolute top-4 left-0 w-full z-1000 flex flex-col items-center">
           <div className="w-full flex justify-start pl-4">
             <div className=" mr-2 w-10 h-10 bg-white rounded-xl flex items-center justify-center hover:bg-green-100 hover:text-xl cursor-pointer ">
-              <IoMdArrowRoundBack/>
+              <Link href={"/"}>
+                {" "}
+                <IoMdArrowRoundBack />
+              </Link>
             </div>
             <SearchBar />
             <Filter />
@@ -38,7 +40,7 @@ export default function Page() {
           </div>
           <UserProfile />
         </div>
-          <LocateMe />
+        <LocateMe />
 
         {selectedStation && (
           <StationDetail

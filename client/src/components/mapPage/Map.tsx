@@ -3,7 +3,7 @@ import L from "leaflet";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import { useEffect, useState } from "react";
 import "leaflet/dist/leaflet.css";
-import "../components/map.css";
+import "../mapPage/map.css";
 import { sampleStations } from "@/sampleData/stations";
 import { ChargingStation } from "@/models/station";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
@@ -13,8 +13,7 @@ import { useStationStore } from "@/store/useStationStore";
 import { useUserStore } from "@/store/useUserStore";
 import { useRoutingStore } from "@/store/useRoutingStore";
 import RoutingMachine from "./RoutingMachine";
-import FlyTo from "@/app/(public)/Map/FlyTo";
-import { useMapStore } from "@/store/useMapStore";
+import FlyTo from "@/components/mapPage/FlyTo";
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 
@@ -70,31 +69,9 @@ export default function Map() {
   console.log("Map render");
 
   const coordinate = useUserStore((state) => state.user.coordinate);
-  const setLocation = useUserStore((state) => state.setLocation);
-
   const isOpen = useRoutingStore((s) => s.isOpen);
   const location = useRoutingStore((s) => s.location);
-  const flyCoordinate = useMapStore((s) => s.flyTo);
-const flyTrigger = useMapStore(s => s.flyTrigger);
-  useEffect(() => {
-    if (!navigator.geolocation) {
-      console.error("Geolocation not supported");
-      return;
-    }
 
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setLocation({
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude,
-        });
-      },
-      (err) => {
-        console.error(err);
-      },
-      { enableHighAccuracy: true },
-    );
-  }, []);
   return (
     <MapContainer
       center={[10.814889, 106.697906]}
@@ -111,11 +88,10 @@ const flyTrigger = useMapStore(s => s.flyTrigger);
           <Marker position={[coordinate.latitude, coordinate.longitude]}>
             <Popup>You are here</Popup>
           </Marker>
-          {/* <FlyTo coordinate={coordinate}/> */}
         </>
       )}
-      {flyCoordinate && <FlyTo coordinate={flyCoordinate} trigger={flyTrigger} />}
 
+      <FlyTo />
       {sampleStations.map((station) => (
         <CustomMarker key={station.id} station={station} />
       ))}
