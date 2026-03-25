@@ -16,7 +16,7 @@ import { Header } from "@/components/homePage/Header";
 import { registerType } from "@/models/user";
 import { createUser } from "@/services/userService";
 
-export default function RegisterForm() {
+export default function RegisterFormContent () {
   const [formData, setFormData] = useState<registerType>({
     userName: "",
     fullName: "",

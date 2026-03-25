@@ -9,7 +9,7 @@ import { Header } from "@/components/homePage/Header";
 import { loginType } from "@/models/user";
 import { login } from "@/services/userService";
 
-export default function LoginForm() {
+export default function LoginFormContent () {
   const [formData, setFormData] = useState<loginType>({
     username: "",
     password: "",
@@ -45,7 +45,7 @@ export default function LoginForm() {
   return (
     <div>
       
-      <div className="w-full max-w-md absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+    
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Username */}
           <div>
@@ -163,6 +163,6 @@ export default function LoginForm() {
           </Link>
         </p>
       </div>
-    </div>
+    
   );
 }

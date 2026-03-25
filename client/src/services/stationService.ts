@@ -1,4 +1,3 @@
-import { ChargingPoint } from "@/types/Station";
 import { ChargingStation } from "@/models/station";
 import { sampleStations } from "@/sampleData/stations";
 
