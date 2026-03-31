@@ -21,12 +21,12 @@ const Filter = () => {
   ) => {
     setSelectedFilters((prev) => {
       const updatedSet = new Set(prev[field]);
-      if (value === "All") {
+      if (value === "Tất cả") {
         updatedSet.clear();
-        updatedSet.add("All");
+        updatedSet.add("Tất cả");
       } else {
-        if (updatedSet.has("All")) {
-          updatedSet.delete("All");
+        if (updatedSet.has("Tất cả")) {
+          updatedSet.delete("Tất cả");
         }
         if (updatedSet.has(value)) {
           updatedSet.delete(value);
@@ -46,9 +46,10 @@ const Filter = () => {
     });
   };
 
-  const statuses = ["All", "Full", "Busy", "Good"];
-  const operatorIds = ["All", "Operator 1", "Operator 2", "Operator 3"];
-  const connectorTypes = ["All", "Type 1", "Type 2", "CCS", "CHAdeMO"];
+  const statuses = ["Tất cả", "còn trống", "đông đúc", "hết chỗ"];
+  const operatorIds = ["Tất cả", "Operator 1", "Operator 2", "Operator 3"];
+  const connectorTypes = ["Tất cả", "CCS 2", "Type 2"];
+  const power = []
 
   const renderTags = (
     field: "status" | "operatorId" | "connectorType",

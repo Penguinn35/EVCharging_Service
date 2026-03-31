@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { useState } from "react";
 // import { LoginFormContent } from "@/components/LoginFormContent";
@@ -11,16 +11,19 @@ import Link from "next/link";
 export function Header() {
   const [open, setOpen] = useState(false);
   const [modalType, setModalType] = useState<"login" | "register" | null>(null);
-
+  const closeModal = () => setModalType(null);
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-sm">
         <nav className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-           {/* Logo */}
-        <Link href="/" className=" text-green-500 flex items-center gap-2 font-bold text-xl text-primary">
-          <FiZap className="w-6 h-6 h-10" />
-          EVStation
-        </Link>
+          {/* Logo */}
+          <Link
+            href="/"
+            className=" text-green-500 flex items-center gap-2 font-bold text-xl text-primary"
+          >
+            <FiZap className="w-6 h-6 h-10" />
+            EVStation
+          </Link>
 
           {/* Desktop */}
           <div className="hidden md:flex gap-4">
@@ -30,7 +33,7 @@ export function Header() {
 
           {/* Mobile toggle */}
           <button onClick={() => setOpen(!open)} className="md:hidden">
-           {open ? <FiX size={24} /> : <FiMenu size={24} />}
+            {open ? <FiX size={24} /> : <FiMenu size={24} />}
           </button>
         </nav>
 
@@ -59,9 +62,20 @@ export function Header() {
       </header>
 
       {/* Modal */}
-      <Modal open={modalType !== null} onClose={() => setModalType(null)}>
-        {modalType === "login" && <LoginFormContent />}
-        {modalType === "register" && <RegisterFormContent />}
+      <Modal open={modalType !== null} onClose={closeModal}>
+        {modalType === "login" && (
+          <LoginFormContent
+            closeModal={closeModal}
+            switchToRegister={() => setModalType("register")}
+          />
+        )}
+
+        {modalType === "register" && (
+          <RegisterFormContent
+            closeModal={closeModal}
+            switchToLogin={() => setModalType("login")}
+          />
+        )}
       </Modal>
     </>
   );

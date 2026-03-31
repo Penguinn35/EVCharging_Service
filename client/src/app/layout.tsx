@@ -1,8 +1,8 @@
-
 import type { Metadata } from "next";
 import "./globals.css";
 import { Saira } from "next/font/google";
-
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "leaflet/dist/leaflet.css";
 import { AuthProvider } from "../context/AuthContext";
 import { Header } from "@/components/homePage/Header";
@@ -22,24 +22,22 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-
   return (
     <html lang="en">
-       <Head>
-        <link
-          rel="stylesheet"
-          href="/leaflet-routing-machine.css"
-        />
-        <script
-          src="/leaflet-routing-machine.min.js"
-          defer
-        />
+      <Head>
+        <link rel="stylesheet" href="/leaflet-routing-machine.css" />
+        <script src="/leaflet-routing-machine.min.js" defer />
       </Head>
-      <body
-        className={`${sairaFont.className}`}
-      >
+      <body className={`${sairaFont.className}`}>
         <AuthProvider>
-          <main >{children}</main>
+          <main>
+            {children}
+            <ToastContainer
+              position="top-right"
+              autoClose={3000}
+              theme="light"
+            />
+          </main>
         </AuthProvider>
       </body>
     </html>

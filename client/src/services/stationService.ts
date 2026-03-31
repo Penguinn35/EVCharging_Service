@@ -1,28 +1,57 @@
-import { ChargingStation } from "@/models/station";
-import { sampleStations } from "@/sampleData/stations";
+// import { ChargingStation } from "@/models/station";
+import { StationDetail, StationMarkerData } from "@/type/station";
+import { ApiResponse, Coordinate } from "@/type/share";
+import {apiClient, publicApiClient} from "@/lib/apiClient";
+
 
 const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-export async function getStationById(
-  stationId: number
-): Promise<ChargingStation | null> {
-  return sampleStations.find(s => s.id === stationId) ?? null;
+type searchResult = {
+  
+  id: string,
+  name: string,
+  address: string
+  
 }
 
-export async function getChargingStations() {
-  const res = await fetch(
-    "https://api.openchargemap.io/v3/poi/?output=json&latitude=10.7769&longitude=106.7009&distance=20&distanceunit=KM&maxresults=20",
+export async function getStationById(
+  stationId: string
+): Promise<StationDetail> {
+  console.log("in f");
+  
+  const response = await publicApiClient.get<ApiResponse<StationDetail>>(
+    `api/stations/${stationId}`
+  )
+  return response.data.responseData;
+}
+
+export async function getStationNearBy(
+  coordinate: Coordinate
+): Promise<StationMarkerData[]> {
+  console.log("in f");
+  
+  const response = await publicApiClient.post<ApiResponse<StationMarkerData[]>>(
+    "api/stations/near",
+    coordinate
+  )
+  return response.data.responseData;
+}
+
+
+
+
+export const searchStation = async(
+  keyword: string
+): Promise<searchResult[]> => {
+  const response = await publicApiClient.get<ApiResponse<searchResult[]>>(
+    "/api/stations/search",
     {
-      headers: {
-        "X-API-Key": "b7559585-323d-4672-a3fb-60c9e037d705"
-      }
+      params:{keyword},
     }
   );
-
-  const data = await res.json();
-  console.log(data);
-  return data;
+  return  response.data.responseData;
 }
+
 
 
 

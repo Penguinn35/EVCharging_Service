@@ -4,8 +4,6 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import { useEffect, useState } from "react";
 import "leaflet/dist/leaflet.css";
 import "../mapPage/map.css";
-import { sampleStations } from "@/sampleData/stations";
-import { ChargingStation } from "@/models/station";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
@@ -14,8 +12,11 @@ import { useUserStore } from "@/store/useUserStore";
 import { useRoutingStore } from "@/store/useRoutingStore";
 import RoutingMachine from "./RoutingMachine";
 import FlyTo from "@/components/mapPage/FlyTo";
-
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+import { MapCenterTracker } from "./MapCenterTracker";
+import { StationMarkerData } from "@/type/station";
+import { getStationById } from "@/services/stationService";
+import { toast } from "react-toastify";
+// delete (L.Icon.Default.prototype as any)._getIconUrl; ???
 
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: markerIcon2x,
@@ -23,11 +24,65 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
-const CustomMarker = ({ station }: { station: ChargingStation }) => {
+// const CustomMarker = ({ station }: { station: StationMarkerData }) => {
+//   const [L, setLeaflet] = useState<any>(null);
+//   const selectStation = useStationStore((state) => state.selectStation);
+//   // const { clearRouting } = useRoutingStore();
+//   const clearRouting = useRoutingStore((s) => s.clearRouting);
+
+//   useEffect(() => {
+//     import("leaflet").then((leaflet) => {
+//       setLeaflet(leaflet);
+//     });
+//   }, []);
+
+//   if (!L) {
+//     return null;
+//   }
+
+//   const markerIcon = L.divIcon({
+//     className: "custom-marker",
+//     html: `
+//       <div class="pin status-${station.status}">
+//         <div class="pin-inner">
+//           <span class="brand">${station.id}</span>
+//         </div>
+//       </div>
+//     `,
+//     iconSize: [42, 48],
+//     iconAnchor: [21, 48],
+//   });
+//   return (
+//     <Marker
+//       position={[station.coordinate.latitude, station.coordinate.longitude]}
+//       icon={markerIcon}
+//       eventHandlers={{
+//         click: () => {
+//           selectStation(station);
+//           clearRouting();
+//         },
+//       }}
+//     ></Marker>
+//   );
+// };
+
+const CustomMarker = ({ station }: { station: StationMarkerData }) => {
   const [L, setLeaflet] = useState<any>(null);
   const selectStation = useStationStore((state) => state.selectStation);
-  // const { clearRouting } = useRoutingStore();
   const clearRouting = useRoutingStore((s) => s.clearRouting);
+  const [loading, setLoading] = useState(false);
+
+  const handleSelectStation = async (stationId: string) => {
+    try {
+      setLoading(true);
+      const data = await getStationById(stationId);
+      selectStation(data);
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to fetch station");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     import("leaflet").then((leaflet) => {
@@ -35,38 +90,45 @@ const CustomMarker = ({ station }: { station: ChargingStation }) => {
     });
   }, []);
 
-  if (!L) {
-    return null;
-  }
+  if (!L) return null;
+
+  // 👇 random status
+  const statuses = ["available", "busy", "full"] as const;
+  const status = statuses[Math.floor(Math.random() * statuses.length)];
+
+  // 👇 last 4 chars of id
+  const shortId = station.id.slice(-4);
 
   const markerIcon = L.divIcon({
     className: "custom-marker",
     html: `
-      <div class="pin status-${station.status}">
+      <div class="pin status-${status}">
         <div class="pin-inner">
-          <span class="brand">${station.operatorId}</span>
+          <span class="brand">${shortId}</span>
         </div>
       </div>
     `,
     iconSize: [42, 48],
     iconAnchor: [21, 48],
   });
+
   return (
     <Marker
       position={[station.coordinate.latitude, station.coordinate.longitude]}
       icon={markerIcon}
       eventHandlers={{
         click: () => {
-          selectStation(station);
+          handleSelectStation(station.id);
           clearRouting();
         },
       }}
-    ></Marker>
+    />
   );
 };
 
 export default function Map() {
   console.log("Map render");
+  const stationMarkerDatas = useStationStore((state) => state.stationMarkers);
 
   const coordinate = useUserStore((state) => state.user.coordinate);
   const isOpen = useRoutingStore((s) => s.isOpen);
@@ -75,7 +137,7 @@ export default function Map() {
   return (
     <MapContainer
       center={[10.814889, 106.697906]}
-      zoom={13}
+      zoom={10}
       zoomControl={false}
       style={{ height: "100vh", width: "100%" }}
     >
@@ -92,7 +154,8 @@ export default function Map() {
       )}
 
       <FlyTo />
-      {sampleStations.map((station) => (
+      <MapCenterTracker />
+      {stationMarkerDatas.map((station) => (
         <CustomMarker key={station.id} station={station} />
       ))}
 
