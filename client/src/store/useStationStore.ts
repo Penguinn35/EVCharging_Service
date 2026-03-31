@@ -1,25 +1,29 @@
 import { create } from "zustand";
-import { ChargingStation, ChargingPoint, Connector } from "@/models/station";
 
+import { StationDetail } from "@/type/station";
+import { StationMarkerData } from "@/type/station";
 
 type StationState = {
-  stations: ChargingStation[];
-  selectedStation: ChargingStation | null;
-  routeTo: ChargingStation | null;
+  stations: StationDetail[];
+  stationMarkers: StationMarkerData[];
+  selectedStation: StationDetail | null;
+  routeTo: StationDetail | null;
   // actions
-  setStations: (stations: ChargingStation[]) => void;
-  addStation: (station: ChargingStation) => void;
-  updateStation: (station: ChargingStation) => void;
-  selectStation: (station: ChargingStation | null) => void;
-  setRouteTo: (s: ChargingStation | null) => void;
+  setStations: (stations: StationDetail[]) => void;
+  setStationMarkers:(stationMarkers: StationMarkerData[]) => void;
+  addStation: (station: StationDetail) => void;
+  updateStation: (station: StationDetail) => void;
+  selectStation: (station: StationDetail | null) => void;
+  setRouteTo: (s: StationDetail | null) => void;
 };
 
 export const useStationStore = create<StationState>((set) => ({
   stations: [],
+  stationMarkers: [],
   selectedStation: null,
   routeTo: null,
   setStations: (stations) => set({ stations }),
-
+  setStationMarkers: (stationMarkers) => set({stationMarkers}),
   addStation: (station) =>
     set((state) => ({
       stations: [...state.stations, station],

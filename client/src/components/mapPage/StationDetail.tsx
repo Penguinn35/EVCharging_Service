@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { ChargingStation } from "@/models/station";
+import { StationDetail as StationDetailType } from "@/type/station";
 import { BsFillLightningChargeFill } from "react-icons/bs";
 import { FaRegStar } from "react-icons/fa";
 import { TfiWrite } from "react-icons/tfi";
@@ -13,7 +14,7 @@ import "chart.js/auto";
 import RatingModal from "./RatingModal";
 
 type StationDetailProps = {
-  station: ChargingStation;
+  station: StationDetailType;
   onClose: () => void;
   distance?: number; // Added optional distance property
 };
@@ -25,19 +26,19 @@ const statusColor = {
 };
 
 const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
-  const chartData = {
-    labels: Array.from({ length: 24 }, (_, i) => `${i}:00`),
-    datasets: [
-      {
-        label: "Usage (kWh)",
-        data: station.usageData || [],
-        backgroundColor: "rgba(75, 192, 192, 0.6)",
-      },
-    ],
-  };
+  // const chartData = {
+  //   labels: Array.from({ length: 24 }, (_, i) => `${i}:00`),
+  //   datasets: [
+  //     {
+  //       label: "Usage (kWh)",
+  //       data: station.usageData || [],
+  //       backgroundColor: "rgba(75, 192, 192, 0.6)",
+  //     },
+  //   ],
+  // };
   const isSaved = useUserStore((state) =>
-    state.user.savedStation.includes(station.id),
-  );
+  state.user.savedStation.some(s => s.id === station.id)
+);
   const { setRouting } = useRoutingStore();
   const { saveStation, deleteStation } = useUserStore();
   const [openRating, setOpenRating] = useState(false);
@@ -48,19 +49,19 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
 
   //helper for rating section
 
-  const ratings = station.ratings ?? [];
+  // const ratings = station.ratings ?? [];
 
-  const totalRatings = ratings.length;
+  // const totalRatings = ratings.length;
 
-  const avgRating =
-    totalRatings === 0
-      ? 0
-      : ratings.reduce((s, r) => s + r.point, 0) / totalRatings;
+  // const avgRating =
+  //   totalRatings === 0
+  //     ? 0
+  //     : ratings.reduce((s, r) => s + r.point, 0) / totalRatings;
 
-  const distribution = [5, 4, 3, 2, 1].map((star) => ({
-    star,
-    count: ratings.filter((r) => r.point === star).length,
-  }));
+  // const distribution = [5, 4, 3, 2, 1].map((star) => ({
+  //   star,
+  //   count: ratings.filter((r) => r.point === star).length,
+  // }));
   //
 
   return (
@@ -69,7 +70,7 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
       <div className="px-4 py-3 border-b border-gray-400 flex justify-between items-start">
         <div>
           <h2 className="text-lg font-semibold">{station.name}</h2>
-          <p className="text-sm text-gray-500">{station.addressInfor}</p>
+          <p className="text-sm text-gray-500">{station.address}</p>
           {distance && (
             <p className="text-sm text-gray-500">
               Distance: {distance.toFixed(2)} km
@@ -90,7 +91,7 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
       <div className=" overflow-y-auto">
         <div>
           <img
-            src={station.img ? (station.img[0] ?? undefined) : undefined}
+            src={station.imageUrl ? (station.imageUrl[0] ?? undefined) : undefined}
             alt=""
           />
         </div>
@@ -107,10 +108,12 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
             </span>
 
             <span className="text-sm text-gray-600">
-              {station.totalPoints} điểm sạc
+              {/* {station.totalPoints}  */}
+              ?? điểm sạc
             </span>
           </div>
-          {station.chargingPoints.map((point) =>
+
+          {/* {station.chargingPoints.map((point) =>
             point.id <= 303 ? (
               <div
                 key={point.id}
@@ -118,7 +121,7 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
               >
                 <BsFillLightningChargeFill className="text-green-500 mr-[8px]" />
 
-                {/* Connectors */}
+                
                 <div className="space-y-2 w-full">
                   {point.Connectors.map((connector) => (
                     <div
@@ -136,7 +139,7 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
                 </div>
               </div>
             ) : null,
-          )}
+          )} */}
 
           <div className="py-3 flex items-center gap-3 mb-0">
             <span
@@ -148,11 +151,12 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
             </span>
 
             <span className="text-sm text-gray-600">
-              {station.totalPoints} điểm sạc
+              {/* {station.totalPoints} */}
+              ?? điểm sạc
             </span>
           </div>
         </div>
-        {station.chargingPoints.map((point) =>
+        {/* {station.chargingPoints.map((point) =>
           point.id >= 303 ? (
             <div
               key={point.id}
@@ -160,7 +164,7 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
             >
               <BsFillLightningChargeFill className="text-orange-500 mr-[8px]" />
 
-              {/* Connectors */}
+              
               <div className="space-y-2 w-full">
                 {point.Connectors.map((connector) => (
                   <div
@@ -178,12 +182,12 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
               </div>
             </div>
           ) : null,
-        )}
+        )} */}
 
         {/* Data Summary Chart */}
         <div className="px-4 py-3">
           <h3 className="text-md font-semibold">Usage Summary</h3>
-          <Bar data={chartData} />
+          {/* <Bar data={chartData} /> */}
         </div>
         {/* Ratings and Comments */}
         <div className="px-4 py-3">
@@ -192,14 +196,14 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
 
             <div className="flex gap-6">
               {/* Average */}
-              <div className="flex flex-col items-center">
+              {/* <div className="flex flex-col items-center">
                 <p className="text-3xl font-bold">{avgRating.toFixed(1)}</p>
                 <p className="text-sm text-gray-500">{totalRatings} reviews</p>
-              </div>
+              </div> */}
 
               {/* Distribution */}
               <div className="flex-1 space-y-1">
-                {distribution.map((d) => (
+                {/* {distribution.map((d) => (
                   <div key={d.star} className="flex items-center gap-2">
                     <span className="text-sm w-4">{d.star}</span>
 
@@ -217,19 +221,19 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
 
                     <span className="text-xs text-gray-500 w-6">{d.count}</span>
                   </div>
-                ))}
+                ))} */}
               </div>
             </div>
           </div>
 
-          {station.ratings?.map((rating, index) => (
+          {/* {station.ratings?.map((rating, index) => (
             <div key={index} className="mt-2">
               <p>
                 <strong>{rating.user}:</strong> {rating.comment}
               </p>
               <p>Rating: {rating.point}/5</p>
             </div>
-          ))}
+          ))} */}
         </div>
       </div>
       {openRating && (
@@ -237,8 +241,7 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
           onClose={() => setOpenRating(false)}
           onSubmit={(rating, comment) => {
             console.log("FAKE SUBMIT", rating, comment);
-            // later:
-            // POST /api/stations/:id/review
+            
           }}
         />
       )}
@@ -269,7 +272,7 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
           )}
         </div>
         <div
-          onClick={() => setRouting(station.coordinate)}
+          onClick={() => setRouting(station.position)}
           className=" text-green-600 flex flex-col  items-center gap-2 cursor-pointer hover:text-green-700"
         >
           <FaRoute className="text-xl" />

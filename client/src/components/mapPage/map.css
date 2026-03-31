@@ -36,7 +36,7 @@
 }
 
 /* Status colors */
-.status-active {
+.status-available {
   background: #34c759;
 }
 
@@ -44,6 +44,6 @@
   background: #ff9500;
 }
 
-.status-offline {
+.status-full {
   background: #ff3b30;
 }

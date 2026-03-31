@@ -1,5 +1,6 @@
-import { ChargingStation } from "@/models/station";
-import { ApiResponse } from "@/type/share";
+// import { ChargingStation } from "@/models/station";
+import { StationDetail, StationMarkerData } from "@/type/station";
+import { ApiResponse, Coordinate } from "@/type/share";
 import {apiClient, publicApiClient} from "@/lib/apiClient";
 
 
@@ -15,11 +16,23 @@ type searchResult = {
 
 export async function getStationById(
   stationId: string
-): Promise<ChargingStation> {
+): Promise<StationDetail> {
   console.log("in f");
   
-  const response = await publicApiClient.get<ApiResponse<ChargingStation>>(
+  const response = await publicApiClient.get<ApiResponse<StationDetail>>(
     `api/stations/${stationId}`
+  )
+  return response.data.responseData;
+}
+
+export async function getStationNearBy(
+  coordinate: Coordinate
+): Promise<StationMarkerData[]> {
+  console.log("in f");
+  
+  const response = await publicApiClient.post<ApiResponse<StationMarkerData[]>>(
+    "api/stations/near",
+    coordinate
   )
   return response.data.responseData;
 }

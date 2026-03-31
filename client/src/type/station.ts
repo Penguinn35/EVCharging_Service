@@ -1,5 +1,11 @@
 import { Coordinate } from "./share";
-
+export type StationMarkerData = {
+  id: string,
+  name: string,
+  manufacturer: string;
+  coordinate: Coordinate;
+  status: string;
+}
 export type Connector = {
   id: string;
   type: number;
