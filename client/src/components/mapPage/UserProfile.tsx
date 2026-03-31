@@ -5,7 +5,7 @@ import { useStationStore } from "@/store/useStationStore";
 import { useRoutingStore } from "@/store/useRoutingStore";
 import { getStationById } from "@/services/stationService";
 import { useMapStore } from "@/store/useMapStore";
-import FlyTo from "@/components/mapPage/FlyTo";
+import { getUserById } from "@/services/userService";
 // React Icons imports
 import {
   IoClose,
@@ -19,12 +19,40 @@ import { MdOutlineElectricalServices, MdLogout } from "react-icons/md";
 
 const UserProfile = () => {
   const { user, updateUser, deleteStation } = useUserStore();
+
+  const userId = useUserStore((state) => state.user.id);
+
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { selectStation, selectedStation } = useStationStore();
   const { clearRouting } = useRoutingStore();
   const setFlyTo = useMapStore((s) => s.setFlyTo);
   // Ref to handle clicking outside to close
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        console.log("in profile");
+        
+        const response = await getUserById(userId);
+        console.log("res: ", response);
+        
+        updateUser({
+          name: response.fullName,
+          email: response.email,
+          savedStation: response.savedStationList,
+        });
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    if (userId.trim() !== "") {
+      fetchUser();
+      console.log("user now:", user);
+      
+    } 
+  }, [userId]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -39,26 +67,27 @@ const UserProfile = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {}, []);
+
   const handlePlugChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     updateUser({
       vehiclePlug: e.target.value as "Type 2" | "CCS2" | "Both",
     });
   };
-  const handleSelectSavedStation = async (stationId: number) => {
+  const handleSelectSavedStation = async (stationId: string) => {
     const station = await getStationById(stationId);
     if (station !== null) {
       selectStation(station);
       setFlyTo(station.coordinate);
-      
     }
   };
 
-  const handleDeleteStation = (stationId: number) => {
-    deleteStation(stationId);
-    if (stationId === selectedStation?.id) {
-      selectStation(null);
-      clearRouting();
-    }
+  const handleDeleteStation = (stationId: string) => {
+    // deleteStation(stationId);
+    // if (stationId === selectedStation?.id) {
+    //   selectStation(null);
+    //   clearRouting();
+    // }
   };
 
   return (
@@ -136,18 +165,18 @@ const UserProfile = () => {
                 <ul className="space-y-2 max-h-48 overflow-y-auto pr-1">
                   {user.savedStation.map((station) => (
                     <li
-                      key={station}
-                      onClick={() => handleSelectSavedStation(station)}
+                      key={station.id}
+                      onClick={() => handleSelectSavedStation(station.id)}
                       className="flex items-center justify-between cursor-pointer text-sm bg-white border border-gray-100 rounded-xl p-3 hover:shadow-md hover:border-blue-100 transition-all group"
                     >
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-green-400" />
                         <span className="font-medium text-gray-700">
-                          Trạm #{station}
+                          Trạm #{station.name}
                         </span>
                       </div>
                       <button
-                        onClick={() => handleDeleteStation(station)}
+                        onClick={() => handleDeleteStation(station.id)}
                         className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                         title="Gỡ bỏ"
                       >

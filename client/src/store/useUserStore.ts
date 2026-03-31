@@ -1,24 +1,26 @@
 import { create } from "zustand";
 import { Coordinate } from "@/models/shared";
-
+import { StationSavedList } from "@/type/user";
 interface User {
+  id: string,
   email: string;
   name: string;
   accessToken: string;
   vehiclePlug: "Type 2" | "CCS2" | "Both";
   coordinate: Coordinate | null;
-  savedStation: number[];
+  savedStation: StationSavedList[];
 }
 
 interface UserStore {
   user: User;
   updateUser: (data: Partial<User>) => void;
-  saveStation: (stationId: number) => void;
-  deleteStation: (stationId: number) => void;
+  saveStation: (stationId: string) => void;
+  deleteStation: (stationId: string) => void;
 }
 
 export const useUserStore = create<UserStore>((set) => ({
   user: {
+    id: "",
     email: "",
     name: "",
     accessToken: "",
@@ -36,9 +38,7 @@ export const useUserStore = create<UserStore>((set) => ({
     set((state) => ({
       user: {
         ...state.user,
-        savedStation: state.user.savedStation.includes(stationId)
-          ? state.user.savedStation
-          : [...state.user.savedStation, stationId],
+        
       },
     })),
 
@@ -46,7 +46,7 @@ export const useUserStore = create<UserStore>((set) => ({
     set((state) => ({
       user: {
         ...state.user,
-        savedStation: state.user.savedStation.filter((id) => id !== stationId),
+       
       },
     })),
 }));
