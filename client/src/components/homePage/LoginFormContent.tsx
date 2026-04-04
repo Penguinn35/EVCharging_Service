@@ -10,13 +10,17 @@ import { useRouter } from "next/navigation";
 import { loginType } from "@/models/user";
 import { login } from "@/services/userService";
 import { useUserStore } from "@/store/useUserStore";
+import { toast } from "react-toastify";
 
 type Props = {
   closeModal: () => void;
   switchToRegister: () => void;
 };
 
-export default function LoginFormContent({ closeModal, switchToRegister }: Props) {
+export default function LoginFormContent({
+  closeModal,
+  switchToRegister,
+}: Props) {
   const [formData, setFormData] = useState<loginType>({
     username: "",
     password: "",
@@ -33,22 +37,6 @@ export default function LoginFormContent({ closeModal, switchToRegister }: Props
     }));
   };
 
-  // const handleSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-
-  //   if (!formData.username || !formData.password) return;
-
-  //   try {
-  //     setLoading(true);
-  //     const result = await login(formData);
-  //     console.log("Login success:", result);
-  //   } catch (error) {
-  //     console.error("Login failed:", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -64,18 +52,15 @@ export default function LoginFormContent({ closeModal, switchToRegister }: Props
         accessToken: result.token,
         id: result.user.id,
       });
-
       console.log("Login success:", result);
-
-      // ✅ Optional: redirect
+      toast.success("Logged in");
+      closeModal();
       router.push("/Map");
     } catch (err: unknown) {
       const error = err as ApiError;
 
       console.error("Login failed:", error.message);
-
-      // ✅ Optional: show UI error
-      // setError(error.message);
+      toast.error("Login failed");
     } finally {
       setLoading(false);
     }

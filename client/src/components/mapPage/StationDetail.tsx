@@ -215,10 +215,10 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
 
             <div className="flex gap-6">
               {/* Average */}
-              {/* <div className="flex flex-col items-center">
-                <p className="text-3xl font-bold">{avgRating.toFixed(1)}</p>
-                <p className="text-sm text-gray-500">{totalRatings} reviews</p>
-              </div> */}
+              <div className="flex flex-col items-center">
+                <p className="text-3xl font-bold">{3}</p>
+                <p className="text-sm text-gray-500">{33} reviews</p>
+              </div>
 
               {/* Distribution */}
               <div className="flex-1 space-y-1">

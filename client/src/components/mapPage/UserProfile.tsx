@@ -6,6 +6,10 @@ import { useRoutingStore } from "@/store/useRoutingStore";
 import { getStationById } from "@/services/stationService";
 import { useMapStore } from "@/store/useMapStore";
 import { getUserById } from "@/services/userService";
+import LoginFormContent from "../homePage/LoginFormContent";
+import RegisterFormContent from "../homePage/RegisterFormContent ";
+import { Modal } from "@/components/Modal";
+import { FiLogIn } from "react-icons/fi";
 // React Icons imports
 import {
   IoClose,
@@ -23,6 +27,11 @@ const UserProfile = () => {
   const userId = useUserStore((state) => state.user.id);
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [modalType, setModalType] = useState<"login" | "register" | null>(null);
+
+  const closeModal = () => setModalType(null);
+
+  const isLoggedIn = userId && userId.trim() !== "";
   const { selectStation, selectedStation } = useStationStore();
   const { clearRouting } = useRoutingStore();
   const setFlyTo = useMapStore((s) => s.setFlyTo);
@@ -33,10 +42,10 @@ const UserProfile = () => {
     const fetchUser = async () => {
       try {
         console.log("in profile");
-        
+
         const response = await getUserById(userId);
         console.log("res: ", response);
-        
+
         updateUser({
           name: response.fullName,
           email: response.email,
@@ -50,8 +59,7 @@ const UserProfile = () => {
     if (userId.trim() !== "") {
       fetchUser();
       console.log("user now:", user);
-      
-    } 
+    }
   }, [userId]);
 
   useEffect(() => {
@@ -67,48 +75,73 @@ const UserProfile = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  useEffect(() => {}, []);
+  const handleLogout = () => {
+    setIsProfileOpen(false);
+    updateUser({
+      id: "",
+      email: "",
+      name: "",
+      accessToken: "",
+      vehiclePlug: "Both",
+      coordinate: null,
+      savedStation: [],
+    });
+  };
 
   const handlePlugChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     updateUser({
       vehiclePlug: e.target.value as "Type 2" | "CCS2" | "Both",
     });
   };
+
   const handleSelectSavedStation = async (stationId: string) => {
     const station = await getStationById(stationId);
     if (station !== null) {
       selectStation(station);
-      setFlyTo(station.coordinate);
+      setFlyTo(station.position);
     }
   };
 
   const handleDeleteStation = (stationId: string) => {
-    // deleteStation(stationId);
-    // if (stationId === selectedStation?.id) {
-    //   selectStation(null);
-    //   clearRouting();
-    // }
+    deleteStation(stationId);
+    if (stationId === selectedStation?.id) {
+      selectStation(null);
+      clearRouting();
+    }
   };
 
   return (
     <div className="absolute top-4 right-4 z-[1000]" ref={dropdownRef}>
       {/* Avatar Button */}
       <button
-        onClick={() => setIsProfileOpen((prev) => !prev)}
+        onClick={() => {
+          if (!isLoggedIn) {
+            setModalType("login");
+          } else {
+            setIsProfileOpen((prev) => !prev);
+          }
+        }}
         className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all border-2 cursor-pointer
-          ${isProfileOpen ? "bg-green-600 border-white scale-110" : "bg-white border-green-500 text-green-600 hover:bg-green-50"}`}
+    ${
+      isLoggedIn
+        ? isProfileOpen
+          ? "bg-green-600 border-white scale-110"
+          : "bg-white border-green-500 text-green-600 hover:bg-green-50"
+        : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+    }`}
       >
-        {isProfileOpen ? (
-          <IoClose size={24} className="text-white" />
+        {isLoggedIn ? (
+          <IoPersonCircleOutline
+            size={26}
+            className={isProfileOpen ? "text-white" : "text-green-600"}
+          />
         ) : (
-          <span className="text-lg font-bold uppercase ">
-            {user.name.charAt(0)}
-          </span>
+          <FiLogIn size={22} />
         )}
       </button>
 
       {/* Profile Card */}
-      {isProfileOpen && (
+      {isLoggedIn && isProfileOpen && (
         <div className="absolute top-14 right-0 w-80 bg-white shadow-2xl rounded-2xl border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
           {/* Header */}
           <div className="p-5 border-b border-gray-50 bg-gradient-to-r from-blue-50 to-transparent">
@@ -172,7 +205,7 @@ const UserProfile = () => {
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-green-400" />
                         <span className="font-medium text-gray-700">
-                          Trạm #{station.name}
+                          Trạm #{station.id}
                         </span>
                       </div>
                       <button
@@ -191,7 +224,7 @@ const UserProfile = () => {
 
           <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-center">
             <button
-              onClick={() => setIsProfileOpen(false)}
+              onClick={() => handleLogout()}
               className="flex flex-row gap-2  justify-center text-xs font-semibold text-green-600 hover:text-green-800 uppercase tracking-tighter"
             >
               <MdLogout className=" text-xl" />
@@ -200,6 +233,21 @@ const UserProfile = () => {
           </div>
         </div>
       )}
+      <Modal open={modalType !== null} onClose={closeModal}>
+        {modalType === "login" && (
+          <LoginFormContent
+            closeModal={closeModal}
+            switchToRegister={() => setModalType("register")}
+          />
+        )}
+
+        {modalType === "register" && (
+          <RegisterFormContent
+            closeModal={closeModal}
+            switchToLogin={() => setModalType("login")}
+          />
+        )}
+      </Modal>
     </div>
   );
 };

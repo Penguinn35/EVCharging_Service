@@ -37,8 +37,6 @@ export async function getStationNearBy(
 }
 
 
-
-
 export const searchStation = async(
   keyword: string
 ): Promise<searchResult[]> => {
@@ -51,6 +49,31 @@ export const searchStation = async(
   return  response.data.responseData;
 }
 
+export const saveStation = async (
+  userId: string,
+  stationId: string
+): Promise<boolean> => {
+  const res = await apiClient.put<ApiResponse<boolean>>(
+    "/api/client/stations/save",
+    null,
+    {
+      params: { userId, stationId },
+    }
+  );
 
+  return res.data.responseData;
+};
 
+export const deleteSavedStation = async (
+  userId: string,
+  stationId: string
+): Promise<boolean> => {
+  const res = await apiClient.delete<ApiResponse<boolean>>(
+    "/api/client/stations/save",
+    {
+      params: { userId, stationId },
+    }
+  );
 
+  return res.data.responseData;
+};
