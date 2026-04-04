@@ -92,19 +92,12 @@ const CustomMarker = ({ station }: { station: StationMarkerData }) => {
 
   if (!L) return null;
 
-  // 👇 random status
-  const statuses = ["available", "busy", "full"] as const;
-  const status = statuses[Math.floor(Math.random() * statuses.length)];
-
-  // 👇 last 4 chars of id
-  const shortId = station.id.slice(-4);
-
   const markerIcon = L.divIcon({
     className: "custom-marker",
     html: `
-      <div class="pin status-${status}">
+      <div class="pin status-${station.status}">
         <div class="pin-inner">
-          <span class="brand">${shortId}</span>
+          <span class="brand">${station.manufacturer}</span>
         </div>
       </div>
     `,

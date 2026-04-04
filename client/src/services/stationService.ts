@@ -17,7 +17,6 @@ type searchResult = {
 export async function getStationById(
   stationId: string
 ): Promise<StationDetail> {
-  console.log("in f");
   
   const response = await publicApiClient.get<ApiResponse<StationDetail>>(
     `api/stations/${stationId}`

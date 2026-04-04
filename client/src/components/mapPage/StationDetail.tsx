@@ -16,7 +16,7 @@ import RatingModal from "./RatingModal";
 type StationDetailProps = {
   station: StationDetailType;
   onClose: () => void;
-  distance?: number; // Added optional distance property
+  distance?: number;
 };
 
 const statusColor = {
@@ -36,9 +36,11 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
   //     },
   //   ],
   // };
+  console.log("station selected: ", station);
+
   const isSaved = useUserStore((state) =>
-  state.user.savedStation.some(s => s.id === station.id)
-);
+    state.user.savedStation.some((s) => s.id === station.id),
+  );
   const { setRouting } = useRoutingStore();
   const { saveStation, deleteStation } = useUserStore();
   const [openRating, setOpenRating] = useState(false);
@@ -46,7 +48,38 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
   const toggleSave = () => {
     isSaved ? deleteStation(station.id) : saveStation(station.id);
   };
+  const typeMap: Record<number, string> = {
+    0: "Type 1",
+    1: "Type 2",
+    2: "CCS2",
+    3: "CHAdeMO",
+  };
+  const groupConnectors = (connectors: any[], available: boolean) => {
+    return Object.values(
+      connectors
+        .filter((c) => c.available === available)
+        .sort((a, b) => b.maxPower - a.maxPower)
+        .reduce((acc: any, curr: any) => {
+          const key = `${curr.maxPower}-${curr.available}`;
 
+          if (!acc[key]) {
+            acc[key] = {
+              maxPower: curr.maxPower,
+              voltage: curr.voltage,
+              type: curr.type,
+              count: 1,
+            };
+          } else {
+            acc[key].count += 1;
+          }
+
+          return acc;
+        }, {}),
+    );
+  };
+
+  const availableGroups = groupConnectors(station.connectors, true);
+  const busyGroups = groupConnectors(station.connectors, false);
   //helper for rating section
 
   // const ratings = station.ratings ?? [];
@@ -91,7 +124,9 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
       <div className=" overflow-y-auto">
         <div>
           <img
-            src={station.imageUrl ? (station.imageUrl[0] ?? undefined) : undefined}
+            src={
+              station.imageUrl ? (station.imageUrl[0] ?? undefined) : undefined
+            }
             alt=""
           />
         </div>
@@ -108,38 +143,30 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
             </span>
 
             <span className="text-sm text-gray-600">
-              {/* {station.totalPoints}  */}
-              ?? điểm sạc
+              {station.connectors.filter((c) => c.available === true).length}{" "}
+              điểm sạc
             </span>
           </div>
 
-          {/* {station.chargingPoints.map((point) =>
-            point.id <= 303 ? (
-              <div
-                key={point.id}
-                className=" shadow-md/30 shadow-green-500 rounded-2xl p-3 flex flex-row items-center "
-              >
-                <BsFillLightningChargeFill className="text-green-500 mr-[8px]" />
+          {availableGroups.map((group: any, index: number) => (
+            <div
+              key={index}
+              className="shadow-md/30 shadow-green-500 rounded-2xl p-3 flex flex-row items-center"
+            >
+              <BsFillLightningChargeFill className="text-green-500 mr-[8px]" />
 
-                
-                <div className="space-y-2 w-full">
-                  {point.Connectors.map((connector) => (
-                    <div
-                      key={connector.id}
-                      className="flex justify-between items-center text-sm bg-gray-50 rounded-lg px-3 py-2"
-                    >
-                      <div>
-                        <p className="font-medium">{connector.type}</p>
-                        <p className="text-gray-500">
-                          {connector.voltageV} V · {connector.maxPowerKW} kW
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+              <div className="space-y-2 w-full">
+                <div className="flex justify-between items-center text-sm bg-gray-50 rounded-lg px-3 py-2">
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">
+                      {typeMap[group.type] || group.type} · {group.maxPower} kW
+                      × {group.count}
+                    </p>
+                  </div>
                 </div>
               </div>
-            ) : null,
-          )} */}
+            </div>
+          ))}
 
           <div className="py-3 flex items-center gap-3 mb-0">
             <span
@@ -149,40 +176,32 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
             >
               ĐANG BẬN
             </span>
-
             <span className="text-sm text-gray-600">
-              {/* {station.totalPoints} */}
-              ?? điểm sạc
+              {station.connectors.filter((c) => c.available === false).length}{" "}
+              điểm sạc
             </span>
           </div>
         </div>
-        {/* {station.chargingPoints.map((point) =>
-          point.id >= 303 ? (
-            <div
-              key={point.id}
-              className=" shadow-md/30 shadow-orange-500 rounded-2xl p-3 flex flex-row items-center "
-            >
-              <BsFillLightningChargeFill className="text-orange-500 mr-[8px]" />
 
-              
-              <div className="space-y-2 w-full">
-                {point.Connectors.map((connector) => (
-                  <div
-                    key={connector.id}
-                    className="flex justify-between items-center text-sm bg-gray-50 rounded-lg px-3 py-2"
-                  >
-                    <div>
-                      <p className="font-medium">{connector.type}</p>
-                      <p className="text-gray-500">
-                        {connector.voltageV} V · {connector.maxPowerKW} kW
-                      </p>
-                    </div>
-                  </div>
-                ))}
+        {busyGroups.map((group: any, index: number) => (
+          <div
+            key={index}
+            className="shadow-md/30 shadow-gray-400 rounded-2xl p-3 flex flex-row items-center"
+          >
+            <BsFillLightningChargeFill className="text-gray-500 mr-[8px]" />
+
+            <div className="space-y-2 w-full">
+              <div className="flex justify-between items-center text-sm bg-gray-50 rounded-lg px-3 py-2">
+                <div>
+                  <p className="text-sm font-medium text-gray-800">
+                    {typeMap[group.type] || group.type} · {group.maxPower} kW ×{" "}
+                    {group.count}
+                  </p>
+                </div>
               </div>
             </div>
-          ) : null,
-        )} */}
+          </div>
+        ))}
 
         {/* Data Summary Chart */}
         <div className="px-4 py-3">
@@ -241,7 +260,6 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
           onClose={() => setOpenRating(false)}
           onSubmit={(rating, comment) => {
             console.log("FAKE SUBMIT", rating, comment);
-            
           }}
         />
       )}
