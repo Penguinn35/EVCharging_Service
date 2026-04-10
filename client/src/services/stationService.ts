@@ -17,7 +17,6 @@ type searchResult = {
 export async function getStationById(
   stationId: string
 ): Promise<StationDetail> {
-  console.log("in f");
   
   const response = await publicApiClient.get<ApiResponse<StationDetail>>(
     `api/stations/${stationId}`
@@ -38,8 +37,6 @@ export async function getStationNearBy(
 }
 
 
-
-
 export const searchStation = async(
   keyword: string
 ): Promise<searchResult[]> => {
@@ -52,6 +49,29 @@ export const searchStation = async(
   return  response.data.responseData;
 }
 
+export const saveStation = async (
+  stationId: string
+): Promise<boolean> => {
+  const res = await apiClient.put<ApiResponse<boolean>>(
+    "/api/client/stations/save",
+    null,
+    {
+      params: {  stationId },
+    }
+  );
 
+  return res.data.responseData;
+};
 
+export const deleteSavedStation = async (
+  stationId: string
+): Promise<boolean> => {
+  const res = await apiClient.delete<ApiResponse<boolean>>(
+    "/api/client/stations/save",
+    {
+      params: {  stationId },
+    }
+  );
 
+  return res.data.responseData;
+};

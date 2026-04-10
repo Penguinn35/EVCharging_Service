@@ -23,7 +23,53 @@ export default function RegisterFormContent({
     password: "",
     address: "",
   });
+  const usernameRegex = /^[a-zA-Z][a-zA-Z0-9]{7,}$/;
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/;
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
+  const [errors, setErrors] = useState({
+    username: "",
+    fullName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+
+  const validate = () => {
+    const newErrors = {
+      username: "",
+      fullName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    };
+
+    if (!usernameRegex.test(formData.username)) {
+      newErrors.username = "Username must be ≥8 chars and start with a letter";
+    }
+
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = "Full name must not be empty";
+    }
+
+    if (!emailRegex.test(formData.email)) {
+      newErrors.email = "Invalid email format";
+    }
+
+    if (!passwordRegex.test(formData.password)) {
+      newErrors.password =
+        "Password must contain uppercase, lowercase, number, special char and ≥8 chars";
+    }
+
+    if (formData.password !== confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
+    }
+
+    setErrors(newErrors);
+
+    return Object.values(newErrors).every((e) => e === "");
+  };
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -35,7 +81,7 @@ export default function RegisterFormContent({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    if (!validate()) return;
     if (formData.password !== confirmPassword) {
       alert("Password confirmation does not match");
       return;
@@ -65,8 +111,13 @@ export default function RegisterFormContent({
             type="text"
             value={formData.username}
             onChange={handleChange}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg"
+            className={`w-full px-4 py-3 border rounded-lg ${
+              errors.username ? "border-red-500" : "border-gray-300"
+            }`}
           />
+          {errors.username && (
+            <p className="text-red-500 text-sm mt-1">{errors.username}</p>
+          )}
         </div>
 
         {/* Full Name */}
@@ -81,8 +132,13 @@ export default function RegisterFormContent({
               type="text"
               value={formData.fullName}
               onChange={handleChange}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg"
+              className={`w-full pl-10 pr-4 py-3 border rounded-lg ${
+                errors.fullName ? "border-red-500" : "border-gray-300"
+              }`}
             />
+            {errors.fullName && (
+              <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>
+            )}
           </div>
         </div>
 
@@ -98,8 +154,13 @@ export default function RegisterFormContent({
               type="email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg"
+              className={`w-full pl-10 pr-4 py-3 border rounded-lg ${
+                errors.email ? "border-red-500" : "border-gray-300"
+              }`}
             />
+            {errors.email && (
+              <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+            )}
           </div>
         </div>
 
@@ -115,8 +176,13 @@ export default function RegisterFormContent({
               type={showPassword ? "text" : "password"}
               value={formData.password}
               onChange={handleChange}
-              className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg"
+              className={`w-full pl-10 pr-12 py-3 border rounded-lg ${
+                errors.password ? "border-red-500" : "border-gray-300"
+              }`}
             />
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+            )}
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
@@ -138,8 +204,15 @@ export default function RegisterFormContent({
               type={showConfirmPassword ? "text" : "password"}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg"
+              className={`w-full pl-10 pr-12 py-3 border rounded-lg ${
+                errors.confirmPassword ? "border-red-500" : "border-gray-300"
+              }`}
             />
+            {errors.confirmPassword && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.confirmPassword}
+              </p>
+            )}
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}

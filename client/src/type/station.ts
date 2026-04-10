@@ -24,4 +24,5 @@ export type StationDetail = {
   isAvailable: boolean;
   imageUrl: string;
   connectors: Connector[];
+  status: number;
 };
