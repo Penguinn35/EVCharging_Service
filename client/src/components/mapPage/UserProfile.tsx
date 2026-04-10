@@ -27,16 +27,18 @@ const UserProfile = () => {
   const userId = useUserStore((state) => state.user.id);
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [modalType, setModalType] = useState<"login" | "register" | null>(null);
 
   const closeModal = () => setModalType(null);
 
-  const isLoggedIn = userId && userId.trim() !== "";
+  // const isLoggedIn = userId && userId.trim() !== "";
   const { selectStation, selectedStation } = useStationStore();
   const { clearRouting } = useRoutingStore();
   const setFlyTo = useMapStore((s) => s.setFlyTo);
   // Ref to handle clicking outside to close
   const dropdownRef = useRef<HTMLDivElement>(null);
+  console.log("user init information: ", user);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -51,12 +53,13 @@ const UserProfile = () => {
           email: response.email,
           savedStation: response.savedStationList,
         });
+        setIsLoggedIn(true);
       } catch (error) {
         console.error(error);
       }
     };
 
-    if (userId.trim() !== "") {
+    if (userId?.trim() !== "") {
       fetchUser();
       console.log("user now:", user);
     }

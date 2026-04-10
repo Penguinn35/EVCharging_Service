@@ -50,14 +50,13 @@ export const searchStation = async(
 }
 
 export const saveStation = async (
-  userId: string,
   stationId: string
 ): Promise<boolean> => {
   const res = await apiClient.put<ApiResponse<boolean>>(
     "/api/client/stations/save",
     null,
     {
-      params: { userId, stationId },
+      params: {  stationId },
     }
   );
 
@@ -65,13 +64,12 @@ export const saveStation = async (
 };
 
 export const deleteSavedStation = async (
-  userId: string,
   stationId: string
 ): Promise<boolean> => {
   const res = await apiClient.delete<ApiResponse<boolean>>(
     "/api/client/stations/save",
     {
-      params: { userId, stationId },
+      params: {  stationId },
     }
   );
 

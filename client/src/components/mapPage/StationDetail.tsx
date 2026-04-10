@@ -46,6 +46,8 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
   const [openRating, setOpenRating] = useState(false);
 
   const toggleSave = () => {
+    console.log("toggle");
+    
     isSaved ? deleteStation(station.id) : saveStation(station.id);
   };
   const typeMap: Record<number, string> = {

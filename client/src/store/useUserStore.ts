@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import { Coordinate } from "@/models/shared";
 import { StationSavedList } from "@/type/user";
 import {
@@ -23,74 +24,79 @@ interface UserStore {
   deleteStation: (stationId: string) => Promise<boolean>;
 }
 
-export const useUserStore = create<UserStore>((set, get) => ({
-  user: {
-    id: "",
-    email: "",
-    name: "",
-    accessToken: "",
-    vehiclePlug: "Both",
-    coordinate: null,
-    savedStation: [],
-  },
+export const useUserStore = create<UserStore>()(
+  persist(
+    (set, get) => ({
+      user: {
+        id: "",
+        email: "",
+        name: "",
+        accessToken: "",
+        vehiclePlug: "Both",
+        coordinate: null,
+        savedStation: [],
+      },
 
-  updateUser: (data) =>
-    set((state) => ({
-      user: { ...state.user, ...data },
-    })),
+      updateUser: (data) =>
+        set((state) => ({
+          user: { ...state.user, ...data },
+        })),
 
-  // SAVE
-  saveStation: async (stationId) => {
-    const { user } = get();
-    if (!user.id) return false;
+      saveStation: async (stationId) => {
+        
+        const { user } = get();
 
-    try {
-      const success = await saveStationApi(user.id, stationId);
-      if (!success) return false;
+        try {
+          const success = await saveStationApi( stationId);
+          if (!success) return false;
 
-      // prevent duplicate
-      const exists = user.savedStation.some((s) => s.id === stationId);
-      if (exists) return true;
+          // prevent duplicate
+          const exists = user.savedStation.some((s) => s.id === stationId);
+          if (exists) return true;
 
-      set((state) => ({
-        user: {
-          ...state.user,
-          savedStation: [
-            ...state.user.savedStation,
-            { id: stationId } as StationSavedList,
-          ],
-        },
-      }));
+          set((state) => ({
+            user: {
+              ...state.user,
+              savedStation: [
+                ...state.user.savedStation,
+                { id: stationId } as StationSavedList,
+              ],
+            },
+          }));
 
-      return true;
-    } catch (err) {
-      console.error(err);
-      return false;
+          return true;
+        } catch (err) {
+          console.error(err);
+          return false;
+        }
+      },
+
+      deleteStation: async (stationId) => {
+        const { user } = get();
+
+        try {
+          const success = await deleteSavedStationApi(stationId);
+          if (!success) return false;
+
+          set((state) => ({
+            user: {
+              ...state.user,
+              savedStation: state.user.savedStation.filter(
+                (s) => s.id !== stationId
+              ),
+            },
+          }));
+
+          return true;
+        } catch (err) {
+          console.error(err);
+          return false;
+        }
+      },
+    }),
+    {
+      name: "user-storage", // Key for localStorage
+      partialize: (state) => ({ user: state.user }), // Only persist the `user` object
     }
-  },
-
-  // DELETE
-  deleteStation: async (stationId) => {
-    const { user } = get();
-    if (!user.id) return false;
-
-    try {
-      const success = await deleteSavedStationApi(user.id, stationId);
-      if (!success) return false;
-
-      set((state) => ({
-        user: {
-          ...state.user,
-          savedStation: state.user.savedStation.filter(
-            (s) => s.id !== stationId
-          ),
-        },
-      }));
-
-      return true;
-    } catch (err) {
-      console.error(err);
-      return false;
-    }
-  },
-}));
+  )
+);
