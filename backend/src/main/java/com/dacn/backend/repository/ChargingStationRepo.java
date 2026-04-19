@@ -8,6 +8,7 @@ import com.dacn.backend.dto.search_by_keyword.StationSearchResponseDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -39,14 +40,14 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
             SELECT
                 s.id,
                 s.name,
-                s.manufacturer,
+                o.company_name as manufacturer,
                 -- Tính khoảng cách chính xác bằng Haversine (đơn vị: mét)
                 (6371000 * acos(
                     cos(radians(:latitude)) * cos(radians(s.latitude)) * cos(radians(s.longitude) - radians(:longitude)) +
                     sin(radians(:latitude)) * sin(radians(s.latitude))
                 )) / 1000 AS distance,
                 s.longitude, s.latitude, s.status
-            FROM charging_station s
+            FROM charging_station s JOIN cpo o ON s.manufacturer_id = o.enterprise_id
             -- BƯỚC 1: LỌC THÔ bằng Bounding Box (~5km = 0.045 độ)
             WHERE s.status > 0 AND (s.latitude BETWEEN (:latitude - 0.045) AND (:latitude + 0.045)
               AND s.longitude BETWEEN (:longitude - 0.045) AND (:longitude + 0.045))
@@ -58,11 +59,11 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
     List<StationByLocationResponseDTO> findByLongitudeAndLatitude(@Param("longitude") Double longitude, @Param("latitude") Double latitude);
 
     @Query(value = """
-            SELECT s.id, s.name, s.manufacturer, s.address, s.longitude, s.latitude, (6371000 * acos(
+            SELECT s.id, s.name, o.company_name as manufacturer, s.address, s.longitude, s.latitude, (6371000 * acos(
                     cos(radians(:latitude)) * cos(radians(s.latitude)) * cos(radians(s.longitude) - radians(:longitude)) +
                     sin(radians(:latitude)) * sin(radians(s.latitude))
                 )) / 1000 AS distance
-            FROM charging_station s, charging_point p, connector c
+            FROM charging_station s JOIN cpo o ON o.enterprise_id = s.manufacturer_id, charging_point p, connector c
             WHERE p.charging_station_id = s.id AND c.charging_point_id = p.id
                 AND c.type = :cableType
                 AND p.status > 0
@@ -156,4 +157,12 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
                                     AND s.status > 0 AND s.manufacturer_id != ?2
             """)
     Page<StationSearchResponseDTO> findBusinessStation(String keyword, String manufacturerId, Pageable pageable);
+
+    @Query(value = """
+        UPDATE charging_station
+        SET image_url = ?1
+        WHERE id = ?2
+""", nativeQuery = true)
+    @Modifying
+    void updateImageUrl(String imageUrl, String stationId);
 }

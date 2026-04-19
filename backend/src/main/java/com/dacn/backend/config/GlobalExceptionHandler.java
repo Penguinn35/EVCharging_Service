@@ -33,6 +33,7 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST,
                 "Runtime Error caught with message: " + e.getMessage() + ". Root cause: " + e.getClass()
         );
+        e.printStackTrace();
         return new ResponseEntity<>(errorResponseObject, HttpStatus.BAD_REQUEST);
     }
 

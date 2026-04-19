@@ -14,11 +14,18 @@ import com.dacn.backend.repository.ConnectorRepo;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetUrlRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,6 +42,12 @@ public class BusinessService {
     private CPORepo cpoRepo;
     @Autowired
     private EntityManager entityManager;
+
+    @Autowired
+    private S3Client s3Client;
+
+    @Value("${aws.bucket.name}")
+    private String bucketName;
 
     public Page<StationSearchResponseDTO> findStationByKeyword(String keyword, int page, int size, String manufacturerId) {
         Pageable pageable = PageRequest.of(page, size);
@@ -94,4 +107,31 @@ public class BusinessService {
         entityManager.persist(newStation);
         return true;
     }
+
+    @Transactional
+    public boolean addImageToStation(MultipartFile imageFile, String stationId) throws IOException {
+//        List<String> allowFileTypes = List.of("jpg", "png", "jpeg");
+//        if (!allowFileTypes.contains(imageFile.getContentType())) {
+//            return false;
+//        }
+        if (!(imageFile.getContentType().contains("png") || imageFile.getContentType().contains("jpeg")
+        || imageFile.getContentType().contains("jpg"))) {
+            return false;
+        }
+        System.out.println(imageFile.getContentType());
+        s3Client.putObject(PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(imageFile.getOriginalFilename())
+                .build(), RequestBody.fromBytes(imageFile.getBytes()));
+
+        GetUrlRequest imageUrlRequest = GetUrlRequest.builder()
+                .bucket(bucketName)
+                .key(imageFile.getOriginalFilename())
+                .build();
+        String imageUrl = s3Client.utilities().getUrl(imageUrlRequest).toExternalForm();
+        stationRepo.updateImageUrl(imageUrl, stationId);
+        return true;
+    }
+
+
 }

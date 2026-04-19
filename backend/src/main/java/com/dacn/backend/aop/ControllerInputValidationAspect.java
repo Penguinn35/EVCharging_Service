@@ -1,6 +1,9 @@
 package com.dacn.backend.aop;
 
+import com.dacn.backend.dto.RatingRequestDTO;
 import com.dacn.backend.dto.UserRegisterDTO;
+import com.dacn.backend.model.Rating;
+import com.dacn.backend.model.UserPrincipal;
 import com.dacn.backend.model.type.Coordinate;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -44,6 +47,14 @@ public class ControllerInputValidationAspect {
         if (position.getLongitude() == null || position.getLatitude() == null
         || position.getLongitude().isNaN() || position.getLatitude().isNaN()) {
             throw new IllegalArgumentException("The coordinate must not be null and must be a floating point number");
+        }
+        return joinPoint.proceed();
+    }
+
+    @Around("execution(* com.dacn.backend.controller.StationRatingController.sendRating(..)) && args(rating, principal)")
+    public Object validateRatingInput(ProceedingJoinPoint joinPoint, RatingRequestDTO rating, UserPrincipal principal) throws Throwable {
+        if (rating.getPoint() <= 0 || rating.getPoint() > 5) {
+            throw new IllegalArgumentException("The rating point must be between 1 to 5");
         }
         return joinPoint.proceed();
     }

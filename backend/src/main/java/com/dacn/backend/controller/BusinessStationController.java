@@ -1,6 +1,7 @@
 package com.dacn.backend.controller;
 
 import com.dacn.backend.dto.StationCreationDTO;
+import com.dacn.backend.dto.StationImageRequestDTO;
 import com.dacn.backend.dto.search_by_keyword.StationSearchResponseDTO;
 import com.dacn.backend.model.ChargingStation;
 import com.dacn.backend.model.UserPrincipal;
@@ -13,10 +14,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 
@@ -60,5 +64,25 @@ public class BusinessStationController {
                         businessService.addNewStation(newStation, principal.getCompanyId())),
                 HttpStatus.OK);
     }
-    
+
+    @PutMapping(value = "stations/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ResponseObject<Boolean>> changeImage(@RequestPart("file") MultipartFile newImage, @PathVariable String id) throws IOException {
+        if (businessService.addImageToStation(newImage, id)) {
+            return new ResponseEntity<>(
+                    new ResponseObject<>(
+                            HttpStatus.OK,
+                            "change image successfully",
+                            true
+                    ), HttpStatus.OK
+            );
+        }
+        return new ResponseEntity<>(
+                new ResponseObject<>(
+                        HttpStatus.BAD_REQUEST,
+                        "Image file type is not allowed",
+                        null
+                ), HttpStatus.BAD_REQUEST
+        );
+
+    }
 }

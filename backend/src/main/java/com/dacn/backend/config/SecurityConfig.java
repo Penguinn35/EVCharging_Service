@@ -53,6 +53,8 @@ public class SecurityConfig {
                         "/error"
                 ).permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/**").hasAnyAuthority("CLIENT", "BUSINESS")
+                .requestMatchers(HttpMethod.PUT, "/api/**").hasAnyAuthority("CLIENT", "BUSINESS")
+                .requestMatchers(HttpMethod.DELETE, "/api/**").hasAnyAuthority("CLIENT", "BUSINESS")
                 .requestMatchers("/api/business/**").hasAuthority("BUSINESS")
                 .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
                 .anyRequest().authenticated())
