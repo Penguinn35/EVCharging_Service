@@ -1,17 +1,96 @@
-
 services:
-  postgres:
-    image: postgres:16
-    container_name: evcharging-postgres
+  app:
+    env_file:
+      - ".env"
     restart: always
+    build: .
     ports:
-      - "5432:5432"
+      - "8090:8080"
+    networks:
+      - ev-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    env_file:
+      - ".env"
+    image: pgrouting/pgrouting:16-3.5-4.0
+    #    container_name: evcharging-database
+    ports:
+      - "5433:5432"
+    restart: always
     environment:
-      POSTGRES_DB: evchargingdb
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    networks:
+      - ev-network
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./sql_script/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ev-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_NAME}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  osm-importer:
+    image: iboates/osm2pgrouting
+    entrypoint: ["/bin/sh", "-c"]
+    command: >
+      "
+      export PGPASSWORD=${DB_PASSWORD};
+      
+      echo 'Đang import dữ liệu bản đồ...';
+      osm2pgrouting -f /map_data/hcmc.osm -h postgres -p ${DB_PORT} -U ${DB_USERNAME} -d ${DB_NAME} -W ${DB_PASSWORD} --conf /usr/share/osm2pgrouting/mapconfig.xml --clean;
+      "
+    volumes:
+      - ../map_data:/map_data
+    networks:
+      - ev-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+    profiles:
+      - setup
+
+  data-seeder:
+    image: postgres:16-alpine
+    env_file:
+      - ".env"
+    volumes:
+      - ../simulated_data:/simulated_data
+    networks:
+      - ev-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      app:
+        condition: service_started
+    command: >
+      sh -c "
+      echo 'Đang chờ Spring Boot (JPA) tạo schema (20s)...';
+      sleep 20;
+      
+      export PGPASSWORD=${DB_PASSWORD};
+      DATA_EXISTS=\$$(psql -h postgres -U ${DB_USERNAME} -d ${DB_NAME} -tAc \"SELECT EXISTS (SELECT 1 FROM charging_station LIMIT 1);\");
+      
+      if [ \"\$$DATA_EXISTS\" = \"t\" ]; then
+        echo 'Dữ liệu trạm sạc đã tồn tại. Bỏ qua seeding.';
+      else
+        echo 'Bắt đầu import simulated data...';
+        psql -h postgres -U ${DB_USERNAME} -d ${DB_NAME} -f /simulated_data/insert_data.sql;
+      fi
+      "
+    restart: "no"
+    profiles:
+      - setup
+
+networks:
+  ev-network:
+    driver: bridge
 
 volumes:
-  postgres_data:
+  ev-data:

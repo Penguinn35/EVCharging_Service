@@ -1,0 +1,64 @@
+package com.dacn.backend.controller;
+
+import com.dacn.backend.dto.StationCreationDTO;
+import com.dacn.backend.dto.search_by_keyword.StationSearchResponseDTO;
+import com.dacn.backend.model.ChargingStation;
+import com.dacn.backend.model.UserPrincipal;
+import com.dacn.backend.object.ResponseObject;
+import com.dacn.backend.service.BusinessService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+
+@RestController
+@RequestMapping("api/business")
+@Tag(name = "API dành cho doanh nghiệp", description = "Các API cho doanh nghiệp quản lý các trạm sạc của mình")
+public class BusinessStationController {
+
+    @Autowired
+    private BusinessService businessService;
+
+    @GetMapping("stations")
+    @Operation(
+            summary = "API tìm kiếm trạm sạc của doanh nghiệp",
+            description = "Trả về các trạm sạc theo paging.\n Note: Nhớ thêm vào extension 'unaccent' cho db"
+    )
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "Trả về thành công"),
+            }
+    )
+    public ResponseEntity<ResponseObject<Page<StationSearchResponseDTO>>> getBusinessStationByKeywords(@RequestParam String keyword,
+                                                                                                       @RequestParam(defaultValue = "0") int page,
+                                                                                                       @RequestParam(defaultValue = "10") int size,
+                                                                                                       @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        return new ResponseEntity<>(
+                new ResponseObject<>(
+                        HttpStatus.OK,
+                        "Returned successfully",
+                        businessService.findStationByKeyword(keyword, page, size, userPrincipal.getCompanyId())),
+                HttpStatus.OK);
+    }
+
+    @PostMapping("stations")
+    public ResponseEntity<ResponseObject<Boolean>> addNewStation(@RequestBody StationCreationDTO newStation,
+                                                                         @AuthenticationPrincipal UserPrincipal principal) {
+        return new ResponseEntity<>(
+                new ResponseObject<>(
+                        HttpStatus.OK,
+                        "saved successfully",
+                        businessService.addNewStation(newStation, principal.getCompanyId())),
+                HttpStatus.OK);
+    }
+    
+}
