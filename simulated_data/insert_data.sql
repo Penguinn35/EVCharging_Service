@@ -3,12 +3,12 @@
 -- Schema: enterprise_id, address, company_name, logo_url, tax_code
 -- ==============================================================================
 INSERT INTO cpo (enterprise_id, address, company_name, logo_url, tax_code) VALUES
-('cpo-vinfast', 'Khu kinh tế Đình Vũ – Cát Hải, Huyện Cát Hải, Hải Phòng', 'cpo-vinfast', NULL, '0108926276'),
-('cpo-abb', '9 Đoàn Văn Bơ, Phường 12, Quận 4, TP. HCM', 'cpo-abb', NULL, '0300112466'),
-('cpo-siemens', '33 Lê Duẩn, Phường Bến Nghé, Quận 1, TP. HCM', 'cpo-siemens', NULL, '0300234567'),
-('cpo-chargeplus', 'Singapore', 'cpo-chargeplus', NULL, '0300345678'),
-('cpo-evercharge', 'USA', 'cpo-evercharge', NULL, '0300456789'),
-('cpo-schneider', '364 Cộng Hòa, Phường 13, Tân Bình, TP. HCM', 'cpo-schneider', NULL, '0300567890');
+('cpo-vinfast', 'Khu kinh tế Đình Vũ – Cát Hải, Huyện Cát Hải, Hải Phòng', 'Vinfast', NULL, '0108926276'),
+('cpo-abb', '9 Đoàn Văn Bơ, Phường 12, Quận 4, TP. HCM', 'ABB', NULL, '0300112466'),
+('cpo-siemens', '33 Lê Duẩn, Phường Bến Nghé, Quận 1, TP. HCM', 'Siemens', NULL, '0300234567'),
+('cpo-chargeplus', 'Singapore', 'Charge+', NULL, '0300345678'),
+('cpo-evercharge', 'USA', 'Evercharge', NULL, '0300456789'),
+('cpo-schneider', '364 Cộng Hòa, Phường 13, Tân Bình, TP. HCM', 'Schneider', NULL, '0300567890');
 
 -- ==============================================================================
 -- 1. INSERT DATA CHO CHARGING_STATION

@@ -9,13 +9,10 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Aspect
-public class PerformanceAspect {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PerformanceAspect.class);
+public class ControllerPerformanceAspect {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ControllerPerformanceAspect.class);
 
-    @Around("""
-        execution(* com.dacn.backend.service.StationService.*(..))
-        || execution(* com.dacn.backend.service.UserService.*(..))
-""")
+    @Around("execution(* com.dacn.backend.controller..*(..))")
     public Object performanceMeasure(ProceedingJoinPoint joinPoint) throws Throwable {
         long startTime = System.currentTimeMillis();
         try {

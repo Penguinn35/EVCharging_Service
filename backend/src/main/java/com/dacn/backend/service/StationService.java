@@ -68,7 +68,7 @@ public class StationService {
         StationDetailResponseDTO response = new StationDetailResponseDTO();
         response.setId(id);
         response.setName(station.getName());
-        response.setManufacturer("Remember to pull manufacturer name of cpo");
+        response.setManufacturer(station.getCpo().getCompanyName());
         response.setAddress(station.getAddress());
         response.setDistrict(station.getDistrict());
         response.setStatus(station.getStatus());
