@@ -22,7 +22,7 @@ public class ChargingStation {
     private String name;
 //    private String imageUrl;
 
-    @OneToMany(mappedBy = "station")
+    @OneToMany(mappedBy = "station", cascade = CascadeType.ALL)
     private List<StationImage> images;
 
     private Coordinate position;

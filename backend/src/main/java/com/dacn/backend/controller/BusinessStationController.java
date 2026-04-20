@@ -94,8 +94,9 @@ public class BusinessStationController {
     }
 
     @PutMapping(value = "stations/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ResponseObject<Boolean>> addNewImageToStation(@RequestPart("imageFile") MultipartFile newImage, @PathVariable String id) throws IOException {
-        if (businessService.addImageToStation(newImage, id)) {
+    public ResponseEntity<ResponseObject<Boolean>> addNewImageToStation(@RequestPart("imageFile") MultipartFile newImage, @PathVariable String id, @AuthenticationPrincipal UserPrincipal userPrincipal) throws IOException {
+        String companyId = userPrincipal.getCompanyId();
+        if (businessService.addImageToStation(newImage, id, companyId)) {
             return new ResponseEntity<>(
                     new ResponseObject<>(
                             HttpStatus.OK,

@@ -12,6 +12,7 @@ import com.dacn.backend.model.StationImage;
 import com.dacn.backend.repository.*;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.InvalidPropertyException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -27,6 +28,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class BusinessService {
@@ -68,24 +70,6 @@ public class BusinessService {
         newStation.setTotalPoints(0L);
         newStation.setCpo(cpoRepo.getReferenceById(companyId));
 
-//        if (!(imageFile.getContentType().contains("png") || imageFile.getContentType().contains("jpeg")
-//                || imageFile.getContentType().contains("jpg"))) {
-//            return false;
-//        }
-////        System.out.println(imageFile.getContentType());
-//        s3Client.putObject(PutObjectRequest.builder()
-//                .bucket(bucketName)
-//                .key(imageFile.getOriginalFilename())
-//                .build(), RequestBody.fromBytes(imageFile.getBytes()));
-//
-//        GetUrlRequest imageUrlRequest = GetUrlRequest.builder()
-//                .bucket(bucketName)
-//                .key(imageFile.getOriginalFilename())
-//                .build();
-//        String imageUrl = s3Client.utilities().getUrl(imageUrlRequest).toExternalForm();
-//
-//        newStation.setImageUrl(imageUrl);
-
         for (MultipartFile image : imageFiles) {
             if (!(image.getContentType().contains("png") || image.getContentType().contains("jpeg")
                 || image.getContentType().contains("jpg"))) {
@@ -96,18 +80,19 @@ public class BusinessService {
         List<StationImage> newImages = new ArrayList<>(imageFiles.size());
 
         for (MultipartFile image : imageFiles) {
+            String newKey = newStation.getId() + "-" + image.getOriginalFilename();
             s3Client.putObject(PutObjectRequest.builder()
                 .bucket(bucketName)
-                .key(image.getOriginalFilename())
+                .key(newKey)
                 .build(), RequestBody.fromBytes(image.getBytes()));
             GetUrlRequest imageUrlRequest = GetUrlRequest.builder()
                     .bucket(bucketName)
-                    .key(image.getOriginalFilename())
+                    .key(newKey)
                     .build();
             String imageUrl = s3Client.utilities().getUrl(imageUrlRequest).toExternalForm();
 
             StationImage newImage = new StationImage();
-            newImage.setKey(image.getOriginalFilename());
+            newImage.setKey(newKey);
             newImage.setUrl(imageUrl);
             newImage.setType(image.getContentType());
             newImage.setStation(newStation);
@@ -153,35 +138,39 @@ public class BusinessService {
             }
             newStation.setChargingPoints(newPoints);
         }
-        entityManager.persist(newStation);
+        stationRepo.save(newStation);
         return true;
     }
 
     @Transactional
-    public boolean addImageToStation(MultipartFile imageFile, String stationId) throws IOException {
-//        List<String> allowFileTypes = List.of("jpg", "png", "jpeg");
-//        if (!allowFileTypes.contains(imageFile.getContentType())) {
-//            return false;
-//        }
+    public boolean addImageToStation(MultipartFile imageFile, String stationId, String companyId) throws IOException {
         if (!(imageFile.getContentType().contains("png") || imageFile.getContentType().contains("jpeg")
         || imageFile.getContentType().contains("jpg"))) {
             return false;
         }
+        ChargingStation station = stationRepo.findById(stationId).orElse(null);
+        if (station == null) {
+            return false;
+        }
+        if (!Objects.equals(station.getCpo().getEnterpriseId(), companyId)) {
+            throw new RuntimeException("Cannot add image of other company's station");
+        }
 //        System.out.println(imageFile.getContentType());
+        String newKey = station.getId() + "-" + imageFile.getOriginalFilename();
         s3Client.putObject(PutObjectRequest.builder()
                 .bucket(bucketName)
-                .key(imageFile.getOriginalFilename())
+                .key(newKey)
                 .build(), RequestBody.fromBytes(imageFile.getBytes()));
 
         GetUrlRequest imageUrlRequest = GetUrlRequest.builder()
                 .bucket(bucketName)
-                .key(imageFile.getOriginalFilename())
+                .key(newKey)
                 .build();
         String imageUrl = s3Client.utilities().getUrl(imageUrlRequest).toExternalForm();
 //        stationRepo.updateImageUrl(imageUrl, stationId);
 
         StationImage newImage = new StationImage();
-        newImage.setKey(imageFile.getOriginalFilename());
+        newImage.setKey(newKey);
         newImage.setUrl(imageUrl);
         newImage.setType(imageFile.getContentType());
         newImage.setStation(stationRepo.getReferenceById(stationId));
