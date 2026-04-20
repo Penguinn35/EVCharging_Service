@@ -20,12 +20,17 @@ public class ChargingStation {
     @Id
     private String id;
     private String name;
-    private String imageUrl;
+//    private String imageUrl;
+
+    @OneToMany(mappedBy = "station")
+    private List<StationImage> images;
+
     private Coordinate position;
     private String address;
     private String district;
     private Long totalPoints;
     private int status;
+
     @OneToMany(mappedBy = "chargingStation", cascade = CascadeType.ALL)
     private List<ChargingPoint> chargingPoints;
 
