@@ -15,7 +15,8 @@ public class StationDetailResponseDTO {
     private String address;
     private String district;
     private int status;
-    private String imageUrl;
+
+    List<StationImageDTO> images;
 
     private List<ConnectorDTO> connectors;
 }

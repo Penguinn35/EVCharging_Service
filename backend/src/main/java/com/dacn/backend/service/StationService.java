@@ -1,6 +1,7 @@
 package com.dacn.backend.service;
 
 import java.text.Normalizer;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -73,7 +74,19 @@ public class StationService {
         response.setDistrict(station.getDistrict());
         response.setStatus(station.getStatus());
         response.setPosition(station.getPosition());
-        response.setImageUrl(station.getImageUrl());
+//        response.setImageUrl(station.getImageUrl());
+
+        List<StationImage> returnedImages = station.getImages();
+        List<StationImageDTO> stationImages = new ArrayList<>(returnedImages.size());
+
+        for (StationImage returnedImage : returnedImages) {
+            StationImageDTO image = new StationImageDTO();
+            image.setUrl(returnedImage.getUrl());
+
+            stationImages.add(image);
+        }
+        response.setImages(stationImages);
+
 
         List<ConnectorDTO> returnedConnectors = chargingPointRepo.getConnectorsFromChargingPointWithStationId(id);
         response.setConnectors(returnedConnectors);

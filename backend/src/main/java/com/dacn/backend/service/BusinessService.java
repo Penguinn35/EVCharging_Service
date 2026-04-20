@@ -7,10 +7,8 @@ import com.dacn.backend.dto.search_by_keyword.StationSearchResponseDTO;
 import com.dacn.backend.model.ChargingPoint;
 import com.dacn.backend.model.ChargingStation;
 import com.dacn.backend.model.Connector;
-import com.dacn.backend.repository.CPORepo;
-import com.dacn.backend.repository.ChargingPointRepo;
-import com.dacn.backend.repository.ChargingStationRepo;
-import com.dacn.backend.repository.ConnectorRepo;
+import com.dacn.backend.model.StationImage;
+import com.dacn.backend.repository.*;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +40,8 @@ public class BusinessService {
     private CPORepo cpoRepo;
     @Autowired
     private EntityManager entityManager;
+    @Autowired
+    private StationImageRepo imageRepo;
 
     @Autowired
     private S3Client s3Client;
@@ -85,7 +85,36 @@ public class BusinessService {
 //
 //        newStation.setImageUrl(imageUrl);
 
+        for (MultipartFile image : imageFiles) {
+            if (!(image.getContentType().contains("png") || image.getContentType().contains("jpeg")
+                || image.getContentType().contains("jpg"))) {
+                return false;
+            }
+        }
 
+        List<StationImage> newImages = new ArrayList<>(imageFiles.size());
+
+        for (MultipartFile image : imageFiles) {
+            s3Client.putObject(PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(image.getOriginalFilename())
+                .build(), RequestBody.fromBytes(image.getBytes()));
+            GetUrlRequest imageUrlRequest = GetUrlRequest.builder()
+                    .bucket(bucketName)
+                    .key(image.getOriginalFilename())
+                    .build();
+            String imageUrl = s3Client.utilities().getUrl(imageUrlRequest).toExternalForm();
+
+            StationImage newImage = new StationImage();
+            newImage.setKey(image.getOriginalFilename());
+            newImage.setUrl(imageUrl);
+            newImage.setType(image.getContentType());
+            newImage.setStation(newStation);
+
+            newImages.add(newImage);
+        }
+
+        newStation.setImages(newImages);
 
         // create new charging point
         List<PointCreationDTO> points = station.getChargingPoints();
@@ -148,7 +177,15 @@ public class BusinessService {
                 .key(imageFile.getOriginalFilename())
                 .build();
         String imageUrl = s3Client.utilities().getUrl(imageUrlRequest).toExternalForm();
-        stationRepo.updateImageUrl(imageUrl, stationId);
+//        stationRepo.updateImageUrl(imageUrl, stationId);
+
+        StationImage newImage = new StationImage();
+        newImage.setKey(imageFile.getOriginalFilename());
+        newImage.setUrl(imageUrl);
+        newImage.setType(imageFile.getContentType());
+        newImage.setStation(stationRepo.getReferenceById(stationId));
+
+        imageRepo.save(newImage);
         return true;
     }
 

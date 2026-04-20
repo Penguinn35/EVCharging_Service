@@ -1,9 +1,7 @@
 package com.dacn.backend.controller;
 
 import com.dacn.backend.dto.StationCreationDTO;
-import com.dacn.backend.dto.StationImageRequestDTO;
 import com.dacn.backend.dto.search_by_keyword.StationSearchResponseDTO;
-import com.dacn.backend.model.ChargingStation;
 import com.dacn.backend.model.UserPrincipal;
 import com.dacn.backend.object.ResponseObject;
 import com.dacn.backend.service.BusinessService;
@@ -82,7 +80,7 @@ public class BusinessStationController {
     }
 
     @PutMapping(value = "stations/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ResponseObject<Boolean>> changeImage(@RequestPart("imageFile") MultipartFile newImage, @PathVariable String id) throws IOException {
+    public ResponseEntity<ResponseObject<Boolean>> addNewImageToStation(@RequestPart("imageFile") MultipartFile newImage, @PathVariable String id) throws IOException {
         if (businessService.addImageToStation(newImage, id)) {
             return new ResponseEntity<>(
                     new ResponseObject<>(

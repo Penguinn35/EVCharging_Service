@@ -17,6 +17,7 @@ public class StationImage {
     private String key;
     private String url;
     private String name;
+    private String type;
     private String description;
 
     @ManyToOne
