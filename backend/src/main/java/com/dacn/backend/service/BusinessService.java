@@ -2,6 +2,7 @@ package com.dacn.backend.service;
 
 import com.dacn.backend.dto.ConnectorCreationDTO;
 import com.dacn.backend.dto.PointCreationDTO;
+import com.dacn.backend.dto.StationBusinessSearchDTO;
 import com.dacn.backend.dto.StationCreationDTO;
 import com.dacn.backend.dto.search_by_keyword.StationSearchResponseDTO;
 import com.dacn.backend.model.ChargingPoint;
@@ -49,7 +50,7 @@ public class BusinessService {
     @Value("${aws.bucket.name}")
     private String bucketName;
 
-    public Page<StationSearchResponseDTO> findStationByKeyword(String keyword, int page, int size, String manufacturerId) {
+    public Page<StationBusinessSearchDTO> findStationByKeyword(String keyword, int page, int size, String manufacturerId) {
         Pageable pageable = PageRequest.of(page, size);
         keyword = "%" + StationService.deAccent(keyword) + "%";
 
@@ -190,4 +191,8 @@ public class BusinessService {
     }
 
 
+    public Page<StationBusinessSearchDTO> findStationOfACompany(String companyId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return stationRepo.findBusinessStationWithoutKeyword(companyId, pageable);
+    }
 }

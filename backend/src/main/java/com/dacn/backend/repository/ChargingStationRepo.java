@@ -3,6 +3,7 @@ package com.dacn.backend.repository;
 import java.util.List;
 
 import com.dacn.backend.dto.CoordinateDTO;
+import com.dacn.backend.dto.StationBusinessSearchDTO;
 import com.dacn.backend.dto.StationByLocationResponseDTO;
 import com.dacn.backend.dto.search_by_keyword.StationSearchResponseDTO;
 import org.springframework.data.domain.Page;
@@ -143,20 +144,32 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
     );
 
     @Query(nativeQuery = true, value = """
-        SELECT id, name, address || ', ' || district AS address
+        SELECT id, name, address || ', ' || district AS address, status
                 FROM charging_station s
                 WHERE (LOWER(unaccent(s.name)) LIKE ?1 OR LOWER(unaccent(s.address)) LIKE ?1
                                    OR LOWER(unaccent(s.district)) LIKE ?1 OR LOWER(unaccent(s.id)) LIKE ?1)
-                                    AND s.status > 0 AND s.manufacturer_id = ?2
+                                    AND s.manufacturer_id = ?2
                 ORDER BY s.name ASC
 """, countQuery = """
             SELECT count(*)
             FROM charging_station s
             WHERE (LOWER(unaccent(s.name)) LIKE ?1 OR LOWER(unaccent(s.address)) LIKE ?1
                                    OR LOWER(unaccent(s.district)) LIKE ?1 OR LOWER(unaccent(s.id)) LIKE ?1)
-                                    AND s.status > 0 AND s.manufacturer_id != ?2
+                                    AND s.manufacturer_id != ?2
             """)
-    Page<StationSearchResponseDTO> findBusinessStation(String keyword, String manufacturerId, Pageable pageable);
+    Page<StationBusinessSearchDTO> findBusinessStation(String keyword, String manufacturerId, Pageable pageable);
+
+    @Query(nativeQuery = true, value = """
+        SELECT id, name, address || ', ' || district AS address, status
+                FROM charging_station s
+                WHERE s.manufacturer_id = ?1
+                ORDER BY s.name ASC
+""", countQuery = """
+            SELECT count(*)
+            FROM charging_station s
+            WHERE s.manufacturer_id = ?1
+            """)
+    Page<StationBusinessSearchDTO> findBusinessStationWithoutKeyword(String manufacturerId, Pageable pageable);
 
     @Query(value = """
         UPDATE charging_station

@@ -1,5 +1,6 @@
 package com.dacn.backend.controller;
 
+import com.dacn.backend.dto.StationBusinessSearchDTO;
 import com.dacn.backend.dto.StationCreationDTO;
 import com.dacn.backend.dto.search_by_keyword.StationSearchResponseDTO;
 import com.dacn.backend.model.UserPrincipal;
@@ -43,15 +44,28 @@ public class BusinessStationController {
                     @ApiResponse(responseCode = "200", description = "Trả về thành công"),
             }
     )
-    public ResponseEntity<ResponseObject<Page<StationSearchResponseDTO>>> getBusinessStationByKeywords(@RequestParam String keyword,
+    public ResponseEntity<ResponseObject<Page<StationBusinessSearchDTO>>> getBusinessStationByKeywords(@RequestParam(required = false) String keyword,
                                                                                                        @RequestParam(defaultValue = "0") int page,
                                                                                                        @RequestParam(defaultValue = "10") int size,
                                                                                                        @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        if (keyword == null || keyword.isEmpty()) {
+            Page<StationBusinessSearchDTO> stationData = businessService.findStationOfACompany(userPrincipal.getCompanyId(), page, size);
+            return new ResponseEntity<>(
+                    new ResponseObject<>(
+                            HttpStatus.OK,
+                            "Returned successfully",
+                            stationData, stationData.getTotalElements()),
+                    HttpStatus.OK);
+        }
+        Page<StationBusinessSearchDTO> stationData = businessService.findStationByKeyword(keyword, page, size, userPrincipal.getCompanyId());
         return new ResponseEntity<>(
                 new ResponseObject<>(
                         HttpStatus.OK,
                         "Returned successfully",
-                        businessService.findStationByKeyword(keyword, page, size, userPrincipal.getCompanyId())),
+                        stationData,
+                        stationData.getTotalElements()
+                        ),
+
                 HttpStatus.OK);
     }
 
