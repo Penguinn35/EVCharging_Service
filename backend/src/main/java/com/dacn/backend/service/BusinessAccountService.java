@@ -27,6 +27,9 @@ public class BusinessAccountService {
 
         EVUser savedUser = eVUserRepo.save(newUser);
 
+        if (cpoRepo.existsById(user.getCompanyId())) {
+            throw new IllegalArgumentException("The company id has already existed");
+        }
         CPO newCPO = new CPO();
         newCPO.setEnterpriseId(user.getCompanyId());
         newCPO.setCompanyName(user.getCompanyName());

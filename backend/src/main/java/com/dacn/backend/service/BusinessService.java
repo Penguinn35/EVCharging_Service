@@ -26,6 +26,7 @@ import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -157,6 +158,9 @@ public class BusinessService {
         }
 //        System.out.println(imageFile.getContentType());
         String newKey = station.getId() + "-" + imageFile.getOriginalFilename();
+        if (imageRepo.existsById(newKey)) {
+            throw new RuntimeException("The image has already existed");
+        }
         s3Client.putObject(PutObjectRequest.builder()
                 .bucket(bucketName)
                 .key(newKey)
