@@ -8,6 +8,9 @@ import com.dacn.backend.model.UserPrincipal;
 import com.dacn.backend.object.ResponseObject;
 import com.dacn.backend.service.BusinessService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Encoding;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -54,19 +57,32 @@ public class BusinessStationController {
                 HttpStatus.OK);
     }
 
-    @PostMapping("stations")
-    public ResponseEntity<ResponseObject<Boolean>> addNewStation(@RequestBody StationCreationDTO newStation,
-                                                                         @AuthenticationPrincipal UserPrincipal principal) {
+    @PostMapping(value = "stations", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @RequestBody(content = @Content(
+            encoding = @Encoding(name = "newStation", contentType = "application/json")
+    ))
+    public ResponseEntity<ResponseObject<Boolean>> addNewStation(@RequestPart("newStation") StationCreationDTO newStation,
+                                                                         @RequestPart("imageFile") MultipartFile newImage,
+                                                                         @AuthenticationPrincipal UserPrincipal principal) throws IOException {
+        boolean isStationAdded = businessService.addNewStation(newStation, newImage, principal.getCompanyId());
+        if (isStationAdded) {
+            return new ResponseEntity<>(
+                    new ResponseObject<>(
+                            HttpStatus.OK,
+                            "saved successfully",
+                            isStationAdded),
+                            HttpStatus.OK);
+        }
         return new ResponseEntity<>(
-                new ResponseObject<>(
-                        HttpStatus.OK,
-                        "saved successfully",
-                        businessService.addNewStation(newStation, principal.getCompanyId())),
-                HttpStatus.OK);
+                new ResponseObject<>(HttpStatus.BAD_REQUEST,
+                        "Image file type is not allowed",
+                        null),
+                HttpStatus.BAD_REQUEST
+        );
     }
 
     @PutMapping(value = "stations/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ResponseObject<Boolean>> changeImage(@RequestPart("file") MultipartFile newImage, @PathVariable String id) throws IOException {
+    public ResponseEntity<ResponseObject<Boolean>> changeImage(@RequestPart("imageFile") MultipartFile newImage, @PathVariable String id) throws IOException {
         if (businessService.addImageToStation(newImage, id)) {
             return new ResponseEntity<>(
                     new ResponseObject<>(

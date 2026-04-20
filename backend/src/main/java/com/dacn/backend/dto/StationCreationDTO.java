@@ -9,7 +9,6 @@ import java.util.List;
 public class StationCreationDTO {
     private String id;
     private String name;
-    private String imageUrl;
     private Coordinate position;
     private String address;
     private String district;

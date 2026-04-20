@@ -57,16 +57,33 @@ public class BusinessService {
     }
 
     @Transactional
-    public boolean addNewStation(StationCreationDTO station, String companyId) {
+    public boolean addNewStation(StationCreationDTO station, MultipartFile imageFile, String companyId) throws IOException {
         ChargingStation newStation = new ChargingStation();
         newStation.setId(station.getId());
         newStation.setName(station.getName());
-        newStation.setImageUrl(station.getImageUrl());
         newStation.setPosition(station.getPosition());
         newStation.setAddress(station.getAddress());
         newStation.setDistrict(station.getDistrict());
         newStation.setTotalPoints(0L);
         newStation.setCpo(cpoRepo.getReferenceById(companyId));
+
+        if (!(imageFile.getContentType().contains("png") || imageFile.getContentType().contains("jpeg")
+                || imageFile.getContentType().contains("jpg"))) {
+            return false;
+        }
+//        System.out.println(imageFile.getContentType());
+        s3Client.putObject(PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(imageFile.getOriginalFilename())
+                .build(), RequestBody.fromBytes(imageFile.getBytes()));
+
+        GetUrlRequest imageUrlRequest = GetUrlRequest.builder()
+                .bucket(bucketName)
+                .key(imageFile.getOriginalFilename())
+                .build();
+        String imageUrl = s3Client.utilities().getUrl(imageUrlRequest).toExternalForm();
+
+        newStation.setImageUrl(imageUrl);
 
         // create new charging point
         List<PointCreationDTO> points = station.getChargingPoints();
@@ -118,7 +135,7 @@ public class BusinessService {
         || imageFile.getContentType().contains("jpg"))) {
             return false;
         }
-        System.out.println(imageFile.getContentType());
+//        System.out.println(imageFile.getContentType());
         s3Client.putObject(PutObjectRequest.builder()
                 .bucket(bucketName)
                 .key(imageFile.getOriginalFilename())
