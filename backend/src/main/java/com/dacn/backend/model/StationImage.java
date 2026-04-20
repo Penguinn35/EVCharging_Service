@@ -16,6 +16,8 @@ public class StationImage {
     @Id
     private String key;
     private String url;
+    private String name;
+    private String description;
 
     @ManyToOne
     @JoinColumn(name = "station_id", nullable = false)
