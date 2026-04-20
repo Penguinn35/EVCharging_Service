@@ -62,7 +62,7 @@ public class BusinessStationController {
             encoding = @Encoding(name = "newStation", contentType = "application/json")
     ))
     public ResponseEntity<ResponseObject<Boolean>> addNewStation(@RequestPart("newStation") StationCreationDTO newStation,
-                                                                         @RequestPart("imageFile") MultipartFile newImage,
+                                                                         @RequestPart("imageFiles") List<MultipartFile> newImage,
                                                                          @AuthenticationPrincipal UserPrincipal principal) throws IOException {
         boolean isStationAdded = businessService.addNewStation(newStation, newImage, principal.getCompanyId());
         if (isStationAdded) {
