@@ -82,6 +82,7 @@ public class StationService {
         for (StationImage returnedImage : returnedImages) {
             StationImageDTO image = new StationImageDTO();
             image.setUrl(returnedImage.getUrl());
+            image.setKey(returnedImage.getKey());
 
             stationImages.add(image);
         }

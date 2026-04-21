@@ -1,10 +1,6 @@
 package com.dacn.backend.service;
 
-import com.dacn.backend.dto.ConnectorCreationDTO;
-import com.dacn.backend.dto.PointCreationDTO;
-import com.dacn.backend.dto.StationBusinessSearchDTO;
-import com.dacn.backend.dto.StationCreationDTO;
-import com.dacn.backend.dto.search_by_keyword.StationSearchResponseDTO;
+import com.dacn.backend.dto.*;
 import com.dacn.backend.model.ChargingPoint;
 import com.dacn.backend.model.ChargingStation;
 import com.dacn.backend.model.Connector;
@@ -12,7 +8,6 @@ import com.dacn.backend.model.StationImage;
 import com.dacn.backend.repository.*;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.InvalidPropertyException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -22,11 +17,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -43,149 +38,165 @@ public class BusinessService {
     @Autowired
     private CPORepo cpoRepo;
     @Autowired
-    private EntityManager entityManager;
-    @Autowired
     private StationImageRepo imageRepo;
-
     @Autowired
     private S3Client s3Client;
 
     @Value("${aws.bucket.name}")
     private String bucketName;
 
+    // --- Public API Methods ---
+
     public Page<StationBusinessSearchDTO> findStationByKeyword(String keyword, int page, int size, String manufacturerId) {
         Pageable pageable = PageRequest.of(page, size);
-        keyword = "%" + StationService.deAccent(keyword) + "%";
-
-        return stationRepo.findBusinessStation(keyword, manufacturerId, pageable);
+        String formattedKeyword = "%" + StationService.deAccent(keyword) + "%";
+        return stationRepo.findBusinessStation(formattedKeyword, manufacturerId, pageable);
     }
 
     @Transactional
-    public boolean addNewStation(StationCreationDTO station, List<MultipartFile> imageFiles, String companyId) throws IOException {
+    public boolean addNewStation(StationCreationDTO stationDto, List<MultipartFile> imageFiles, String companyId) throws IOException {
+        // 1. Validate all images first
+        for (MultipartFile image : imageFiles) {
+            if (!isValidImageFormat(image)) return false;
+        }
+
+        // 2. Create Station Entity
         ChargingStation newStation = new ChargingStation();
-        newStation.setId(station.getId());
-        newStation.setName(station.getName());
-        newStation.setPosition(station.getPosition());
-        newStation.setAddress(station.getAddress());
-        newStation.setDistrict(station.getDistrict());
+        newStation.setId(stationDto.getId());
+        newStation.setName(stationDto.getName());
+        newStation.setPosition(stationDto.getPosition());
+        newStation.setAddress(stationDto.getAddress());
+        newStation.setDistrict(stationDto.getDistrict());
         newStation.setTotalPoints(0L);
         newStation.setCpo(cpoRepo.getReferenceById(companyId));
 
+        // 3. Process Images
+        List<StationImage> newImages = new ArrayList<>();
         for (MultipartFile image : imageFiles) {
-            if (!(image.getContentType().contains("png") || image.getContentType().contains("jpeg")
-                || image.getContentType().contains("jpg"))) {
-                return false;
-            }
+            String key = newStation.getId() + "-" + image.getOriginalFilename();
+            String url = uploadToS3(image, key);
+            newImages.add(buildStationImage(key, url, image.getContentType(), newStation));
         }
-
-        List<StationImage> newImages = new ArrayList<>(imageFiles.size());
-
-        for (MultipartFile image : imageFiles) {
-            String newKey = newStation.getId() + "-" + image.getOriginalFilename();
-            s3Client.putObject(PutObjectRequest.builder()
-                .bucket(bucketName)
-                .key(newKey)
-                .build(), RequestBody.fromBytes(image.getBytes()));
-            GetUrlRequest imageUrlRequest = GetUrlRequest.builder()
-                    .bucket(bucketName)
-                    .key(newKey)
-                    .build();
-            String imageUrl = s3Client.utilities().getUrl(imageUrlRequest).toExternalForm();
-
-            StationImage newImage = new StationImage();
-            newImage.setKey(newKey);
-            newImage.setUrl(imageUrl);
-            newImage.setType(image.getContentType());
-            newImage.setStation(newStation);
-
-            newImages.add(newImage);
-        }
-
         newStation.setImages(newImages);
 
-        // create new charging point
-        List<PointCreationDTO> points = station.getChargingPoints();
-        if (points != null) {
-            List<ChargingPoint> newPoints = new ArrayList<>(points.size());
-            for (PointCreationDTO point : points) {
-                ChargingPoint newChargingPoint = new ChargingPoint();
-                newChargingPoint.setId(point.getId());
-                newChargingPoint.setStatus(point.getStatus());
-                newChargingPoint.setChargingStation(newStation);
+        // 4. Process Hierarchy (Points & Connectors)
+        mapPointsAndConnectors(stationDto, newStation);
 
-                // create connectors
-
-                List<ConnectorCreationDTO> connectors = point.getConnectors();
-                if (connectors != null) {
-                    List<Connector> newConnectors = new ArrayList<>(connectors.size());
-                    for (ConnectorCreationDTO connector : connectors) {
-                        Connector newConnector = new Connector();
-                        newConnector.setId(connector.getId());
-                        newConnector.setType(connector.getType());
-                        newConnector.setAvailable(connector.isAvailable());
-                        newConnector.setPrice(connector.getPrice());
-                        newConnector.setVoltage(connector.getVoltage());
-                        newConnector.setMaxPower(connector.getMaxPower());
-                        newConnector.setChargingPoint(newChargingPoint);
-//                        newConnector = connectorRepo.save(newConnector);
-
-                        newConnectors.add(newConnector);
-                    }
-
-                    newChargingPoint.setConnectors(newConnectors);
-                }
-//                newChargingPoint = chargingPointRepo.save(newChargingPoint);
-                newPoints.add(newChargingPoint);
-            }
-            newStation.setChargingPoints(newPoints);
-        }
         stationRepo.save(newStation);
         return true;
     }
 
     @Transactional
     public boolean addImageToStation(MultipartFile imageFile, String stationId, String companyId) throws IOException {
-        if (!(imageFile.getContentType().contains("png") || imageFile.getContentType().contains("jpeg")
-        || imageFile.getContentType().contains("jpg"))) {
-            return false;
-        }
-        ChargingStation station = stationRepo.findById(stationId).orElse(null);
-        if (station == null) {
-            return false;
-        }
-        if (!Objects.equals(station.getCpo().getEnterpriseId(), companyId)) {
-            throw new RuntimeException("Cannot add image of other company's station");
-        }
-//        System.out.println(imageFile.getContentType());
-        String newKey = station.getId() + "-" + imageFile.getOriginalFilename();
-        if (imageRepo.existsById(newKey)) {
-            throw new RuntimeException("The image has already existed");
-        }
-        s3Client.putObject(PutObjectRequest.builder()
-                .bucket(bucketName)
-                .key(newKey)
-                .build(), RequestBody.fromBytes(imageFile.getBytes()));
+        if (!isValidImageFormat(imageFile)) return false;
 
-        GetUrlRequest imageUrlRequest = GetUrlRequest.builder()
-                .bucket(bucketName)
-                .key(newKey)
-                .build();
-        String imageUrl = s3Client.utilities().getUrl(imageUrlRequest).toExternalForm();
-//        stationRepo.updateImageUrl(imageUrl, stationId);
+        ChargingStation station = getValidatedStation(stationId, companyId);
+        String key = station.getId() + "-" + imageFile.getOriginalFilename();
 
-        StationImage newImage = new StationImage();
-        newImage.setKey(newKey);
-        newImage.setUrl(imageUrl);
-        newImage.setType(imageFile.getContentType());
-        newImage.setStation(stationRepo.getReferenceById(stationId));
+        if (imageRepo.existsById(key)) {
+            throw new RuntimeException("The image already exists");
+        }
 
-        imageRepo.save(newImage);
+        String url = uploadToS3(imageFile, key);
+        imageRepo.save(buildStationImage(key, url, imageFile.getContentType(), station));
         return true;
     }
 
+    @Transactional
+    public boolean changeImage(StationImageRequestDTO imageRequest, String stationId, String companyId) throws IOException {
+        MultipartFile imageFile = imageRequest.getImageFile();
+        if (!isValidImageFormat(imageFile)) return false;
+
+        ChargingStation station = getValidatedStation(stationId, companyId);
+
+        if (!imageRepo.existsById(imageRequest.getKey())) {
+            throw new RuntimeException("The image key does not exist");
+        }
+
+        deleteFromS3(imageRequest.getKey());
+        imageRepo.deleteById(imageRequest.getKey());
+
+        String newKey = station.getId() + "-" + imageFile.getOriginalFilename();
+        String url = uploadToS3(imageFile, newKey);
+        imageRepo.save(buildStationImage(newKey, url, imageFile.getContentType(), station));
+        return true;
+    }
 
     public Page<StationBusinessSearchDTO> findStationOfACompany(String companyId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return stationRepo.findBusinessStationWithoutKeyword(companyId, pageable);
+        return stationRepo.findBusinessStationWithoutKeyword(companyId, PageRequest.of(page, size));
+    }
+
+    // --- Private Helper Methods (The DRY Logic) ---
+
+    private boolean isValidImageFormat(MultipartFile file) {
+        String contentType = file.getContentType();
+        return contentType != null && (contentType.contains("png") || contentType.contains("jpeg") || contentType.contains("jpg"));
+    }
+
+    private String uploadToS3(MultipartFile file, String key) throws IOException {
+        s3Client.putObject(PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .build(), RequestBody.fromBytes(file.getBytes()));
+
+        return s3Client.utilities().getUrl(GetUrlRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .build()).toExternalForm();
+    }
+
+    private void deleteFromS3(String key) {
+        s3Client.deleteObject(DeleteObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .build());
+    }
+
+    private ChargingStation getValidatedStation(String stationId, String companyId) {
+        ChargingStation station = stationRepo.findById(stationId)
+                .orElseThrow(() -> new RuntimeException("Station not found"));
+
+        if (!Objects.equals(station.getCpo().getEnterpriseId(), companyId)) {
+            throw new RuntimeException("Access denied: Station belongs to another company");
+        }
+        return station;
+    }
+
+    private StationImage buildStationImage(String key, String url, String type, ChargingStation station) {
+        StationImage img = new StationImage();
+        img.setKey(key);
+        img.setUrl(url);
+        img.setType(type);
+        img.setStation(station);
+        return img;
+    }
+
+    private void mapPointsAndConnectors(StationCreationDTO dto, ChargingStation station) {
+        if (dto.getChargingPoints() == null) return;
+
+        List<ChargingPoint> points = dto.getChargingPoints().stream().map(pDto -> {
+            ChargingPoint point = new ChargingPoint();
+            point.setId(pDto.getId());
+            point.setStatus(pDto.getStatus());
+            point.setChargingStation(station);
+
+            if (pDto.getConnectors() != null) {
+                List<Connector> connectors = pDto.getConnectors().stream().map(cDto -> {
+                    Connector connector = new Connector();
+                    connector.setId(cDto.getId());
+                    connector.setType(cDto.getType());
+                    connector.setAvailable(cDto.isAvailable());
+                    connector.setPrice(cDto.getPrice());
+                    connector.setVoltage(cDto.getVoltage());
+                    connector.setMaxPower(cDto.getMaxPower());
+                    connector.setChargingPoint(point);
+                    return connector;
+                }).toList();
+                point.setConnectors(connectors);
+            }
+            return point;
+        }).toList();
+
+        station.setChargingPoints(points);
     }
 }

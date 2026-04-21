@@ -6,5 +6,5 @@ import org.springframework.web.multipart.MultipartFile;
 @Data
 public class StationImageRequestDTO {
     private MultipartFile imageFile;
-    private String stationId;
+    private String key;
 }

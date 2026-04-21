@@ -2,7 +2,8 @@ package com.dacn.backend.controller;
 
 import com.dacn.backend.dto.StationBusinessSearchDTO;
 import com.dacn.backend.dto.StationCreationDTO;
-import com.dacn.backend.dto.search_by_keyword.StationSearchResponseDTO;
+import com.dacn.backend.dto.StationImageDTO;
+import com.dacn.backend.dto.StationImageRequestDTO;
 import com.dacn.backend.model.UserPrincipal;
 import com.dacn.backend.object.ResponseObject;
 import com.dacn.backend.service.BusinessService;
@@ -113,5 +114,29 @@ public class BusinessStationController {
                 ), HttpStatus.BAD_REQUEST
         );
 
+    }
+
+    @PutMapping(value = "stations/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ResponseObject<Boolean>> changeImage(@ModelAttribute StationImageRequestDTO imageRequest,
+                                                              @PathVariable String id,
+                                                               @AuthenticationPrincipal UserPrincipal principal) throws IOException {
+        String companyId = principal.getCompanyId();
+        boolean isUpdated = businessService.changeImage(imageRequest, id, companyId);
+        if (isUpdated) {
+            return new ResponseEntity<>(
+                    new ResponseObject<>(
+                            HttpStatus.OK,
+                            "change image successfully",
+                            true
+                    ), HttpStatus.OK
+            );
+        }
+        return new ResponseEntity<>(
+                new ResponseObject<>(
+                        HttpStatus.BAD_REQUEST,
+                        "Image file type is not allowed",
+                        false
+                ), HttpStatus.BAD_REQUEST
+        );
     }
 }
