@@ -199,4 +199,10 @@ public class BusinessService {
 
         station.setChargingPoints(points);
     }
+
+    public boolean deleteStation(String key) {
+        deleteFromS3(key);
+        imageRepo.deleteById(key);
+        return true;
+    }
 }

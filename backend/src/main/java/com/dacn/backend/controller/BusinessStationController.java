@@ -139,4 +139,25 @@ public class BusinessStationController {
                 ), HttpStatus.BAD_REQUEST
         );
     }
+
+    @DeleteMapping("stations/image/{key}")
+    public ResponseEntity<ResponseObject<Boolean>> deleteImage(@PathVariable String key) {
+        boolean isDeleted = businessService.deleteStation(key);
+        if (isDeleted) {
+            return new ResponseEntity<>(
+                    new ResponseObject<>(
+                            HttpStatus.OK,
+                            "change image successfully",
+                            true
+                    ), HttpStatus.OK
+            );
+        }
+        return new ResponseEntity<>(
+                new ResponseObject<>(
+                        HttpStatus.BAD_REQUEST,
+                        "Image file type is not allowed",
+                        false
+                ), HttpStatus.BAD_REQUEST
+        );
+    }
 }
