@@ -119,4 +119,15 @@ public class StationController {
         return new ResponseEntity<>(new ResponseObject<>(HttpStatus.OK, "Successfully returned the suggested station", response), HttpStatus.OK);
     }
 
+    @GetMapping("logo")
+    public ResponseEntity<ResponseObject<List<LogoResponseDTO>>> getLogos(@RequestParam List<String> manufacturerNames) {
+        List<LogoResponseDTO> logoResponse = stationService.getLogos(manufacturerNames);
+        return new ResponseEntity<>(new ResponseObject<>(
+                HttpStatus.OK,
+                "Returned successfully",
+                logoResponse,
+                logoResponse.size()
+        ), HttpStatus.OK);
+    }
+
 }

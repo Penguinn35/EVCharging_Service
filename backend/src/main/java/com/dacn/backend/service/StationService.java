@@ -32,6 +32,8 @@ public class StationService {
     private UserSavesStationRepo userSavesStationRepo;
     @Autowired
     private ChargingPointRepo chargingPointRepo;
+    @Autowired
+    private CPORepo cpoRepo;
 //    @Autowired
 //    private ChargingPointRepo chargingPointRepo;
 
@@ -147,5 +149,9 @@ public class StationService {
 
         return stationRepo.findOptimalRouteGeoJSON(userPosition.getLongitude(), userPosition.getLatitude(),
                 stationPosition.getLongitude(), stationPosition.getLatitude());
+    }
+
+    public List<LogoResponseDTO> getLogos(List<String> manufacturerNames) {
+        return cpoRepo.findByCompanyName(manufacturerNames);
     }
 }

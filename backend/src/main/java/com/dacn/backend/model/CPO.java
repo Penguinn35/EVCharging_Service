@@ -17,6 +17,7 @@ import java.util.List;
 public class CPO {
     @Id
     private String enterpriseId;
+    @Column(unique = true, nullable = false)
     private String companyName;
     private String logoUrl;
     private String taxCode;
