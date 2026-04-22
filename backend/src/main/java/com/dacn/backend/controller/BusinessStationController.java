@@ -2,7 +2,6 @@ package com.dacn.backend.controller;
 
 import com.dacn.backend.dto.StationBusinessSearchDTO;
 import com.dacn.backend.dto.StationCreationDTO;
-import com.dacn.backend.dto.StationImageDTO;
 import com.dacn.backend.dto.StationImageRequestDTO;
 import com.dacn.backend.model.UserPrincipal;
 import com.dacn.backend.object.ResponseObject;
@@ -159,5 +158,23 @@ public class BusinessStationController {
                         false
                 ), HttpStatus.BAD_REQUEST
         );
+    }
+
+    @PutMapping("stations/{id}/status")
+    @Operation(summary = "Toggle bật tắt trạng thái trạm sạc",
+    description = "Toggle bật tắt status của trạm sạc với id là id trạm sạc")
+    public ResponseEntity<ResponseObject<Boolean>> toggleStationStatus(@PathVariable String id) {
+        if (businessService.toggleStationStatus(id)) {
+            return new ResponseEntity<>(new ResponseObject<>(
+                    HttpStatus.OK,
+                    "Toggle successfully",
+                    true
+            ), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(new ResponseObject<>(
+                HttpStatus.OK,
+                "Toggle unsuccessfully",
+                false
+        ), HttpStatus.OK);
     }
 }

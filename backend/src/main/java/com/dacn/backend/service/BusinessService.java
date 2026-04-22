@@ -1,12 +1,12 @@
 package com.dacn.backend.service;
 
+import com.dacn.backend.constants.StationStatus;
 import com.dacn.backend.dto.*;
 import com.dacn.backend.model.ChargingPoint;
 import com.dacn.backend.model.ChargingStation;
 import com.dacn.backend.model.Connector;
 import com.dacn.backend.model.StationImage;
 import com.dacn.backend.repository.*;
-import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,10 +31,10 @@ public class BusinessService {
 
     @Autowired
     private ChargingStationRepo stationRepo;
-    @Autowired
-    private ChargingPointRepo chargingPointRepo;
-    @Autowired
-    private ConnectorRepo connectorRepo;
+//    @Autowired
+//    private ChargingPointRepo chargingPointRepo;
+//    @Autowired
+//    private ConnectorRepo connectorRepo;
     @Autowired
     private CPORepo cpoRepo;
     @Autowired
@@ -57,7 +57,7 @@ public class BusinessService {
     public boolean addNewStation(StationCreationDTO stationDto, List<MultipartFile> imageFiles, String companyId) throws IOException {
         // 1. Validate all images first
         for (MultipartFile image : imageFiles) {
-            if (!isValidImageFormat(image)) return false;
+            if (isValidImageFormat(image)) return false;
         }
 
         // 2. Create Station Entity
@@ -88,7 +88,7 @@ public class BusinessService {
 
     @Transactional
     public boolean addImageToStation(MultipartFile imageFile, String stationId, String companyId) throws IOException {
-        if (!isValidImageFormat(imageFile)) return false;
+        if (isValidImageFormat(imageFile)) return false;
 
         ChargingStation station = getValidatedStation(stationId, companyId);
         String key = station.getId() + "-" + imageFile.getOriginalFilename();
@@ -105,7 +105,7 @@ public class BusinessService {
     @Transactional
     public boolean changeImage(StationImageRequestDTO imageRequest, String stationId, String companyId) throws IOException {
         MultipartFile imageFile = imageRequest.getImageFile();
-        if (!isValidImageFormat(imageFile)) return false;
+        if (isValidImageFormat(imageFile)) return false;
 
         ChargingStation station = getValidatedStation(stationId, companyId);
 
@@ -130,7 +130,7 @@ public class BusinessService {
 
     private boolean isValidImageFormat(MultipartFile file) {
         String contentType = file.getContentType();
-        return contentType != null && (contentType.contains("png") || contentType.contains("jpeg") || contentType.contains("jpg"));
+        return contentType == null || (!contentType.contains("png") && !contentType.contains("jpeg") && !contentType.contains("jpg"));
     }
 
     private String uploadToS3(MultipartFile file, String key) throws IOException {
@@ -203,6 +203,22 @@ public class BusinessService {
     public boolean deleteStation(String key) {
         deleteFromS3(key);
         imageRepo.deleteById(key);
+        return true;
+    }
+
+    @Transactional
+    public Boolean toggleStationStatus(String stationId) {
+        ChargingStation station = stationRepo.findById(stationId).orElse(null);
+        if (station == null) {
+            return Boolean.FALSE;
+        }
+        int currentStatus = station.getStatus();
+        if (currentStatus == StationStatus.UNAVAILABLE.getCode()) {
+            station.setStatus(StationStatus.AVAILABLE.getCode());
+        } else {
+            station.setStatus(StationStatus.UNAVAILABLE.getCode());
+        }
+        stationRepo.save(station);
         return true;
     }
 }
