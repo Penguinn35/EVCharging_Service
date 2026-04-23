@@ -28,7 +28,6 @@ public class ChargingStation {
     private Coordinate position;
     private String address;
     private String district;
-    private Long totalPoints;
     private int status;
 
     @OneToMany(mappedBy = "chargingStation", cascade = CascadeType.ALL)
@@ -43,4 +42,7 @@ public class ChargingStation {
     @ManyToOne
     @JoinColumn(name = "manufacturer_id")
     private CPO cpo;
+
+    @OneToMany(mappedBy = "station", cascade = CascadeType.ALL)
+    private List<StationStatistic> statistics;
 }
