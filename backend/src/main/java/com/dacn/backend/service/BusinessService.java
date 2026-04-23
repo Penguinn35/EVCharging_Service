@@ -67,7 +67,6 @@ public class BusinessService {
         newStation.setPosition(stationDto.getPosition());
         newStation.setAddress(stationDto.getAddress());
         newStation.setDistrict(stationDto.getDistrict());
-        newStation.setTotalPoints(0L);
         newStation.setCpo(cpoRepo.getReferenceById(companyId));
 
         // 3. Process Images

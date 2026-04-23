@@ -1,6 +1,8 @@
 package com.dacn.backend.service;
 
 import java.text.Normalizer;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -34,6 +36,8 @@ public class StationService {
     private ChargingPointRepo chargingPointRepo;
     @Autowired
     private CPORepo cpoRepo;
+    @Autowired
+    private StationStatisticRepo stationStatisticRepo;
 //    @Autowired
 //    private ChargingPointRepo chargingPointRepo;
 
@@ -68,6 +72,20 @@ public class StationService {
         if (station == null) {
             return null;
         }
+
+        String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+
+        // Cố gắng tăng giá trị lên 1 trực tiếp trong DB
+        int updatedRows = stationStatisticRepo.incrementViewCount(today, id);
+
+        if (updatedRows == 0) {
+            StationStatistic newStat = new StationStatistic();
+            newStat.setDate(today);
+            newStat.setStation(station);
+            newStat.setViewDetailCount(1L);
+            stationStatisticRepo.save(newStat);
+        }
+
         StationDetailResponseDTO response = new StationDetailResponseDTO();
         response.setId(id);
         response.setName(station.getName());

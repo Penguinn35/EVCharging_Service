@@ -1,9 +1,6 @@
 package com.dacn.backend.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,6 +13,8 @@ import java.util.Date;
 @NoArgsConstructor
 public class StationStatistic {
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
     private String date;
     private Long viewDetailCount;
     @ManyToOne
