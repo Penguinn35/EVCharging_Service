@@ -75,7 +75,6 @@ public class StationService {
 
         String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
-        // Cố gắng tăng giá trị lên 1 trực tiếp trong DB
         int updatedRows = stationStatisticRepo.incrementViewCount(today, id);
 
         if (updatedRows == 0) {
