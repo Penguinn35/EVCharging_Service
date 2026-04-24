@@ -1,6 +1,9 @@
 package com.dacn.backend.service;
 
+import com.dacn.backend.dto.StatisticsByStationResponseDTO;
 import com.dacn.backend.dto.StatisticsResponseDTO;
+import com.dacn.backend.model.ChargingStation;
+import com.dacn.backend.repository.ChargingStationRepo;
 import com.dacn.backend.repository.StationStatisticRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -9,17 +12,31 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class BusinessStationStatisticService {
 
     @Autowired
-    StationStatisticRepo stationStatisticRepo;
+    private StationStatisticRepo stationStatisticRepo;
+    @Autowired
+    private ChargingStationRepo stationRepo;
 
     public List<StatisticsResponseDTO> getTotalViewCountByDateRange(LocalDate fromDate, LocalDate toDate, String companyId) {
         String fromDateString = fromDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String toDateString = toDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         return stationStatisticRepo.getStatisticsByRangeOfDate(fromDateString, toDateString, companyId);
+    }
+
+    public List<StatisticsByStationResponseDTO> getTotalViewCountByStationId(String stationId, LocalDate fromDate, LocalDate toDate, String companyId) {
+        ChargingStation station = stationRepo.findById(stationId).orElse(null);
+        if (station == null || !Objects.equals(station.getCpo().getEnterpriseId(), companyId)) {
+            return null;
+        }
+
+        String fromDateString = fromDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String toDateString = toDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        return stationStatisticRepo.getTotalViewCountOfAStation(stationId, fromDateString, toDateString);
     }
 
 }
