@@ -252,7 +252,8 @@ SELECT
     cs.id AS charging_station_id
 FROM 
     charging_station cs,
-    LATERAL generate_series(1, cs.total_points) AS g(n)
+    -- Tạo ngẫu nhiên từ 5 đến 15 điểm sạc cho mỗi trạm để thay thế total_points
+    LATERAL generate_series(1, floor(random() * 11 + 5)::int) AS g(n)
 WHERE cs.id >= 'cs-vn-1001' AND cs.id <= 'cs-vn-1200';
 
 
