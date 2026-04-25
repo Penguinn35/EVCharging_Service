@@ -2,6 +2,7 @@ package com.dacn.backend.service;
 
 import java.text.Normalizer;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
@@ -122,14 +123,14 @@ public class StationService {
     @Transactional
     public RatingResponseDTO rateStation(String userId, RatingRequestDTO rating) throws RuntimeException {
         Rating newRating = new Rating();
-        newRating.setDatePosted(new Date());
+        newRating.setDatePosted(LocalDateTime.now());
         newRating.setPoint(rating.getPoint());
         newRating.setComment(rating.getComment());
         newRating.setStation(stationRepo.getReferenceById(rating.getStationId()));
         newRating.setUser(eVUserRepo.getReferenceById(userId));
 
         Rating savedRating = ratingRepo.save(newRating);
-        return new RatingResponseDTO(savedRating.getId(), savedRating.getComment(), savedRating.getPoint());
+        return new RatingResponseDTO(savedRating.getId(), savedRating.getComment(), savedRating.getPoint(), savedRating.getDatePosted());
     }
 
     public Page<RatingResponseDTO> getRatingListOfStation(String stationId, int page, int size) {

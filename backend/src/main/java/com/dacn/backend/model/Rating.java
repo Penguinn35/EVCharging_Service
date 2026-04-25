@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
@@ -18,7 +19,7 @@ public class Rating {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
     private int point; // on a scale from 1 to 5
-    private Date datePosted;
+    private LocalDateTime datePosted;
     private String comment;
 
     @ManyToOne
