@@ -26,7 +26,8 @@ public class BusinessStationRatingService {
     public Page<RatingResponseDTO> getRatingWithFilter(
             LocalDate fromDate,
             LocalDate toDate,
-            Integer point,
+            int lowestPoint,
+            int highestPoint,
             String companyId,
             int page,
             int size
@@ -34,6 +35,6 @@ public class BusinessStationRatingService {
         Pageable pageable = PageRequest.of(page, size);
         LocalDateTime startTime = fromDate.atStartOfDay();
         LocalDateTime endTime = toDate.atTime(LocalTime.MAX);
-        return ratingRepo.getRatingOfBusinessWithFilters(startTime, endTime, point, companyId, pageable);
+        return ratingRepo.getRatingOfBusinessWithFilters(startTime, endTime, lowestPoint, highestPoint, companyId, pageable);
     }
 }

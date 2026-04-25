@@ -45,8 +45,8 @@ WHERE cs.manufacturer_id = :companyId
     @Query(nativeQuery = true, value = """
 SELECT r.id, r.comment, r.point, r.date_posted
 FROM rating r JOIN charging_station cs ON r.station_id = cs.id
-WHERE cs.manufacturer_id = :companyId AND r.point = :ratingPoint AND r.date_posted >= :fromDate
-    AND r.date_posted <= :toDate
+WHERE cs.manufacturer_id = :companyId AND r.point >= :lowestPoint AND r.point <= :highestPoint
+    AND r.date_posted >= :fromDate AND r.date_posted <= :toDate
 """, countQuery = """
             SELECT *
             FROM rating r JOIN charging_station cs ON r.station_id = cs.id
@@ -54,5 +54,6 @@ WHERE cs.manufacturer_id = :companyId AND r.point = :ratingPoint AND r.date_post
                 AND r.date_posted <= :toDate
             """)
     Page<RatingResponseDTO> getRatingOfBusinessWithFilters(LocalDateTime fromDate, LocalDateTime toDate,
-                                                           int ratingPoint, String companyId, Pageable pageable);
+                                                           int lowestPoint, int highestPoint,
+                                                           String companyId, Pageable pageable);
 }

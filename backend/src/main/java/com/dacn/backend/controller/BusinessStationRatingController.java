@@ -34,18 +34,19 @@ public class BusinessStationRatingController {
 
             @RequestParam(value = "toDate", required = false) LocalDate toDate,
 
-            @RequestParam(value = "ratingPoint", required = false) Integer ratingPoint,
-            @RequestParam("page") int page,
-            @RequestParam("size") int size,
+            @RequestParam(value = "lowestPoint", defaultValue = "0") int lowestPoint,
+            @RequestParam(value = "highestPoint", defaultValue = "5") int highestPoint,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
         String companyId = principal.getCompanyId();
         Page<RatingResponseDTO> response = null;
-        if (fromDate == null && toDate == null && ratingPoint == null) {
+        if (fromDate == null && toDate == null) {
             response = ratingService.getRatingWithNoFilter(companyId, page, size);
         }
         else {
-            response = ratingService.getRatingWithFilter(fromDate, toDate, ratingPoint,
+            response = ratingService.getRatingWithFilter(fromDate, toDate, lowestPoint, highestPoint,
                     companyId, page, size);
         }
         return new ResponseEntity<>(new ResponseObject<>(
