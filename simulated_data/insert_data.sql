@@ -241,6 +241,9 @@ INSERT INTO charging_station (id, address, district, status, manufacturer_id, na
 ('cs-vn-1199', '20 Dân Tộc, Phường Tân Thành', 'Tân Phú', 0, 'cpo-chargeplus', 'Trạm sạc Dân Tộc', 10.7915, 106.6321),
 ('cs-vn-1200', '85 Cây Keo, Phường Hiệp Tân', 'Tân Phú', 1, 'cpo-vinfast', 'Trạm sạc Cây Keo', 10.7821, 106.6211);
 
+UPDATE charging_station 
+SET number_of_saves = 0;
+
 
 -- ==============================================================================
 -- 2. INSERT DATA CHO CHARGING_POINT
