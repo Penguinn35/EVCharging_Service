@@ -178,4 +178,12 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
 """, nativeQuery = true)
     @Modifying
     void updateImageUrl(String imageUrl, String stationId);
+
+    @Modifying
+    @Query(value = """
+UPDATE ChargingStation s
+SET s.numberOfSaves = s.numberOfSaves + 1
+WHERE s.id = :stationId
+""")
+    int incrementSaveCount(String stationId);
 }

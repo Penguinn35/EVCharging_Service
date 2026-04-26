@@ -152,6 +152,7 @@ public class StationService {
 //        if (!stationRepo.existsById(stationId)) {
 //            throw new NoSuchElementException("There is no stationId " + stationId);
 //        }
+        stationRepo.incrementSaveCount(stationId);
         userSavesStationRepo.saveStationForUser(userId, stationId);
     }
 

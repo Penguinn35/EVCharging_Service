@@ -29,6 +29,7 @@ public class ChargingStation {
     private String address;
     private String district;
     private int status;
+    private Long numberOfSaves;
 
     @OneToMany(mappedBy = "chargingStation", cascade = CascadeType.ALL)
     private List<ChargingPoint> chargingPoints;
