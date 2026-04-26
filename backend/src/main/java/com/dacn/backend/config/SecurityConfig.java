@@ -52,9 +52,9 @@ public class SecurityConfig {
                         "/swagger-ui.html",
                         "/error"
                 ).permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/**").hasAnyAuthority("CLIENT", "BUSINESS")
-                .requestMatchers(HttpMethod.PUT, "/api/**").hasAnyAuthority("CLIENT", "BUSINESS")
-                .requestMatchers(HttpMethod.DELETE, "/api/**").hasAnyAuthority("CLIENT", "BUSINESS")
+                .requestMatchers(HttpMethod.POST, "/api/**").hasAuthority("CLIENT")
+                .requestMatchers(HttpMethod.PUT, "/api/**").hasAuthority("CLIENT")
+                .requestMatchers(HttpMethod.DELETE, "/api/**").hasAuthority("CLIENT")
                 .requestMatchers("/api/business/**").hasAuthority("BUSINESS")
                 .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
                 .anyRequest().authenticated())
