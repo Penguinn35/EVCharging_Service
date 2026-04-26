@@ -3,6 +3,7 @@ package com.dacn.backend.repository;
 import java.util.List;
 
 import com.dacn.backend.dto.CoordinateDTO;
+import com.dacn.backend.dto.SaveStatisticResponseDTO;
 import com.dacn.backend.dto.StationBusinessSearchDTO;
 import com.dacn.backend.dto.StationByLocationResponseDTO;
 import com.dacn.backend.dto.search_by_keyword.StationSearchResponseDTO;
@@ -185,5 +186,24 @@ UPDATE ChargingStation s
 SET s.numberOfSaves = s.numberOfSaves + 1
 WHERE s.id = :stationId
 """)
-    int incrementSaveCount(String stationId);
+    void incrementSaveCount(String stationId);
+
+    @Query(nativeQuery = true, value = """
+SELECT s.id, s.name, s.address, s.number_of_saves
+FROM charging_station s
+WHERE s.id = :stationId AND s.manufacturer_id = :companyId
+""")
+    List<SaveStatisticResponseDTO> getSaveStationCountByStationId(String stationId, String companyId);
+
+    @Query(nativeQuery = true, value = """
+SELECT s.id, s.name, s.address, s.number_of_saves
+FROM charging_station s
+WHERE s.manufacturer_id = :companyId
+ORDER BY s.number_of_saves DESC
+""", countQuery = """
+            SELECT count(s.id)
+            FROM charging_station s
+            WHERE s.manufacturer_id = :companyId
+            """)
+    Page<SaveStatisticResponseDTO> getSaveStationCount(String companyId, Pageable pageable);
 }

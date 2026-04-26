@@ -1,16 +1,19 @@
 package com.dacn.backend.service;
 
+import com.dacn.backend.dto.SaveStatisticResponseDTO;
 import com.dacn.backend.dto.StatisticsByStationResponseDTO;
 import com.dacn.backend.dto.StatisticsResponseDTO;
 import com.dacn.backend.model.ChargingStation;
 import com.dacn.backend.repository.ChargingStationRepo;
 import com.dacn.backend.repository.StationStatisticRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -39,4 +42,12 @@ public class BusinessStationStatisticService {
         return stationStatisticRepo.getTotalViewCountOfAStation(stationId, fromDateString, toDateString);
     }
 
+    public List<SaveStatisticResponseDTO> getSaveStationStatisticByStationId(String stationId, String companyId) {
+        return stationRepo.getSaveStationCountByStationId(stationId, companyId);
+    }
+
+    public Page<SaveStatisticResponseDTO> getSaveStationStatistic(String companyId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return stationRepo.getSaveStationCount(companyId, pageable);
+    }
 }
