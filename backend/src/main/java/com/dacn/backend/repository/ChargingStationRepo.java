@@ -124,7 +124,7 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
         ),
         -- Tìm cặp (start_vid, end_vid) có tổng chi phí (agg_cost) thấp nhất
         best_pair AS (
-            SELECT start_vid, end_vid 
+            SELECT start_vid, end_vid
             FROM routes 
             WHERE edge = -1 
             ORDER BY start_vid ASC 
