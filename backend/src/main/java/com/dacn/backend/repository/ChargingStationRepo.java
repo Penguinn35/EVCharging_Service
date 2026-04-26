@@ -109,8 +109,8 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
             LIMIT 10
         ),
         end_nodes AS (
-            SELECT target AS id FROM ways 
-            ORDER BY the_geom <-> ST_SetSRID(ST_MakePoint(:endLon, :endLat), 4326) 
+            SELECT target AS id FROM ways
+            ORDER BY the_geom <-> ST_SetSRID(ST_MakePoint(:endLon, :endLat), 4326)
             LIMIT 10
         ),
         -- pgr_dijkstra nhận vào array và tính toán tất cả tổ hợp
