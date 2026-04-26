@@ -105,7 +105,7 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
     @Query(nativeQuery = true, value = """
         WITH start_nodes AS (
             SELECT source AS id FROM ways
-            ORDER BY the_geom <-> ST_SetSRID(ST_MakePoint(:startLon, :startLat), 4326) 
+            ORDER BY the_geom <-> ST_SetSRID(ST_MakePoint(:startLon, :startLat), 4326)
             LIMIT 10
         ),
         end_nodes AS (
@@ -172,13 +172,13 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
             """)
     Page<StationBusinessSearchDTO> findBusinessStationWithoutKeyword(String manufacturerId, Pageable pageable);
 
-    @Query(value = """
-        UPDATE charging_station
-        SET image_url = ?1
-        WHERE id = ?2
-""", nativeQuery = true)
-    @Modifying
-    void updateImageUrl(String imageUrl, String stationId);
+//    @Query(value = """
+//        UPDATE charging_station
+//        SET image_url = ?1
+//        WHERE id = ?2
+//""", nativeQuery = true)
+//    @Modifying
+//    void updateImageUrl(String imageUrl, String stationId);
 
     @Modifying
     @Query(value = """
