@@ -33,4 +33,7 @@ public class EVUser {
 
     @OneToOne(mappedBy = "manager")
     private CPO company;
+
+    @OneToMany(mappedBy = "user")
+    private List<UserSuggestedStation> suggestedStation;
 }
