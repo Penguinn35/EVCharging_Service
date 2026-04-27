@@ -22,22 +22,20 @@ public interface StationStatisticRepo extends JpaRepository<StationStatistic, St
     int incrementViewCount(String date, String stationId);
 
     @Query(nativeQuery = true, value = """
-SELECT st.station_id AS stationId, cs.name AS stationName, cs.address AS address,
-       SUM(st.view_detail_count) AS sumOfViewDetailCount
+SELECT cs.id AS stationId, cs.name AS stationName, cs.address AS address,
+       COALESCE(SUM(st.view_detail_count), 0) AS sumOfViewDetailCount
 FROM charging_station cs
-    JOIN station_statistic st ON cs.id = st.station_id
+    LEFT JOIN station_statistic st ON cs.id = st.station_id
+        AND st.date >= :fromDate AND st.date <= :toDate
     JOIN cpo c ON cs.manufacturer_id = c.enterprise_id
-WHERE c.enterprise_id = :companyId AND st.date >= :fromDate AND st.date <= :toDate
-GROUP BY st.station_id, cs.name, cs.address
+WHERE c.enterprise_id = :companyId
+GROUP BY cs.id, cs.name, cs.address
+ORDER BY sumOfViewDetailCount DESC
 """, countQuery = """
-            SELECT COUNT(*) FROM (
-                    SELECT st.station_id, cs.name
-                    FROM charging_station cs
-                        JOIN station_statistic st ON cs.id = st.station_id
-                        JOIN cpo c ON cs.manufacturer_id = c.enterprise_id
-                    WHERE c.enterprise_id = :companyId AND st.date >= :fromDate AND st.date <= :toDate
-                    GROUP BY st.station_id, cs.name
-                ) AS total_count
+            SELECT COUNT(*)
+            FROM charging_station cs
+            JOIN cpo c ON cs.manufacturer_id = c.enterprise_id
+            WHERE c.enterprise_id = :companyId
             """)
     Page<StatisticsResponseDTO> getStatisticsByRangeOfDate(String fromDate, String toDate, String companyId, Pageable pageable);
 
