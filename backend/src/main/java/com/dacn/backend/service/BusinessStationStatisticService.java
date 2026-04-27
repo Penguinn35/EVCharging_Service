@@ -25,10 +25,11 @@ public class BusinessStationStatisticService {
     @Autowired
     private ChargingStationRepo stationRepo;
 
-    public List<StatisticsResponseDTO> getTotalViewCountByDateRange(LocalDate fromDate, LocalDate toDate, String companyId) {
+    public Page<StatisticsResponseDTO> getTotalViewCountByDateRange(LocalDate fromDate, LocalDate toDate, String companyId, int page, int size) {
         String fromDateString = fromDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String toDateString = toDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        return stationStatisticRepo.getStatisticsByRangeOfDate(fromDateString, toDateString, companyId);
+        Pageable pageable = PageRequest.of(page, size);
+        return stationStatisticRepo.getStatisticsByRangeOfDate(fromDateString, toDateString, companyId, pageable);
     }
 
     public List<StatisticsByStationResponseDTO> getTotalViewCountByStationId(String stationId, LocalDate fromDate, LocalDate toDate, String companyId) {

@@ -4,6 +4,8 @@ import com.dacn.backend.dto.StatisticsByStationResponseDTO;
 import com.dacn.backend.dto.StatisticsResponseDTO;
 import com.dacn.backend.model.StationStatistic;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -20,14 +22,24 @@ public interface StationStatisticRepo extends JpaRepository<StationStatistic, St
     int incrementViewCount(String date, String stationId);
 
     @Query(nativeQuery = true, value = """
-SELECT st.station_id AS stationId, cs.name AS stationName, SUM(st.view_detail_count) AS sumOfViewDetailCount
-FROM charging_station cs 
+SELECT st.station_id AS stationId, cs.name AS stationName, cs.address AS address,
+       SUM(st.view_detail_count) AS sumOfViewDetailCount
+FROM charging_station cs
     JOIN station_statistic st ON cs.id = st.station_id
     JOIN cpo c ON cs.manufacturer_id = c.enterprise_id
 WHERE c.enterprise_id = :companyId AND st.date >= :fromDate AND st.date <= :toDate
-GROUP BY st.station_id, cs.name
-""")
-    List<StatisticsResponseDTO> getStatisticsByRangeOfDate(String fromDate, String toDate, String companyId);
+GROUP BY st.station_id, cs.name, cs.address
+""", countQuery = """
+            SELECT COUNT(*) FROM (
+                    SELECT st.station_id, cs.name
+                    FROM charging_station cs
+                        JOIN station_statistic st ON cs.id = st.station_id
+                        JOIN cpo c ON cs.manufacturer_id = c.enterprise_id
+                    WHERE c.enterprise_id = :companyId AND st.date >= :fromDate AND st.date <= :toDate
+                    GROUP BY st.station_id, cs.name
+                ) AS total_count
+            """)
+    Page<StatisticsResponseDTO> getStatisticsByRangeOfDate(String fromDate, String toDate, String companyId, Pageable pageable);
 
     @Query(nativeQuery = true, value = """
 SELECT st.station_id AS stationId, cs.name AS stationName, st.view_detail_count AS sumOfViewDetailCount, st.date

@@ -8,11 +8,13 @@ import lombok.NoArgsConstructor;
 public class StatisticsResponseDTO {
     private String stationId;
     private String stationName;
+    private String address;
     private Long sumOfViewDetailCount;
 
-    public StatisticsResponseDTO(String stationId, String stationName, Object sumOfViewDetailCount) {
+    public StatisticsResponseDTO(String stationId, String address, String stationName, Object sumOfViewDetailCount) {
         this.stationId = stationId;
         this.stationName = stationName;
+        this.address = address;
 
         if (sumOfViewDetailCount instanceof Number) {
             this.sumOfViewDetailCount = ((Number) sumOfViewDetailCount).longValue();

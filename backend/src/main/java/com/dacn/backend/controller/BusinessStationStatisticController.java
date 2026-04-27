@@ -28,17 +28,19 @@ public class BusinessStationStatisticController {
 
     @GetMapping("/statistics/total-detail-count")
     @Operation(summary = "API lấy tổng lượt nhấp vào stationDetail theo từng trạm sạc của doanh nghiệp. Input liên quan tới date có dạng: yyyy-MM-dd")
-    public ResponseEntity<ResponseObject<List<StatisticsResponseDTO>>> getStationViewCountWithRange(
+    public ResponseEntity<ResponseObject<Page<StatisticsResponseDTO>>> getStationViewCountWithRange(
             @RequestParam("fromDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam("toDate") LocalDate toDate,
-            @AuthenticationPrincipal UserPrincipal principal
+            @AuthenticationPrincipal UserPrincipal principal,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
             ) {
-        List<StatisticsResponseDTO> response = statisticService.getTotalViewCountByDateRange(fromDate, toDate, principal.getCompanyId());
+        Page<StatisticsResponseDTO> response = statisticService.getTotalViewCountByDateRange(fromDate, toDate, principal.getCompanyId(), page, size);
         return new ResponseEntity<>(new ResponseObject<>(
                 HttpStatus.OK,
                 "Returned successfully",
                 response,
-                response.size()
+                response.getSize()
         ), HttpStatus.OK) ;
     }
 
