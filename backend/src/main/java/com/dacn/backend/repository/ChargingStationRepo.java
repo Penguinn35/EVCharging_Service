@@ -61,7 +61,7 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
     List<StationByLocationResponseDTO> findByLongitudeAndLatitude(@Param("longitude") Double longitude, @Param("latitude") Double latitude);
 
     @Query(value = """
-            SELECT s.id, s.name, o.company_name as manufacturer, s.address, s.longitude, s.latitude, (6371000 * acos(
+            SELECT s.id, s.name, o.company_name as manufacturer, s.address || ', ' || s.district AS address, s.longitude, s.latitude, (6371000 * acos(
                     cos(radians(:latitude)) * cos(radians(s.latitude)) * cos(radians(s.longitude) - radians(:longitude)) +
                     sin(radians(:latitude)) * sin(radians(s.latitude))
                 )) / 1000 AS distance

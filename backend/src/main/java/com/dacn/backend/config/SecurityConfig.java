@@ -55,6 +55,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/**").hasAuthority("CLIENT")
                 .requestMatchers(HttpMethod.PUT, "/api/**").hasAuthority("CLIENT")
                 .requestMatchers(HttpMethod.DELETE, "/api/**").hasAuthority("CLIENT")
+                        .requestMatchers("/api/users/**").hasAuthority("CLIENT")
                 .requestMatchers("/api/business/**").hasAuthority("BUSINESS")
                 .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
                 .anyRequest().authenticated())

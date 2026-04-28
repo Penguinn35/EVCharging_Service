@@ -5,7 +5,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -39,6 +38,8 @@ public class StationService {
     private CPORepo cpoRepo;
     @Autowired
     private StationStatisticRepo stationStatisticRepo;
+    @Autowired
+    private UserLocationHistoryRepo userLocationHistoryRepo;
 //    @Autowired
 //    private ChargingPointRepo chargingPointRepo;
 
@@ -115,10 +116,18 @@ public class StationService {
         return response;
     }
 
-    public StationResponseDTO getSuggestedStation(UserStationCategoriesRequestDTO categories) {
-        // TODO Auto-generated method stub
+    public StationResponseDTO getSuggestedStation(UserStationCategoriesRequestDTO categories, String userId) {
+        // save user's location in user history table
 
-        return stationRepo.findByCableType(categories.getChargeCableType(), categories.getPosition().getLongitude(), categories.getPosition().getLatitude());
+        StationResponseDTO response = stationRepo.findByCableType(categories.getChargeCableType(), categories.getPosition().getLongitude(), categories.getPosition().getLatitude());
+
+        UserLocationHistory userLocation = new UserLocationHistory();
+        userLocation.setLocation(categories.getPosition());
+        userLocation.setTimestamp(LocalDateTime.now());
+        userLocation.setUser(eVUserRepo.getReferenceById(userId));
+        userLocationHistoryRepo.save(userLocation);
+
+        return response;
     }
 
     @Transactional

@@ -66,10 +66,12 @@ public class UserController {
     public ResponseEntity<ResponseObject<StationResponseDTO>> suggestStation(
             @RequestParam int cableType,
             @RequestParam Double longitude,
-            @RequestParam Double latitude
+            @RequestParam Double latitude,
+            @AuthenticationPrincipal UserPrincipal principal
     ) {
         StationResponseDTO response = stationService.getSuggestedStation(
-                new UserStationCategoriesRequestDTO(cableType, new Coordinate(longitude, latitude))
+                new UserStationCategoriesRequestDTO(cableType, new Coordinate(longitude, latitude)),
+                principal.getUserId()
         );
         if (response == null) {
             return new ResponseEntity<>(new ResponseObject<>(HttpStatus.NOT_FOUND, "Cannot find the suggested station"), HttpStatus.NOT_FOUND);

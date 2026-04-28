@@ -30,4 +30,15 @@ public class BusinessHotspotController {
                 response.size()
         ), HttpStatus.OK);
     }
+
+    @GetMapping("users/locations")
+    public ResponseEntity<ResponseObject<List<CoordinateDTO>>> getUserLocationHistory() {
+        List<CoordinateDTO> response = hotspotService.getLocationHistory();
+        return new ResponseEntity<>(new ResponseObject<>(
+                HttpStatus.OK,
+                "Location history list returned",
+                response,
+                response.size()
+        ), HttpStatus.OK);
+    }
 }

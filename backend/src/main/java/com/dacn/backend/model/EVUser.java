@@ -36,4 +36,7 @@ public class EVUser {
 
     @OneToMany(mappedBy = "user")
     private List<UserSuggestedStation> suggestedStation;
+
+    @OneToMany(mappedBy = "user")
+    private List<UserLocationHistory> locationHistories;
 }
