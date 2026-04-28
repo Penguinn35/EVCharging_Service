@@ -2,6 +2,7 @@ package com.dacn.backend.model;
 
 import java.util.List;
 
+import com.dacn.backend.constants.StationStatus;
 import jakarta.persistence.*;
 import org.springframework.stereotype.Component;
 
@@ -30,6 +31,7 @@ public class ChargingStation {
     private String district;
     private int status;
     private Long numberOfSaves;
+    private Long hitFullCount;
 
     @OneToMany(mappedBy = "chargingStation", cascade = CascadeType.ALL)
     private List<ChargingPoint> chargingPoints;
@@ -46,4 +48,11 @@ public class ChargingStation {
 
     @OneToMany(mappedBy = "station", cascade = CascadeType.ALL)
     private List<StationStatistic> statistics;
+
+    @PreUpdate
+    public void incrementHitFullCount() {
+        if (this.status == StationStatus.FULL.getCode()) {
+            this.hitFullCount = (this.hitFullCount == null ? 0 : this.hitFullCount) + 1;
+        }
+    }
 }
