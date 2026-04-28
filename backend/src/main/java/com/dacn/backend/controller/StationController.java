@@ -94,31 +94,6 @@ public class StationController {
         return new ResponseEntity<>(new ResponseObject<>(HttpStatus.OK, "Successfully returned the station detail", stationDetail), HttpStatus.OK);
     }
 
-    @GetMapping("suggested-station")
-    @Operation(
-            summary = "API gợi ý trạm sạc",
-            description = "Trả về 1 trạm sạc phù hợp với loại đầu sạc thường được sử dụng và vị trí hiện tại gần nhất của người dùng.\n cableType: 0 = CCS2, 1 = TYPE 2, 2 = CHAdeMO, 3 = TESLA"
-    )
-    @ApiResponses(
-            value = {
-                    @ApiResponse(responseCode = "200", description = "Trả về thành công thông tin trạm sạc được gợi ý"),
-                    @ApiResponse(responseCode = "404", description = "Không có trạm sạc phù hợp với yêu cầu của bạn, vui lòng kiểm tra input")
-            }
-    )
-    public ResponseEntity<ResponseObject<StationResponseDTO>> suggestStation(
-            @RequestParam int cableType,
-            @RequestParam Double longitude,
-            @RequestParam Double latitude
-    ) {
-        StationResponseDTO response = stationService.getSuggestedStation(
-                new UserStationCategoriesRequestDTO(cableType, new Coordinate(longitude, latitude))
-        );
-        if (response == null) {
-            return new ResponseEntity<>(new ResponseObject<>(HttpStatus.NOT_FOUND, "Cannot find the suggested station"), HttpStatus.NOT_FOUND);
-        }
-        return new ResponseEntity<>(new ResponseObject<>(HttpStatus.OK, "Successfully returned the suggested station", response), HttpStatus.OK);
-    }
-
     @GetMapping("logo")
     public ResponseEntity<ResponseObject<List<LogoResponseDTO>>> getLogos(@RequestParam List<String> manufacturerNames) {
         List<LogoResponseDTO> logoResponse = stationService.getLogos(manufacturerNames);

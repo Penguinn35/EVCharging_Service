@@ -117,6 +117,7 @@ public class StationService {
 
     public StationResponseDTO getSuggestedStation(UserStationCategoriesRequestDTO categories) {
         // TODO Auto-generated method stub
+
         return stationRepo.findByCableType(categories.getChargeCableType(), categories.getPosition().getLongitude(), categories.getPosition().getLatitude());
     }
 

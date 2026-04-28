@@ -2,8 +2,12 @@ package com.dacn.backend.controller;
 
 import com.dacn.backend.dto.SuggestionRequestDTO;
 import com.dacn.backend.dto.UserDetailDTO;
+import com.dacn.backend.dto.UserStationCategoriesRequestDTO;
+import com.dacn.backend.dto.search_by_keyword.StationResponseDTO;
 import com.dacn.backend.model.UserPrincipal;
+import com.dacn.backend.model.type.Coordinate;
 import com.dacn.backend.object.ResponseObject;
+import com.dacn.backend.service.StationService;
 import com.dacn.backend.service.UserAccountService;
 import com.dacn.backend.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,6 +28,8 @@ public class UserController {
     private UserAccountService userAccountService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private StationService stationService;
 
     @GetMapping("detail")
     @Operation(
@@ -44,6 +50,31 @@ public class UserController {
         return new ResponseEntity<>(new ResponseObject<>(
                 HttpStatus.OK, "Returned user detail", userDetail
         ), HttpStatus.OK);
+    }
+
+    @GetMapping("suggested-station")
+    @Operation(
+            summary = "API gợi ý trạm sạc",
+            description = "Trả về 1 trạm sạc phù hợp với loại đầu sạc thường được sử dụng và vị trí hiện tại gần nhất của người dùng.\n cableType: 0 = CCS2, 1 = TYPE 2, 2 = CHAdeMO, 3 = TESLA"
+    )
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "Trả về thành công thông tin trạm sạc được gợi ý"),
+                    @ApiResponse(responseCode = "404", description = "Không có trạm sạc phù hợp với yêu cầu của bạn, vui lòng kiểm tra input")
+            }
+    )
+    public ResponseEntity<ResponseObject<StationResponseDTO>> suggestStation(
+            @RequestParam int cableType,
+            @RequestParam Double longitude,
+            @RequestParam Double latitude
+    ) {
+        StationResponseDTO response = stationService.getSuggestedStation(
+                new UserStationCategoriesRequestDTO(cableType, new Coordinate(longitude, latitude))
+        );
+        if (response == null) {
+            return new ResponseEntity<>(new ResponseObject<>(HttpStatus.NOT_FOUND, "Cannot find the suggested station"), HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(new ResponseObject<>(HttpStatus.OK, "Successfully returned the suggested station", response), HttpStatus.OK);
     }
 
     @PostMapping("suggestion")
