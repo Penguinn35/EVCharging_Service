@@ -1,7 +1,11 @@
-import React from "react";
+﻿import React from "react";
 import { useSearch } from "@/hooks/useSearch";
 import { AiOutlineClose } from "react-icons/ai";
 import { searchStation, getStationById } from "@/services/stationService";
+import { useStationStore } from "@/store/useStationStore";
+import { useMapStore } from "@/store/useMapStore";
+import { StationMarkerData } from "@/type/station";
+import { toast } from "react-toastify";
 
 type SearchResult = {
   id: string;
@@ -9,17 +13,21 @@ type SearchResult = {
   address: string;
 };
 
-// fetch function for useSearch
 async function fetchSearchResults(query: string): Promise<SearchResult[]> {
   if (!query.trim()) return [];
   const data = await searchStation(query);
-  return data.slice(0, 5); // limit to 5 results
+  return data.slice(0, 5);
 }
 
 const SearchBar = () => {
+  const selectStation = useStationStore((state) => state.selectStation);
+  const stationMarkers = useStationStore((state) => state.stationMarkers);
+  const setStationMarkers = useStationStore((state) => state.setStationMarkers);
+  const setFlyTo = useMapStore((state) => state.setFlyTo);
+
   const { searchTerm, setSearchTerm, results, isSearching } = useSearch(
     fetchSearchResults,
-    500, // debounce 500ms
+    500,
   );
 
   const clearSearch = () => {
@@ -27,11 +35,33 @@ const SearchBar = () => {
   };
 
   const handleSelect = async (item: SearchResult) => {
-    console.log("Selected:", item);
-    const response = await getStationById(item.id);
-    console.log("get station: ", response);
-    clearSearch();
-    
+    try {
+      const station = await getStationById(item.id);
+
+      selectStation(station);
+      setFlyTo(station.position);
+
+      const marker: StationMarkerData = {
+        id: station.id,
+        name: station.name,
+        manufacturer: station.manufacturer,
+        coordinate: station.position,
+        status: String(station.status),
+      };
+
+      const hasMarker = stationMarkers.some(
+        (stationMarker) => stationMarker.id === marker.id,
+      );
+
+      if (!hasMarker) {
+        setStationMarkers([...stationMarkers, marker]);
+      }
+
+      clearSearch();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to load station details");
+    }
   };
 
   return (
@@ -39,7 +69,7 @@ const SearchBar = () => {
       <div className="relative cursor-alias">
         <input
           type="text"
-          placeholder="Tìm kiếm trạc sạc theo tên, khu vực,..."
+          placeholder="Tìm trạm theo tên, địa chỉ,..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="bg-white rounded-xl focus:outline-0 h-10 sm:w-xs px-4 py-3 border border-green-600 pr-10 w-full"
@@ -53,12 +83,10 @@ const SearchBar = () => {
         )}
       </div>
 
-      {/* Loading */}
       {isSearching && (
         <p className="absolute top-12 left-0 text-gray-500">Searching...</p>
       )}
 
-      {/* Results */}
       {results && results.length > 0 && (
         <ul className="absolute top-12 left-0 w-full bg-white border border-gray-300 rounded-lg shadow-lg z-50">
           {results.map((result) => (

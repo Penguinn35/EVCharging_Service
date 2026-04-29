@@ -24,7 +24,7 @@ export default function LocateMe() {
     ) {
       setFlyTo(userLocation);
       setLoading(false);
-      console.log("return rast and out");
+      console.log("ucer location: ", userLocation);
 
       return;
     }
@@ -38,6 +38,8 @@ export default function LocateMe() {
         };
 
         updateUser({ coordinate: loc });
+        console.log("ucer location: ", loc);
+
         setFlyTo(loc);
 
         setLoading(false);
@@ -49,8 +51,6 @@ export default function LocateMe() {
       { enableHighAccuracy: true },
     );
   };
-
-
 
   return (
     <button

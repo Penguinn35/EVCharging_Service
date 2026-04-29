@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useMemo } from "react";
 import { Station } from "@/lib/data/stations";
 import { ratings } from "@/lib/data/ratings";
@@ -7,12 +8,12 @@ import { FiArrowLeft, FiMapPin, FiZap, FiStar } from "react-icons/fi";
 
 interface StationDetailProps {
   station: Station;
-  onBack: () => void;
+  backHref: string;
 }
 
 const RATINGS_PER_PAGE = 5;
 
-export function StationDetail({ station, onBack }: StationDetailProps) {
+export function StationDetail({ station, backHref }: StationDetailProps) {
   const [currentPage, setCurrentPage] = useState(1);
 
   // Get ratings for this station
@@ -49,13 +50,13 @@ export function StationDetail({ station, onBack }: StationDetailProps) {
   return (
     <div className="space-y-6">
       {/* Back Button */}
-      <button
-        onClick={onBack}
+      <Link
+        href={backHref}
         className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors font-medium"
       >
         <FiArrowLeft className="w-4 h-4" />
         Back to Stations
-      </button>
+      </Link>
 
       {/* Station Image */}
       <div className="rounded-lg overflow-hidden border border-gray-200 h-80 bg-gray-100">
