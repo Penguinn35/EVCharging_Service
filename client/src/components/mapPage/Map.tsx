@@ -16,7 +16,7 @@ import { MapCenterTracker } from "./MapCenterTracker";
 import { StationMarkerData } from "@/type/station";
 import { getStationById } from "@/services/stationService";
 import { toast } from "react-toastify";
-// delete (L.Icon.Default.prototype as any)._getIconUrl; ???
+
 
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: markerIcon2x,
@@ -24,47 +24,6 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
-// const CustomMarker = ({ station }: { station: StationMarkerData }) => {
-//   const [L, setLeaflet] = useState<any>(null);
-//   const selectStation = useStationStore((state) => state.selectStation);
-//   // const { clearRouting } = useRoutingStore();
-//   const clearRouting = useRoutingStore((s) => s.clearRouting);
-
-//   useEffect(() => {
-//     import("leaflet").then((leaflet) => {
-//       setLeaflet(leaflet);
-//     });
-//   }, []);
-
-//   if (!L) {
-//     return null;
-//   }
-
-//   const markerIcon = L.divIcon({
-//     className: "custom-marker",
-//     html: `
-//       <div class="pin status-${station.status}">
-//         <div class="pin-inner">
-//           <span class="brand">${station.id}</span>
-//         </div>
-//       </div>
-//     `,
-//     iconSize: [42, 48],
-//     iconAnchor: [21, 48],
-//   });
-//   return (
-//     <Marker
-//       position={[station.coordinate.latitude, station.coordinate.longitude]}
-//       icon={markerIcon}
-//       eventHandlers={{
-//         click: () => {
-//           selectStation(station);
-//           clearRouting();
-//         },
-//       }}
-//     ></Marker>
-//   );
-// };
 
 const CustomMarker = ({ station }: { station: StationMarkerData }) => {
   const [L, setLeaflet] = useState<any>(null);

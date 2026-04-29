@@ -260,9 +260,7 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
       {openRating && (
         <RatingModal
           onClose={() => setOpenRating(false)}
-          onSubmit={(rating, comment) => {
-            console.log("FAKE SUBMIT", rating, comment);
-          }}
+          
         />
       )}
 

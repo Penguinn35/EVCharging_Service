@@ -13,7 +13,7 @@ export const publicApiClient = axios.create({
 
 export const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
-  withCredentials: true, // needed for refresh cookie
+  withCredentials: true,
   timeout: 10000,
 });
 
@@ -39,23 +39,13 @@ apiClient.interceptors.response.use(
 
     if (error.response) {
       apiError = {
-        message:
-          (error.response.data as any)?.message || "Request failed",
+        message: (error.response.data as any)?.message || "Request failed",
         status: error.response.status,
       };
 
       if (error.response.status === 401) {
-        // Token expired or invalid
-
-        // clear user state
-        useUserStore.getState().updateUser({
-          accessToken: "",
-          email: "",
-          name: "",
-        });
-
-        console.log("token invlid or expired, cleared user informations");
-        
+        useUserStore.getState().clearUser();
+        console.log("token invalid or expired, cleared user information");
       }
     } else if (error.request) {
       apiError = {

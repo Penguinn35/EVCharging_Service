@@ -8,7 +8,7 @@ import { Header } from "@/components/homePage/Header";
 import { ApiError } from "@/lib/apiClient";
 import { useRouter } from "next/navigation";
 import { loginType } from "@/models/user";
-import { login } from "@/services/userService";
+import { login, getUserDetails } from "@/services/userService";
 import { useUserStore } from "@/store/useUserStore";
 import { toast } from "react-toastify";
 
@@ -47,18 +47,27 @@ export default function LoginFormContent({
 
       const result = await login(formData);
 
-      // ✅ Save to Zustand
       useUserStore.getState().updateUser({
         accessToken: result.token,
-        id: result.user.id,
+        isLogedin: true,
       });
-      console.log("Login success:", result);
+
+      const userDetail = await getUserDetails();
+
+      useUserStore.getState().updateUser({
+        name: userDetail.fullName,
+        email: userDetail.email,
+        address: userDetail.address ?? "",
+        savedStation: userDetail.savedStationList ?? [],
+      });
+
       toast.success("Logged in");
       closeModal();
       router.push("/Map");
     } catch (err: unknown) {
       const error = err as ApiError;
 
+      useUserStore.getState().clearUser();
       console.error("Login failed:", error.message);
       toast.error("Login failed");
     } finally {

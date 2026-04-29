@@ -1,9 +1,9 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState, useMemo } from "react";
 import { Station, StationStatus } from "@/lib/data/stations";
 import { FiPower, FiSearch, FiFilter } from "react-icons/fi";
-import { StationDetail } from "./StationDetail";
 
 interface StationsTableProps {
   stations: Station[];
@@ -19,11 +19,11 @@ const statusColors: Record<StationStatus, { bg: string; text: string; icon: stri
 const ITEMS_PER_PAGE = 5;
 
 export function StationsTable({ stations }: StationsTableProps) {
+  const router = useRouter();
   const [stationData, setStationData] = useState(stations);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDistrict, setSelectedDistrict] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedStation, setSelectedStation] = useState<Station | null>(null);
 
   // Get unique districts
   const districts = useMemo(() => {
@@ -74,11 +74,6 @@ export function StationsTable({ stations }: StationsTableProps) {
     setSelectedDistrict(district);
     setCurrentPage(1);
   };
-
-  // If a station is selected, show detail view
-  if (selectedStation) {
-    return <StationDetail station={selectedStation} onBack={() => setSelectedStation(null)} />;
-  }
 
   return (
     <div className="space-y-4">
@@ -162,7 +157,7 @@ export function StationsTable({ stations }: StationsTableProps) {
                 return (
                   <tr
                     key={station.id}
-                    onClick={() => setSelectedStation(station)}
+                    onClick={() => router.push(`/dashboard/manage-stations/${encodeURIComponent(station.id)}`)}
                     className="hover:bg-green-50 transition-colors cursor-pointer"
                   >
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">
@@ -187,7 +182,10 @@ export function StationsTable({ stations }: StationsTableProps) {
                     </td>
                     <td className="px-6 py-4">
                       <button
-                        onClick={() => toggleStationStatus(station.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleStationStatus(station.id);
+                        }}
                         className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                           station.status === "OFF"
                             ? "bg-green-100 text-green-700 hover:bg-green-200"

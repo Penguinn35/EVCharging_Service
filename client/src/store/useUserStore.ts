@@ -8,9 +8,10 @@ import {
 } from "@/services/stationService";
 
 interface User {
-  id: string;
+  isLogedin: boolean;
   email: string;
   name: string;
+  address: string;
   accessToken: string;
   vehiclePlug: "Type 2" | "CCS2" | "Both";
   coordinate: Coordinate | null;
@@ -20,37 +21,48 @@ interface User {
 interface UserStore {
   user: User;
   updateUser: (data: Partial<User>) => void;
+  clearUser: () => void;
   saveStation: (stationId: string) => Promise<boolean>;
   deleteStation: (stationId: string) => Promise<boolean>;
 }
 
+const defaultUser: User = {
+  isLogedin: false,
+  email: "",
+  name: "",
+  address: "",
+  accessToken: "",
+  vehiclePlug: "Both",
+  coordinate: null,
+  savedStation: [],
+};
+
 export const useUserStore = create<UserStore>()(
   persist(
     (set, get) => ({
-      user: {
-        id: "",
-        email: "",
-        name: "",
-        accessToken: "",
-        vehiclePlug: "Both",
-        coordinate: null,
-        savedStation: [],
-      },
+      user: defaultUser,
 
       updateUser: (data) =>
         set((state) => ({
           user: { ...state.user, ...data },
         })),
 
+      clearUser: () =>
+        set((state) => ({
+          user: {
+            ...defaultUser,
+            vehiclePlug: state.user.vehiclePlug,
+            coordinate: state.user.coordinate,
+          },
+        })),
+
       saveStation: async (stationId) => {
-        
         const { user } = get();
 
         try {
-          const success = await saveStationApi( stationId);
+          const success = await saveStationApi(stationId);
           if (!success) return false;
 
-          // prevent duplicate
           const exists = user.savedStation.some((s) => s.id === stationId);
           if (exists) return true;
 
@@ -72,8 +84,6 @@ export const useUserStore = create<UserStore>()(
       },
 
       deleteStation: async (stationId) => {
-        const { user } = get();
-
         try {
           const success = await deleteSavedStationApi(stationId);
           if (!success) return false;
@@ -95,8 +105,8 @@ export const useUserStore = create<UserStore>()(
       },
     }),
     {
-      name: "user-storage", // Key for localStorage
-      partialize: (state) => ({ user: state.user }), // Only persist the `user` object
+      name: "user-storage",
+      partialize: (state) => ({ user: state.user }),
     }
   )
 );

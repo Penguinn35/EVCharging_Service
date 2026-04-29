@@ -4,15 +4,14 @@ import { useUserStore } from "@/store/useUserStore";
 import { useStationStore } from "@/store/useStationStore";
 import { useRoutingStore } from "@/store/useRoutingStore";
 import { getStationById } from "@/services/stationService";
+import { getUserDetails } from "@/services/userService";
+import { ApiError } from "@/lib/apiClient";
 import { useMapStore } from "@/store/useMapStore";
-import { getUserById } from "@/services/userService";
 import LoginFormContent from "../homePage/LoginFormContent";
 import RegisterFormContent from "../homePage/RegisterFormContent ";
 import { Modal } from "@/components/Modal";
 import { FiLogIn } from "react-icons/fi";
-// React Icons imports
 import {
-  IoClose,
   IoMailOutline,
   IoFlash,
   IoLocationOutline,
@@ -22,48 +21,18 @@ import {
 import { MdOutlineElectricalServices, MdLogout } from "react-icons/md";
 
 const UserProfile = () => {
-  const { user, updateUser, deleteStation } = useUserStore();
-
-  const userId = useUserStore((state) => state.user.id);
+  const { user, updateUser, deleteStation, clearUser } = useUserStore();
+  const isLoggedIn = useUserStore((state) => state.user.isLogedin);
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [modalType, setModalType] = useState<"login" | "register" | null>(null);
 
   const closeModal = () => setModalType(null);
 
-  // const isLoggedIn = userId && userId.trim() !== "";
   const { selectStation, selectedStation } = useStationStore();
   const { clearRouting } = useRoutingStore();
   const setFlyTo = useMapStore((s) => s.setFlyTo);
-  // Ref to handle clicking outside to close
   const dropdownRef = useRef<HTMLDivElement>(null);
-  console.log("user init information: ", user);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        console.log("in profile");
-
-        const response = await getUserById(userId);
-        console.log("res: ", response);
-
-        updateUser({
-          name: response.fullName,
-          email: response.email,
-          savedStation: response.savedStationList,
-        });
-        setIsLoggedIn(true);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    if (userId?.trim() !== "") {
-      fetchUser();
-      console.log("user now:", user);
-    }
-  }, [userId]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -78,17 +47,45 @@ const UserProfile = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    const shouldFetchUserDetails =
+      isLoggedIn && (!user.name?.trim() || !user.email?.trim());
+
+    if (!shouldFetchUserDetails) return;
+
+    let isMounted = true;
+
+    const hydrateUserDetails = async () => {
+      try {
+        const userDetail = await getUserDetails();
+
+        if (!isMounted) return;
+
+        updateUser({
+          name: userDetail.fullName,
+          email: userDetail.email,
+          address: userDetail.address ?? "",
+          savedStation: userDetail.savedStationList ?? [],
+        });
+      } catch (err) {
+        const error = err as ApiError;
+        console.error("Failed to load user details:", error.message);
+
+        if (!isMounted) return;
+        clearUser();
+      }
+    };
+
+    hydrateUserDetails();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isLoggedIn, user.name, user.email, updateUser, clearUser]);
+
   const handleLogout = () => {
     setIsProfileOpen(false);
-    updateUser({
-      id: "",
-      email: "",
-      name: "",
-      accessToken: "",
-      vehiclePlug: "Both",
-      coordinate: null,
-      savedStation: [],
-    });
+    clearUser();
   };
 
   const handlePlugChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -105,7 +102,8 @@ const UserProfile = () => {
     }
   };
 
-  const handleDeleteStation = (stationId: string) => {
+  const handleDeleteStation = (event: React.MouseEvent, stationId: string) => {
+    event.stopPropagation();
     deleteStation(stationId);
     if (stationId === selectedStation?.id) {
       selectStation(null);
@@ -115,7 +113,6 @@ const UserProfile = () => {
 
   return (
     <div className="absolute top-4 right-4 z-[1000]" ref={dropdownRef}>
-      {/* Avatar Button */}
       <button
         onClick={() => {
           if (!isLoggedIn) {
@@ -143,10 +140,8 @@ const UserProfile = () => {
         )}
       </button>
 
-      {/* Profile Card */}
       {isLoggedIn && isProfileOpen && (
         <div className="absolute top-14 right-0 w-80 bg-white shadow-2xl rounded-2xl border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-          {/* Header */}
           <div className="p-5 border-b border-gray-50 bg-gradient-to-r from-blue-50 to-transparent">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-100 rounded-lg text-green-600">
@@ -164,9 +159,8 @@ const UserProfile = () => {
           </div>
 
           <div className="p-5 space-y-6">
-            {/* Plug Type Selector */}
             <section>
-              <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3  flex items-center gap-2">
+              <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                 <IoFlash className="text-yellow-500" /> Cấu hình sạc
               </label>
               <div className="relative">
@@ -185,17 +179,14 @@ const UserProfile = () => {
               </div>
             </section>
 
-            {/* Saved Stations */}
             <section>
-              <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3  flex items-center gap-2">
+              <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                 <IoLocationOutline className="text-red-500" /> Trạm yêu thích
               </label>
 
               {user.savedStation.length === 0 ? (
                 <div className="text-center py-6 bg-gray-50 rounded-xl border-2 border-dashed border-gray-100">
-                  <p className="text-xs text-gray-400 italic">
-                    Danh sách trống
-                  </p>
+                  <p className="text-xs text-gray-400 italic">Danh sách trống</p>
                 </div>
               ) : (
                 <ul className="space-y-2 max-h-48 overflow-y-auto pr-1">
@@ -208,11 +199,11 @@ const UserProfile = () => {
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-green-400" />
                         <span className="font-medium text-gray-700">
-                          Trạm #{station.id}
+                          Trạm #{station.name}
                         </span>
                       </div>
                       <button
-                        onClick={() => handleDeleteStation(station.id)}
+                        onClick={(event) => handleDeleteStation(event, station.id)}
                         className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                         title="Gỡ bỏ"
                       >
@@ -227,10 +218,10 @@ const UserProfile = () => {
 
           <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-center">
             <button
-              onClick={() => handleLogout()}
-              className="flex flex-row gap-2  justify-center text-xs font-semibold text-green-600 hover:text-green-800 uppercase tracking-tighter"
+              onClick={handleLogout}
+              className="flex flex-row gap-2 justify-center text-xs font-semibold text-green-600 hover:text-green-800 uppercase tracking-tighter"
             >
-              <MdLogout className=" text-xl" />
+              <MdLogout className="text-xl" />
               <p className="my-auto">Đăng xuất</p>
             </button>
           </div>
