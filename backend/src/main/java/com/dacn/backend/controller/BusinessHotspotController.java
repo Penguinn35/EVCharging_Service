@@ -3,6 +3,7 @@ package com.dacn.backend.controller;
 import com.dacn.backend.dto.CoordinateDTO;
 import com.dacn.backend.object.ResponseObject;
 import com.dacn.backend.service.BusinessHotspotService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,7 @@ public class BusinessHotspotController {
     private BusinessHotspotService hotspotService;
 
     @GetMapping("suggestion")
+    @Operation(summary = "API trả về tất cả các dữ liệu gợi ý từ người dùng")
     public ResponseEntity<ResponseObject<List<CoordinateDTO>>> getSuggestionData() {
         List<CoordinateDTO> response = hotspotService.getSuggestions();
         return new ResponseEntity<>(new ResponseObject<>(
@@ -32,6 +34,7 @@ public class BusinessHotspotController {
     }
 
     @GetMapping("users/locations")
+    @Operation(summary = "API trả về các dữ liệu vị trí khi người dùng gọi gợi ý trạm sạc")
     public ResponseEntity<ResponseObject<List<CoordinateDTO>>> getUserLocationHistory() {
         List<CoordinateDTO> response = hotspotService.getLocationHistory();
         return new ResponseEntity<>(new ResponseObject<>(
