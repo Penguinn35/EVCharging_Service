@@ -80,6 +80,7 @@ public class BusinessStationController {
     @RequestBody(content = @Content(
             encoding = @Encoding(name = "newStation", contentType = "application/json")
     ))
+    @Operation(summary = "API doanh nghiệp thêm một trạm sạc mới")
     public ResponseEntity<ResponseObject<Boolean>> addNewStation(@RequestPart("newStation") StationCreationDTO newStation,
                                                                          @RequestPart("imageFiles") List<MultipartFile> newImage,
                                                                          @AuthenticationPrincipal UserPrincipal principal) throws IOException {
@@ -101,6 +102,7 @@ public class BusinessStationController {
     }
 
     @PostMapping(value = "stations/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "API doanh nghiệp thêm ảnh mới vào trạm sạc")
     public ResponseEntity<ResponseObject<Boolean>> addNewImageToStation(@RequestPart("imageFile") MultipartFile newImage, @PathVariable String id, @AuthenticationPrincipal UserPrincipal userPrincipal) throws IOException {
         String companyId = userPrincipal.getCompanyId();
         if (businessService.addImageToStation(newImage, id, companyId)) {
@@ -123,6 +125,7 @@ public class BusinessStationController {
     }
 
     @PutMapping(value = "stations/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "API chỉnh sửa hình ảnh đã có của trạm sạc")
     public ResponseEntity<ResponseObject<Boolean>> changeImage(@ModelAttribute StationImageRequestDTO imageRequest,
                                                               @PathVariable String id,
                                                                @AuthenticationPrincipal UserPrincipal principal) throws IOException {
@@ -147,6 +150,7 @@ public class BusinessStationController {
     }
 
     @DeleteMapping("stations/image/{key}")
+    @Operation(summary = "Xóa hình ảnh đã có của trạm sạc")
     public ResponseEntity<ResponseObject<Boolean>> deleteImage(@PathVariable String key) {
         boolean isDeleted = businessService.deleteStation(key);
         if (isDeleted) {

@@ -4,6 +4,7 @@ import com.dacn.backend.dto.RatingResponseDTO;
 import com.dacn.backend.model.UserPrincipal;
 import com.dacn.backend.object.ResponseObject;
 import com.dacn.backend.service.BusinessStationRatingService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -27,6 +28,9 @@ public class BusinessStationRatingController {
     private BusinessStationRatingService ratingService;
 
     @GetMapping("stations/ratings")
+    @Operation(
+            summary = "API lấy dữ liệu rating từ khách hàng"
+    )
     public ResponseEntity<ResponseObject<Page<RatingResponseDTO>>> getRatingOfBusiness(
             @RequestParam(value = "fromDate", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
