@@ -44,6 +44,11 @@ SELECT st.station_id AS stationId, cs.name AS stationName, st.view_detail_count 
 FROM charging_station cs 
     JOIN station_statistic st ON cs.id = st.station_id
 WHERE st.station_id = :stationId AND st.date >= :fromDate AND st.date <= :toDate 
-""")
-    List<StatisticsByStationResponseDTO> getTotalViewCountOfAStation(String stationId, String fromDate, String toDate);
+""", countQuery = """
+            SELECT count(*)
+            FROM charging_station cs 
+                JOIN station_statistic st ON cs.id = st.station_id
+            WHERE st.station_id = :stationId AND st.date >= :fromDate AND st.date <= :toDate 
+            """)
+    Page<StatisticsByStationResponseDTO> getTotalViewCountOfAStation(String stationId, String fromDate, String toDate, Pageable pageable);
 }

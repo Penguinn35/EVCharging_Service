@@ -32,7 +32,9 @@ public class BusinessStationStatisticService {
         return stationStatisticRepo.getStatisticsByRangeOfDate(fromDateString, toDateString, companyId, pageable);
     }
 
-    public List<StatisticsByStationResponseDTO> getTotalViewCountByStationId(String stationId, LocalDate fromDate, LocalDate toDate, String companyId) {
+    public Page<StatisticsByStationResponseDTO> getTotalViewCountByStationId(
+            String stationId, LocalDate fromDate, LocalDate toDate, String companyId, int page, int size
+    ) {
         ChargingStation station = stationRepo.findById(stationId).orElse(null);
         if (station == null || !Objects.equals(station.getCpo().getEnterpriseId(), companyId)) {
             return null;
@@ -40,7 +42,9 @@ public class BusinessStationStatisticService {
 
         String fromDateString = fromDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String toDateString = toDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        return stationStatisticRepo.getTotalViewCountOfAStation(stationId, fromDateString, toDateString);
+        return stationStatisticRepo.getTotalViewCountOfAStation(
+                stationId, fromDateString, toDateString, PageRequest.of(page, size)
+        );
     }
 
     public List<SaveStatisticResponseDTO> getSaveStationStatisticByStationId(String stationId, String companyId) {

@@ -31,7 +31,7 @@ public class BusinessStationStatisticController {
             summary = "API thống kê lượt nhấp vào trang chi tiết trạm sạc của doanh nghiệp.",
             description = "Nhập vào dữ liệu ngày tháng có dạng 'yyyy-MM-dd', "
             + "trả về tổng số lượt nhấp vào trang detail theo từng trạm sạc của doanh nghiệp gọi đến "
-            + "trong khoảng fromDate đến toDate"
+            + "trong khoảng fromDate đến toDate. Hỗ trợ phân trang"
     )
     public ResponseEntity<ResponseObject<Page<StatisticsResponseDTO>>> getStationViewCountWithRange(
             @RequestParam("fromDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
@@ -50,13 +50,23 @@ public class BusinessStationStatisticController {
     }
 
     @GetMapping("{id}/statistics/detail-count")
-    public ResponseEntity<ResponseObject<List<StatisticsByStationResponseDTO>>> getStationViewCount(
+    @Operation(
+            summary = "API thống kê lượt nhấp vào trang detail của trạm sạc cụ thể",
+            description = "Nhập vào dữ liệu ngày tháng có dạng 'yyyy-MM-dd', "
+                    + "trả về tổng số lượt nhấp vào trang detail trong ngày của trạm sạc mà doanh nghiệp gọi đến "
+                    + "theo từng ngày trong khoảng fromDate đến toDate. Hỗ trợ phân trang"
+    )
+    public ResponseEntity<ResponseObject<Page<StatisticsByStationResponseDTO>>> getStationViewCount(
             @PathVariable("id") String stationId,
             @RequestParam("fromDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam("toDate") LocalDate toDate,
-            @AuthenticationPrincipal UserPrincipal principal
+            @AuthenticationPrincipal UserPrincipal principal,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
     ) {
-        List<StatisticsByStationResponseDTO> response = statisticService.getTotalViewCountByStationId(stationId, fromDate, toDate, principal.getCompanyId());
+        Page<StatisticsByStationResponseDTO> response = statisticService.getTotalViewCountByStationId(
+                stationId, fromDate, toDate, principal.getCompanyId(), page, size
+        );
         if (response == null) {
             return new ResponseEntity<>(new ResponseObject<>(
                     HttpStatus.BAD_REQUEST,
@@ -68,7 +78,7 @@ public class BusinessStationStatisticController {
                 HttpStatus.OK,
                 "return successfully",
                 response,
-                response.size()
+                response.getSize()
         ), HttpStatus.OK);
     }
 
