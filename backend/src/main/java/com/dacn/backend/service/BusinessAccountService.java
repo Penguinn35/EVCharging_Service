@@ -1,5 +1,6 @@
 package com.dacn.backend.service;
 
+import com.dacn.backend.dto.BusinessProfileDTO;
 import com.dacn.backend.dto.CPORegisterDTO;
 import com.dacn.backend.model.CPO;
 import com.dacn.backend.model.EVUser;
@@ -39,5 +40,19 @@ public class BusinessAccountService {
         newCPO.setManager(savedUser);
 
         cpoRepo.save(newCPO);
+    }
+
+    public BusinessProfileDTO getBusinessProfile(String companyId) {
+        CPO company = cpoRepo.findById(companyId).orElse(null);
+        BusinessProfileDTO response = new BusinessProfileDTO();
+        response.setCompanyName(company.getCompanyName());
+        response.setCompanyAddress(company.getAddress());
+        response.setTaxCode(company.getTaxCode());
+
+        EVUser manager = company.getManager();
+        response.setManagerFullName(manager.getFullName());
+        response.setManagerAddress(manager.getAddress());
+        response.setManagerEmail(manager.getEmail());
+        return response;
     }
 }
