@@ -83,6 +83,11 @@ public class BusinessStationStatisticController {
     }
 
     @GetMapping("/statistics/save-station-count")
+    @Operation(
+            summary = "API thống kê số lượt lưu trạm sạc",
+            description = "Trả về tổng số lượt lưu trạm sạc hiện tại của tất cả các trạm sạc"
+                    + " mà doanh nghiệp đang quản lý"
+    )
     public ResponseEntity<ResponseObject<Page<SaveStatisticResponseDTO>>> getSaveStationStat(
             @AuthenticationPrincipal UserPrincipal principal,
             @RequestParam(value = "page", defaultValue = "0") int page,
@@ -107,6 +112,10 @@ public class BusinessStationStatisticController {
     }
 
     @GetMapping("{id}/statistics/save-station-count")
+    @Operation(
+            summary = "API thống kê số lượt lưu trạm sạc của trạm sạc cụ thể",
+            description = "Trả về tổng số lượt lưu trạm sạc hiện tại của 1 trạm sạc cụ thể"
+    )
     public ResponseEntity<ResponseObject<List<SaveStatisticResponseDTO>>> getSaveStationStatById(
             @PathVariable("id") String stationId,
             @AuthenticationPrincipal UserPrincipal principal
