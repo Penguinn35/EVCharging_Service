@@ -31,7 +31,7 @@ public class UserController {
     @Autowired
     private StationService stationService;
 
-    @GetMapping("detail")
+    @GetMapping("profile")
     @Operation(
             summary = "API lấy thông tin người dùng",
             description = "Trả về thông tin chi tiết của người dùng hiện tại đó"
@@ -54,7 +54,7 @@ public class UserController {
 
     @GetMapping("suggested-station")
     @Operation(
-            summary = "API gợi ý trạm sạc",
+            summary = "API gợi ý trạm sạc phù hợp",
             description = "Trả về 1 trạm sạc phù hợp với loại đầu sạc thường được sử dụng và vị trí hiện tại gần nhất của người dùng.\n cableType: 0 = CCS2, 1 = TYPE 2, 2 = CHAdeMO, 3 = TESLA"
     )
     @ApiResponses(
@@ -80,6 +80,10 @@ public class UserController {
     }
 
     @PostMapping("suggestion")
+    @Operation(
+            summary = "API gợi ý thông tin và địa điểm trạm sạc",
+            description = "Dành cho người dùng gửi một vị trí để đề xuất xây dựng trạm sạc ở đây"
+    )
     public ResponseEntity<ResponseObject<Boolean>> suggestStation(
             @RequestBody SuggestionRequestDTO suggestionDTO,
             @AuthenticationPrincipal UserPrincipal principal
