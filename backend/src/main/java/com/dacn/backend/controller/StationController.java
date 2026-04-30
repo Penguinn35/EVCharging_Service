@@ -97,7 +97,8 @@ public class StationController {
     @Operation(
             summary = "API lấy về logo của các doanh nghiệp",
             description = "Khi không có param, trả ra hết tất cả các logo của tất cả các doanh nghiệp trong db." + "\n"
-            + "Với các param là tên của các doanh nghiệp, trả về logo của từng doanh nghiệp"
+            + "Với các param là tên của các doanh nghiệp, trả về logo của từng doanh nghiệp" + "\n"
+            + "Tên nào không có thì nó không trả ra thôi"
     )
     @ApiResponses(
             value = {
