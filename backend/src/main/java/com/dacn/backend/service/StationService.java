@@ -180,7 +180,11 @@ public class StationService {
                 stationPosition.getLongitude(), stationPosition.getLatitude());
     }
 
-    public List<LogoResponseDTO> getLogos(List<String> manufacturerNames) {
+    public List<LogoResponseDTO> getLogosByNames(List<String> manufacturerNames) {
         return cpoRepo.findByCompanyName(manufacturerNames);
+    }
+
+    public List<LogoResponseDTO> getAllLogos() {
+        return cpoRepo.findAllLogos();
     }
 }

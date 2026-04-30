@@ -18,4 +18,10 @@ FROM cpo
 WHERE company_name in :companyNames
 """)
     List<LogoResponseDTO> findByCompanyName(@Param("companyNames") List<String> companyNames);
+
+    @Query(nativeQuery = true, value = """
+SELECT company_name, logo_url
+FROM cpo
+""")
+    List<LogoResponseDTO> findAllLogos();
 }

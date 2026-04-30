@@ -1,7 +1,6 @@
 package com.dacn.backend.controller;
 
 import com.dacn.backend.dto.*;
-import com.dacn.backend.dto.search_by_keyword.StationResponseDTO;
 import com.dacn.backend.dto.search_by_keyword.StationSearchResponseDTO;
 import com.dacn.backend.model.type.Coordinate;
 import com.dacn.backend.object.ResponseObject;
@@ -94,9 +93,14 @@ public class StationController {
         return new ResponseEntity<>(new ResponseObject<>(HttpStatus.OK, "Successfully returned the station detail", stationDetail), HttpStatus.OK);
     }
 
-    @GetMapping("logo")
-    public ResponseEntity<ResponseObject<List<LogoResponseDTO>>> getLogos(@RequestParam List<String> manufacturerNames) {
-        List<LogoResponseDTO> logoResponse = stationService.getLogos(manufacturerNames);
+    @GetMapping("logos")
+    public ResponseEntity<ResponseObject<List<LogoResponseDTO>>> getLogos(@RequestParam(required = false) List<String> manufacturerNames) {
+        List<LogoResponseDTO> logoResponse;
+        if (manufacturerNames == null) {
+            logoResponse = stationService.getAllLogos();
+        } else {
+            logoResponse = stationService.getLogosByNames(manufacturerNames);
+        }
         return new ResponseEntity<>(new ResponseObject<>(
                 HttpStatus.OK,
                 "Returned successfully",
