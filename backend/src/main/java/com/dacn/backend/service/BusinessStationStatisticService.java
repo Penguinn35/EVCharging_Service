@@ -47,7 +47,7 @@ public class BusinessStationStatisticService {
         );
     }
 
-    public List<SaveStatisticResponseDTO> getSaveStationStatisticByStationId(String stationId, String companyId) {
+    public SaveStatisticResponseDTO getSaveStationStatisticByStationId(String stationId, String companyId) {
         return stationRepo.getSaveStationCountByStationId(stationId, companyId);
     }
 

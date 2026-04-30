@@ -116,11 +116,11 @@ public class BusinessStationStatisticController {
             summary = "API thống kê số lượt lưu trạm sạc của trạm sạc cụ thể",
             description = "Trả về tổng số lượt lưu trạm sạc hiện tại của 1 trạm sạc cụ thể"
     )
-    public ResponseEntity<ResponseObject<List<SaveStatisticResponseDTO>>> getSaveStationStatById(
+    public ResponseEntity<ResponseObject<SaveStatisticResponseDTO>> getSaveStationStatById(
             @PathVariable("id") String stationId,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
-        List<SaveStatisticResponseDTO> response = statisticService.getSaveStationStatisticByStationId(
+        SaveStatisticResponseDTO response = statisticService.getSaveStationStatisticByStationId(
                 stationId,
                 principal.getCompanyId()
         );
@@ -134,8 +134,7 @@ public class BusinessStationStatisticController {
         return new ResponseEntity<>(new ResponseObject<>(
                 HttpStatus.OK,
                 "return successfully",
-                response,
-                response.size()
+                response
         ), HttpStatus.OK);
     }
 

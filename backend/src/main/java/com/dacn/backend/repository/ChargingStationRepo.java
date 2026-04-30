@@ -202,7 +202,7 @@ SELECT s.id, s.name, s.address, s.number_of_saves
 FROM charging_station s
 WHERE s.id = :stationId AND s.manufacturer_id = :companyId
 """)
-    List<SaveStatisticResponseDTO> getSaveStationCountByStationId(String stationId, String companyId);
+    SaveStatisticResponseDTO getSaveStationCountByStationId(String stationId, String companyId);
 
     @Query(nativeQuery = true, value = """
 SELECT s.id, s.name, s.address, s.number_of_saves
