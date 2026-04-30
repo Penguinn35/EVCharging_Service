@@ -44,20 +44,27 @@ public class BusinessStationController {
                     @ApiResponse(responseCode = "200", description = "Trả về thành công"),
             }
     )
-    public ResponseEntity<ResponseObject<Page<StationBusinessSearchDTO>>> getBusinessStationByKeywords(@RequestParam(required = false) String keyword,
-                                                                                                       @RequestParam(defaultValue = "0") int page,
-                                                                                                       @RequestParam(defaultValue = "10") int size,
-                                                                                                       @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        if (keyword == null || keyword.isEmpty()) {
-            Page<StationBusinessSearchDTO> stationData = businessService.findStationOfACompany(userPrincipal.getCompanyId(), page, size);
-            return new ResponseEntity<>(
-                    new ResponseObject<>(
-                            HttpStatus.OK,
-                            "Returned successfully",
-                            stationData, stationData.getTotalElements()),
-                    HttpStatus.OK);
+    public ResponseEntity<ResponseObject<Page<StationBusinessSearchDTO>>> getBusinessStationByKeywords(
+            @RequestParam(required = false) String keyword, @RequestParam(required = false) String district,
+
+            @RequestParam(defaultValue = "0") int page,
+
+            @RequestParam(defaultValue = "10") int size,
+
+            @AuthenticationPrincipal UserPrincipal userPrincipal
+    ) {
+        Page<StationBusinessSearchDTO> stationData;
+        if (keyword == null) {
+            stationData = businessService.findStationOfACompany(
+                    district,
+                    userPrincipal.getCompanyId(), page,
+                    size);
         }
-        Page<StationBusinessSearchDTO> stationData = businessService.findStationByKeyword(keyword, page, size, userPrincipal.getCompanyId());
+        else {
+            stationData = businessService.findStationByKeyword(
+                    keyword, district, page, size, userPrincipal.getCompanyId()
+            );
+        }
         return new ResponseEntity<>(
                 new ResponseObject<>(
                         HttpStatus.OK,

@@ -47,10 +47,10 @@ public class BusinessService {
 
     // --- Public API Methods ---
 
-    public Page<StationBusinessSearchDTO> findStationByKeyword(String keyword, int page, int size, String manufacturerId) {
+    public Page<StationBusinessSearchDTO> findStationByKeyword(String keyword, String district, int page, int size, String manufacturerId) {
         Pageable pageable = PageRequest.of(page, size);
         String formattedKeyword = "%" + StationService.deAccent(keyword) + "%";
-        return stationRepo.findBusinessStation(formattedKeyword, manufacturerId, pageable);
+        return stationRepo.findBusinessStation(formattedKeyword, district, manufacturerId, pageable);
     }
 
     @Transactional
@@ -121,8 +121,8 @@ public class BusinessService {
         return true;
     }
 
-    public Page<StationBusinessSearchDTO> findStationOfACompany(String companyId, int page, int size) {
-        return stationRepo.findBusinessStationWithoutKeyword(companyId, PageRequest.of(page, size));
+    public Page<StationBusinessSearchDTO> findStationOfACompany(String district, String companyId, int page, int size) {
+        return stationRepo.findBusinessStationWithoutKeyword(district, companyId, PageRequest.of(page, size));
     }
 
     // --- Private Helper Methods (The DRY Logic) ---

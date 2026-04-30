@@ -147,30 +147,39 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
     @Query(nativeQuery = true, value = """
         SELECT id, name, address || ', ' || district AS address, status
                 FROM charging_station s
-                WHERE (LOWER(unaccent(s.name)) LIKE ?1 OR LOWER(unaccent(s.address)) LIKE ?1
-                                   OR LOWER(unaccent(s.district)) LIKE ?1 OR LOWER(unaccent(s.id)) LIKE ?1)
-                                    AND s.manufacturer_id = ?2
+                WHERE (LOWER(unaccent(s.name)) LIKE :keyword OR LOWER(unaccent(s.address || ' ' || s.district)) LIKE :keyword
+                                   OR LOWER(unaccent(s.id)) LIKE :keyword) AND (:district IS NULL OR s.district = :district)
+                                    AND s.manufacturer_id = :manufacturerId
                 ORDER BY s.name ASC
 """, countQuery = """
             SELECT count(*)
             FROM charging_station s
-            WHERE (LOWER(unaccent(s.name)) LIKE ?1 OR LOWER(unaccent(s.address)) LIKE ?1
-                                   OR LOWER(unaccent(s.district)) LIKE ?1 OR LOWER(unaccent(s.id)) LIKE ?1)
-                                    AND s.manufacturer_id != ?2
+            WHERE (LOWER(unaccent(s.name)) LIKE :keyword OR LOWER(unaccent(s.address || ' ' || s.district)) LIKE :keyword
+                                   OR LOWER(unaccent(s.id)) LIKE :keyword) AND (:district IS NULL OR s.district = :district)
+                                    AND s.manufacturer_id = :manufacturerId
             """)
-    Page<StationBusinessSearchDTO> findBusinessStation(String keyword, String manufacturerId, Pageable pageable);
+    Page<StationBusinessSearchDTO> findBusinessStation(
+            @Param("keyword") String keyword,
+            @Param("district") String district,
+            @Param("manufacturerId") String manufacturerId,
+            Pageable pageable
+    );
 
     @Query(nativeQuery = true, value = """
         SELECT id, name, address || ', ' || district AS address, status
                 FROM charging_station s
-                WHERE s.manufacturer_id = ?1
+                WHERE s.manufacturer_id = :manufacturerId AND (:district IS NULL OR s.district = :district)
                 ORDER BY s.name ASC
 """, countQuery = """
             SELECT count(*)
             FROM charging_station s
-            WHERE s.manufacturer_id = ?1
+            WHERE s.manufacturer_id = :manufacturerId AND (:district IS NULL OR s.district = :district)
             """)
-    Page<StationBusinessSearchDTO> findBusinessStationWithoutKeyword(String manufacturerId, Pageable pageable);
+    Page<StationBusinessSearchDTO> findBusinessStationWithoutKeyword(
+            @Param("district") String district,
+            @Param("manufacturerId") String manufacturerId,
+            Pageable pageable
+    );
 
 //    @Query(value = """
 //        UPDATE charging_station
