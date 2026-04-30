@@ -94,6 +94,16 @@ public class StationController {
     }
 
     @GetMapping("logos")
+    @Operation(
+            summary = "API lấy về logo của các doanh nghiệp",
+            description = "Khi không có param, trả ra hết tất cả các logo của tất cả các doanh nghiệp trong db." + "\n"
+            + "Với các param là tên của các doanh nghiệp, trả về logo của từng doanh nghiệp"
+    )
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "Trả về thành công url logo các doanh nghiệp")
+            }
+    )
     public ResponseEntity<ResponseObject<List<LogoResponseDTO>>> getLogos(@RequestParam(required = false) List<String> manufacturerNames) {
         List<LogoResponseDTO> logoResponse;
         if (manufacturerNames == null) {
