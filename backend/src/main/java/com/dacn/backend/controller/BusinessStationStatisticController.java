@@ -27,7 +27,12 @@ public class BusinessStationStatisticController {
     private BusinessStationStatisticService statisticService;
 
     @GetMapping("/statistics/total-detail-count")
-    @Operation(summary = "API lấy tổng lượt nhấp vào stationDetail theo từng trạm sạc của doanh nghiệp. Input liên quan tới date có dạng: yyyy-MM-dd")
+    @Operation(
+            summary = "API thống kê lượt nhấp vào trang chi tiết trạm sạc của doanh nghiệp.",
+            description = "Nhập vào dữ liệu ngày tháng có dạng 'yyyy-MM-dd', "
+            + "trả về tổng số lượt nhấp vào trang detail theo từng trạm sạc của doanh nghiệp gọi đến "
+            + "trong khoảng fromDate đến toDate"
+    )
     public ResponseEntity<ResponseObject<Page<StatisticsResponseDTO>>> getStationViewCountWithRange(
             @RequestParam("fromDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam("toDate") LocalDate toDate,
