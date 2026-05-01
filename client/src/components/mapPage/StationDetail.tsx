@@ -127,7 +127,7 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
         <div>
           <img
             src={
-              station.imageUrl ? (station.imageUrl[0] ?? undefined) : undefined
+              station.images?.[0]?.url ?? undefined
             }
             alt=""
           />
@@ -302,3 +302,4 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
 };
 
 export default StationDetail;
+
