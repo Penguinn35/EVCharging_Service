@@ -1,90 +1,455 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useMemo } from "react";
-import { Station } from "@/lib/data/stations";
-import { ratings } from "@/lib/data/ratings";
-import { FiArrowLeft, FiMapPin, FiZap, FiStar } from "react-icons/fi";
+import { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  FiArrowLeft,
+  FiChevronLeft,
+  FiChevronRight,
+  FiEdit2,
+  FiImage,
+  FiLoader,
+  FiMapPin,
+  FiTrash2,
+  FiUpload,
+  FiZap,
+} from "react-icons/fi";
+import { getStationById } from "@/services/stationService";
+import {
+  deleteBusinessStationImage,
+  updateBusinessStationImage,
+  uploadBusinessStationImage,
+} from "@/services/enterpriseService";
+import type { StationDetail as StationDetailType } from "@/type/station";
 
 interface StationDetailProps {
-  station: Station;
+  stationId: string;
   backHref: string;
 }
 
-const RATINGS_PER_PAGE = 5;
+type StationStatusLabel = "AVAILABLE" | "BUSY" | "FULL" | "OFF";
 
-export function StationDetail({ station, backHref }: StationDetailProps) {
-  const [currentPage, setCurrentPage] = useState(1);
+const FALLBACK_IMAGE =
+  "https://images.unsplash.com/photo-1593941707882-a5bac6861d75?w=1200&h=600&fit=crop";
 
-  // Get ratings for this station
-  const stationRatings = useMemo(() => {
-    return ratings
-      .filter((r) => r.stationId === station.id)
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [station.id]);
+const mapStationStatus = (status: number): StationStatusLabel => {
+  switch (status) {
+    case 1:
+      return "AVAILABLE";
+    case 2:
+      return "BUSY";
+    case 3:
+      return "FULL";
+    default:
+      return "OFF";
+  }
+};
 
-  const totalPages = Math.ceil(stationRatings.length / RATINGS_PER_PAGE);
-  const paginatedRatings = useMemo(() => {
-    const startIndex = (currentPage - 1) * RATINGS_PER_PAGE;
-    const endIndex = startIndex + RATINGS_PER_PAGE;
-    return stationRatings.slice(startIndex, endIndex);
-  }, [stationRatings, currentPage]);
+const statusColors: Record<StationStatusLabel, string> = {
+  AVAILABLE: "bg-green-100 text-green-700",
+  BUSY: "bg-yellow-100 text-yellow-700",
+  FULL: "bg-orange-100 text-orange-700",
+  OFF: "bg-gray-100 text-gray-700",
+};
 
-  // Calculate average rating
-  const avgRating =
-    stationRatings.length > 0
-      ? (stationRatings.reduce((sum, r) => sum + r.point, 0) / stationRatings.length).toFixed(1)
-      : 0;
+const connectorTypeLabels: Record<number, string> = {
+  0: "Type 1",
+  1: "Type 2",
+  2: "CCS2",
+  3: "CHAdeMO",
+};
 
-  // Get unique connector types
-  const connectorTypes = Array.from(new Set(station.chargingPoints.map((cp) => cp.connectorType)));
-  const maxPowers = Array.from(new Set(station.chargingPoints.map((cp) => cp.maxPower)));
+const formatConnectorType = (type: number) => connectorTypeLabels[type] ?? `Type ${type}`;
+const formatPower = (value: number) => `${value} kW`;
+const formatVoltage = (value: number) => `${value} V`;
+const formatPrice = (value: number) => `$${value.toFixed(2)}`;
 
-  const statusColor = {
-    AVAILABLE: "bg-green-100 text-green-700",
-    BUSY: "bg-yellow-100 text-yellow-700",
-    FULL: "bg-orange-100 text-orange-700",
-    OFF: "bg-gray-100 text-gray-700",
-  }[station.status];
+export function StationDetail({ stationId, backHref }: StationDetailProps) {
+  const [station, setStation] = useState<StationDetailType | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isImagePreviewOpen, setIsImagePreviewOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [editingImageKey, setEditingImageKey] = useState<string | null>(null);
+  const [deletingImageKey, setDeletingImageKey] = useState<string | null>(null);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const uploadInputRef = useRef<HTMLInputElement | null>(null);
+  const replaceInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  const loadStationDetail = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await getStationById(stationId);
+      setStation(response);
+      setCurrentImageIndex((prev) => {
+        const nextLength = response.images.length;
+        if (nextLength === 0) {
+          return 0;
+        }
+        return Math.min(prev, nextLength - 1);
+      });
+    } catch {
+      setError("Failed to load station details.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [stationId]);
+
+  useEffect(() => {
+    void loadStationDetail();
+  }, [loadStationDetail]);
+
+  const images = station?.images ?? [];
+  const displayImage = images[currentImageIndex]?.url ?? FALLBACK_IMAGE;
+  const statusLabel = station ? mapStationStatus(station.status) : "OFF";
+
+  const connectorTypes = useMemo(() => {
+    if (!station) {
+      return [];
+    }
+    return Array.from(
+      new Set(station.connectors.map((connector) => formatConnectorType(connector.type))),
+    );
+  }, [station]);
+
+  const maxPowers = useMemo(() => {
+    if (!station) {
+      return [];
+    }
+    return Array.from(new Set(station.connectors.map((connector) => connector.maxPower)));
+  }, [station]);
+
+  const availableConnectors = station?.connectors.filter((connector) => connector.available) ?? [];
+
+  const showTemporaryMessage = (message: string) => {
+    setActionMessage(message);
+    window.setTimeout(() => {
+      setActionMessage((current) => (current === message ? null : current));
+    }, 2500);
+  };
+
+  const handleUploadImage = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !station) {
+      return;
+    }
+
+    setUploading(true);
+    setError(null);
+
+    try {
+      const previousImageCount = station.images.length;
+      const isSuccess = await uploadBusinessStationImage(station.id, file);
+      if (!isSuccess) {
+        throw new Error("Upload failed");
+      }
+      showTemporaryMessage("Image uploaded successfully.");
+      await loadStationDetail();
+      setCurrentImageIndex(previousImageCount);
+    } catch {
+      setError("Failed to upload image.");
+    } finally {
+      setUploading(false);
+      event.target.value = "";
+    }
+  };
+
+  const handleReplaceImage = async (key: string, event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !station) {
+      return;
+    }
+
+    setEditingImageKey(key);
+    setError(null);
+
+    try {
+      const isSuccess = await updateBusinessStationImage(station.id, key, file);
+      if (!isSuccess) {
+        throw new Error("Update failed");
+      }
+      showTemporaryMessage("Image updated successfully.");
+      await loadStationDetail();
+    } catch {
+      setError("Failed to update image.");
+    } finally {
+      setEditingImageKey(null);
+      event.target.value = "";
+    }
+  };
+
+  const handleDeleteImage = async (key: string, index: number) => {
+    setDeletingImageKey(key);
+    setError(null);
+
+    try {
+      const isSuccess = await deleteBusinessStationImage(key);
+      if (!isSuccess) {
+        throw new Error("Delete failed");
+      }
+      showTemporaryMessage("Image deleted successfully.");
+      await loadStationDetail();
+      setCurrentImageIndex((prev) => Math.max(0, Math.min(prev, index - 1)));
+      setIsImagePreviewOpen(false);
+    } catch {
+      setError("Failed to delete image.");
+    } finally {
+      setDeletingImageKey(null);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <Link
+          href={backHref}
+          className="inline-flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200"
+        >
+          <FiArrowLeft className="h-4 w-4" />
+          Back to Stations
+        </Link>
+        <div className="rounded-lg border border-gray-200 bg-white px-4 py-16 text-center text-sm text-gray-500">
+          Loading station details...
+        </div>
+      </div>
+    );
+  }
+
+  if (error && !station) {
+    return (
+      <div className="space-y-6">
+        <Link
+          href={backHref}
+          className="inline-flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200"
+        >
+          <FiArrowLeft className="h-4 w-4" />
+          Back to Stations
+        </Link>
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-8 text-sm text-red-700">
+          {error}
+        </div>
+      </div>
+    );
+  }
+
+  if (!station) {
+    return null;
+  }
 
   return (
     <div className="space-y-6">
-      {/* Back Button */}
       <Link
         href={backHref}
-        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors font-medium"
+        className="inline-flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200"
       >
-        <FiArrowLeft className="w-4 h-4" />
+        <FiArrowLeft className="h-4 w-4" />
         Back to Stations
       </Link>
 
-      {/* Station Image */}
-      <div className="rounded-lg overflow-hidden border border-gray-200 h-80 bg-gray-100">
-        <img
-          src={station.imageUrl}
-          alt={station.name}
-          className="w-full h-full object-cover"
-          onError={(e) => {
-            (e.target as HTMLImageElement).src =
-              "https://images.unsplash.com/photo-1593618998160-e34014e67546?w=800&h=400&fit=crop";
-          }}
-        />
+      {error ? (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      ) : null}
+
+      {actionMessage ? (
+        <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+          {actionMessage}
+        </div>
+      ) : null}
+
+      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+        <div className="relative h-80 bg-gray-100">
+          <button
+            type="button"
+            onClick={() => images.length > 0 && setIsImagePreviewOpen(true)}
+            className="block h-full w-full cursor-zoom-in"
+          >
+            <img
+              src={displayImage}
+              alt={station.name}
+              className="h-full w-full object-cover"
+              onError={(event) => {
+                event.currentTarget.src = FALLBACK_IMAGE;
+              }}
+            />
+          </button>
+
+          {images.length > 1 ? (
+            <>
+              <button
+                type="button"
+                onClick={() =>
+                  setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1))
+                }
+                className="absolute left-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white transition hover:bg-black/60"
+              >
+                <FiChevronLeft className="h-5 w-5" />
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1))
+                }
+                className="absolute right-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white transition hover:bg-black/60"
+              >
+                <FiChevronRight className="h-5 w-5" />
+              </button>
+            </>
+          ) : null}
+
+          <div className="absolute bottom-4 right-4 rounded-full bg-black/55 px-3 py-1 text-xs font-medium text-white">
+            {images.length === 0 ? "No image" : `${currentImageIndex + 1} / ${images.length}`}
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3 border-t border-gray-200 px-4 py-3">
+          <input
+            ref={uploadInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleUploadImage}
+          />
+          <button
+            type="button"
+            onClick={() => uploadInputRef.current?.click()}
+            disabled={uploading}
+            className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {uploading ? <FiLoader className="h-4 w-4 animate-spin" /> : <FiUpload className="h-4 w-4" />}
+            Add image
+          </button>
+
+          {images.length > 0 ? (
+            <>
+              <button
+                type="button"
+                onClick={() => replaceInputRefs.current[images[currentImageIndex].key]?.click()}
+                disabled={editingImageKey === images[currentImageIndex].key}
+                className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {editingImageKey === images[currentImageIndex].key ? (
+                  <FiLoader className="h-4 w-4 animate-spin" />
+                ) : (
+                  <FiEdit2 className="h-4 w-4" />
+                )}
+                Replace current
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleDeleteImage(images[currentImageIndex].key, currentImageIndex)}
+                disabled={deletingImageKey === images[currentImageIndex].key}
+                className="inline-flex items-center gap-2 rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {deletingImageKey === images[currentImageIndex].key ? (
+                  <FiLoader className="h-4 w-4 animate-spin" />
+                ) : (
+                  <FiTrash2 className="h-4 w-4" />
+                )}
+                Delete current
+              </button>
+            </>
+          ) : null}
+        </div>
+
+        {images.length > 0 ? (
+          <div className="grid grid-cols-2 gap-3 border-t border-gray-200 px-4 py-4 sm:grid-cols-4 lg:grid-cols-6">
+            {images.map((image, index) => (
+              <div
+                key={image.key}
+                className={`group relative overflow-hidden rounded-lg border ${index === currentImageIndex ? "border-green-500 ring-2 ring-green-100" : "border-gray-200"}`}
+              >
+                <button
+                  type="button"
+                  onClick={() => setCurrentImageIndex(index)}
+                  className="block h-24 w-full"
+                >
+                  <img
+                    src={image.url}
+                    alt={`${station.name} ${index + 1}`}
+                    className="h-full w-full object-cover"
+                    onError={(event) => {
+                      event.currentTarget.src = FALLBACK_IMAGE;
+                    }}
+                  />
+                </button>
+                <input
+                  ref={(element) => {
+                    replaceInputRefs.current[image.key] = element;
+                  }}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(event) => void handleReplaceImage(image.key, event)}
+                />
+                <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-black/55 px-2 py-1 text-white opacity-0 transition group-hover:opacity-100">
+                  <button
+                    type="button"
+                    onClick={() => replaceInputRefs.current[image.key]?.click()}
+                    className="inline-flex items-center gap-1 text-xs"
+                  >
+                    <FiEdit2 className="h-3 w-3" />
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void handleDeleteImage(image.key, index)}
+                    className="inline-flex items-center gap-1 text-xs"
+                  >
+                    <FiTrash2 className="h-3 w-3" />
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex items-center gap-3 border-t border-gray-200 px-4 py-8 text-sm text-gray-500">
+            <FiImage className="h-5 w-5" />
+            This station does not have any images yet.
+          </div>
+        )}
       </div>
 
-      {/* Station Header Info */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {isImagePreviewOpen ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setIsImagePreviewOpen(false)}
+        >
+          <div
+            className="relative max-h-[90vh] max-w-[90vw]"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <img
+              src={displayImage}
+              alt={`${station.name} full preview`}
+              className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain shadow-2xl"
+              onError={(event) => {
+                event.currentTarget.src = FALLBACK_IMAGE;
+              }}
+            />
+          </div>
+        </div>
+      ) : null}
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <div className="space-y-2">
           <h1 className="text-3xl font-bold text-gray-900">{station.name}</h1>
           <div className="flex items-center gap-2 text-gray-600">
-            <FiMapPin className="w-4 h-4" />
+            <FiMapPin className="h-4 w-4" />
             <span>{station.address}</span>
           </div>
+          <div className="text-sm text-gray-500">Manufacturer: {station.manufacturer}</div>
         </div>
 
         <div className="space-y-2">
           <div className="text-sm font-medium text-gray-600">Status</div>
-          <span className={`inline-flex px-3 py-1 rounded-full text-sm font-semibold ${statusColor}`}>
-            {station.status}
+          <span className={`inline-flex rounded-full px-3 py-1 text-sm font-semibold ${statusColors[statusLabel]}`}>
+            {statusLabel}
           </span>
         </div>
 
@@ -94,25 +459,22 @@ export function StationDetail({ station, backHref }: StationDetailProps) {
         </div>
       </div>
 
-      {/* Key Details */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <div className="text-xs font-medium text-gray-600 uppercase mb-2">Charging Points</div>
-          <div className="text-2xl font-bold text-green-600">{station.totalPoints}</div>
-          <div className="text-xs text-gray-500 mt-1">
-            {station.availablePoints} available
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div className="rounded-lg border border-gray-200 bg-white p-4">
+          <div className="mb-2 text-xs font-medium uppercase text-gray-600">Connectors</div>
+          <div className="text-2xl font-bold text-green-600">{station.connectors.length}</div>
+          <div className="mt-1 text-xs text-gray-500">{availableConnectors.length} available</div>
+        </div>
+
+        <div className="rounded-lg border border-gray-200 bg-white p-4">
+          <div className="mb-2 text-xs font-medium uppercase text-gray-600">Coordinates</div>
+          <div className="break-all font-mono text-sm text-gray-900">
+            {station.position.latitude.toFixed(4)}, {station.position.longitude.toFixed(4)}
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <div className="text-xs font-medium text-gray-600 uppercase mb-2">Coordinates</div>
-          <div className="text-sm font-mono text-gray-900 break-all">
-            {station.lat.toFixed(4)}, {station.lng.toFixed(4)}
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <div className="text-xs font-medium text-gray-600 uppercase mb-2">Connector Types</div>
+        <div className="rounded-lg border border-gray-200 bg-white p-4">
+          <div className="mb-2 text-xs font-medium uppercase text-gray-600">Connector Types</div>
           <div className="space-y-1">
             {connectorTypes.length > 0 ? (
               connectorTypes.map((type) => (
@@ -121,18 +483,18 @@ export function StationDetail({ station, backHref }: StationDetailProps) {
                 </div>
               ))
             ) : (
-              <div className="text-sm text-gray-500">No charging points</div>
+              <div className="text-sm text-gray-500">No connectors</div>
             )}
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <div className="text-xs font-medium text-gray-600 uppercase mb-2">Max Power</div>
+        <div className="rounded-lg border border-gray-200 bg-white p-4">
+          <div className="mb-2 text-xs font-medium uppercase text-gray-600">Max Power</div>
           <div className="space-y-1">
             {maxPowers.length > 0 ? (
               maxPowers.map((power) => (
                 <div key={power} className="text-sm font-medium text-gray-900">
-                  {power}W
+                  {formatPower(power)}
                 </div>
               ))
             ) : (
@@ -142,150 +504,63 @@ export function StationDetail({ station, backHref }: StationDetailProps) {
         </div>
       </div>
 
-      {/* Charging Points Details */}
-      {station.chargingPoints.length > 0 && (
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Charging Points</h2>
+      <div className="rounded-lg border border-gray-200 bg-white p-6">
+        <h2 className="mb-4 text-lg font-semibold text-gray-900">Charging Points</h2>
+        {station.connectors.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="border-b border-gray-200 bg-gray-50">
                 <tr>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">Point ID</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">Connector ID</th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">Connector Type</th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">Voltage</th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">Max Power</th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">Price</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">Status</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">Availability</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {station.chargingPoints.map((point) => {
-                  const pointStatusColor = {
-                    AVAILABLE: "bg-green-100 text-green-700",
-                    BUSY: "bg-yellow-100 text-yellow-700",
-                    FULL: "bg-orange-100 text-orange-700",
-                    OFF: "bg-gray-100 text-gray-700",
-                  }[point.status];
-
-                  return (
-                    <tr key={point.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3 font-medium text-gray-900">{point.id}</td>
-                      <td className="px-4 py-3 text-gray-700">{point.connectorType}</td>
-                      <td className="px-4 py-3 text-gray-700">{point.voltage}V</td>
-                      <td className="px-4 py-3 font-medium text-gray-900">{point.maxPower}W</td>
-                      <td className="px-4 py-3 text-gray-700">${point.price.toFixed(2)}/kWh</td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold ${pointStatusColor}`}>
-                          {point.status}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
+                {station.connectors.map((connector) => (
+                  <tr key={connector.id} className="transition-colors hover:bg-gray-50">
+                    <td className="px-4 py-3 font-medium text-gray-900">{connector.id}</td>
+                    <td className="px-4 py-3 text-gray-700">{formatConnectorType(connector.type)}</td>
+                    <td className="px-4 py-3 text-gray-700">{formatVoltage(connector.voltage)}</td>
+                    <td className="px-4 py-3 font-medium text-gray-900">{formatPower(connector.maxPower)}</td>
+                    <td className="px-4 py-3 text-gray-700">{formatPrice(connector.price)}</td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${connector.available ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}`}
+                      >
+                        {connector.available ? "Available" : "Busy"}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="text-sm text-gray-500">No connector data available.</div>
+        )}
+      </div>
 
-      {/* Ratings Section */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">User Ratings</h2>
-            <div className="flex items-center gap-2 mt-1">
-              <div className="flex items-center gap-1">
-                {[...Array(5)].map((_, i) => (
-                  <FiStar
-                    key={i}
-                    className={`w-4 h-4 ${
-                      i < Math.round(Number(avgRating))
-                        ? "fill-yellow-400 text-yellow-400"
-                        : "text-gray-300"
-                    }`}
-                  />
-                ))}
-              </div>
-              <span className="font-semibold text-gray-900">{avgRating}</span>
-              <span className="text-sm text-gray-600">({stationRatings.length} reviews)</span>
+      <div className="rounded-lg border border-gray-200 bg-white p-6">
+        <div className="mb-4 flex items-center gap-2">
+          <FiZap className="h-5 w-5 text-green-600" />
+          <h2 className="text-lg font-semibold text-gray-900">Station Overview</h2>
+        </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="rounded-lg bg-gray-50 p-4">
+            <div className="text-sm font-medium text-gray-600">Full Address</div>
+            <div className="mt-1 text-sm text-gray-900">{station.address}</div>
+          </div>
+          <div className="rounded-lg bg-gray-50 p-4">
+            <div className="text-sm font-medium text-gray-600">Location</div>
+            <div className="mt-1 text-sm text-gray-900">
+              {station.position.latitude}, {station.position.longitude}
             </div>
           </div>
         </div>
-
-        {stationRatings.length > 0 ? (
-          <>
-            <div className="space-y-4">
-              {paginatedRatings.map((rating) => (
-                <div key={rating.id} className="border-b border-gray-200 pb-4 last:border-b-0">
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <div className="flex items-center gap-1">
-                        {[...Array(5)].map((_, i) => (
-                          <FiStar
-                            key={i}
-                            className={`w-4 h-4 ${
-                              i < rating.point
-                                ? "fill-yellow-400 text-yellow-400"
-                                : "text-gray-300"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        User {rating.userId} • {new Date(rating.createdAt).toLocaleDateString()}
-                      </div>
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-700">{rating.description}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Pagination */}
-            {stationRatings.length > RATINGS_PER_PAGE && (
-              <div className="flex items-center justify-between pt-4 border-t border-gray-200 mt-4">
-                <div className="text-xs text-gray-600">
-                  Showing {(currentPage - 1) * RATINGS_PER_PAGE + 1} to{" "}
-                  {Math.min(currentPage * RATINGS_PER_PAGE, stationRatings.length)} of{" "}
-                  {stationRatings.length} ratings
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                    disabled={currentPage === 1}
-                    className="px-2 py-1 rounded text-xs border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    Prev
-                  </button>
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                      <button
-                        key={page}
-                        onClick={() => setCurrentPage(page)}
-                        className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
-                          currentPage === page
-                            ? "bg-green-600 text-white"
-                            : "border border-gray-300 text-gray-700 hover:bg-gray-50"
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    ))}
-                  </div>
-                  <button
-                    onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                    disabled={currentPage === totalPages}
-                    className="px-2 py-1 rounded text-xs border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="text-center py-8 text-gray-500">No ratings yet for this station.</div>
-        )}
       </div>
     </div>
   );

@@ -68,3 +68,56 @@ export const toggleBusinessStationStatus = async (
 
   return response.data.responseData;
 };
+
+export const uploadBusinessStationImage = async (
+  stationId: string,
+  file: File,
+): Promise<boolean> => {
+  const formData = new FormData();
+  formData.append("imageFile", file);
+
+  const response = await apiClient.post<ApiResponse<boolean>>(
+    `/api/business/stations/${stationId}/image`,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    },
+  );
+
+  return response.data.responseData;
+};
+
+
+export const updateBusinessStationImage = async (
+  stationId: string,
+  key: string,
+  file: File,
+): Promise<boolean> => {
+  const formData = new FormData();
+  formData.append("key", key);
+  formData.append("imageFile", file);
+
+  const response = await apiClient.put<ApiResponse<boolean>>(
+    `/api/business/stations/${stationId}/image`,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    },
+  );
+
+  return response.data.responseData;
+};
+
+export const deleteBusinessStationImage = async (
+  key: string,
+): Promise<boolean> => {
+  const response = await apiClient.delete<ApiResponse<boolean>>(
+    `/api/business/stations/image/${key}`,
+  );
+
+  return response.data.responseData;
+};
