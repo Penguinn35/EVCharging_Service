@@ -1,131 +1,125 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useMemo } from "react";
-import { Station, StationStatus } from "@/lib/data/stations";
+import { useEffect, useState } from "react";
 import { FiPower, FiSearch, FiFilter } from "react-icons/fi";
 
-interface StationsTableProps {
-  stations: Station[];
-}
+type StationStatus = "AVAILABLE" | "BUSY" | "FULL" | "OFF";
 
-const statusColors: Record<StationStatus, { bg: string; text: string; icon: string }> = {
-  AVAILABLE: { bg: "bg-green-100", text: "text-green-700", icon: "✓" },
-  BUSY: { bg: "bg-yellow-100", text: "text-yellow-700", icon: "⚡" },
-  FULL: { bg: "bg-orange-100", text: "text-orange-700", icon: "🔴" },
-  OFF: { bg: "bg-gray-100", text: "text-gray-700", icon: "✕" },
+type StationTableRow = {
+  id: string;
+  name: string;
+  address: string;
+  district: string;
+  status: StationStatus;
+  totalPoints: number;
+  availablePoints: number;
 };
 
-const ITEMS_PER_PAGE = 5;
+interface StationsTableProps {
+  stations: StationTableRow[];
+  currentPage: number;
+  totalPages: number;
+  totalElements: number;
+  pageSize: number;
+  keyword: string;
+  district: string;
+  onKeywordChange: (value: string) => void;
+  onDistrictChange: (value: string) => void;
+  onApply: () => void;
+  onPageChange: (page: number) => void;
+  onToggleStationStatus: (stationId: string) => void;
+  togglingStationIds: string[];
+  isPageLoading?: boolean;
+}
 
-export function StationsTable({ stations }: StationsTableProps) {
+const DISTRICTS = [
+  "Quan 1",
+  "Quan 2",
+  "Quan 3",
+  "Quan 4",
+  "Quan 5",
+  "Quan 6",
+  "Quan 7",
+];
+
+const statusColors: Record<StationStatus, { bg: string; text: string; icon: string }> = {
+  AVAILABLE: { bg: "bg-green-100", text: "text-green-700", icon: "OK" },
+  BUSY: { bg: "bg-yellow-100", text: "text-yellow-700", icon: "!" },
+  FULL: { bg: "bg-orange-100", text: "text-orange-700", icon: "*" },
+  OFF: { bg: "bg-gray-100", text: "text-gray-700", icon: "X" },
+};
+
+export function StationsTable({
+  stations,
+  currentPage,
+  totalPages,
+  totalElements,
+  pageSize,
+  keyword,
+  district,
+  onKeywordChange,
+  onDistrictChange,
+  onApply,
+  onPageChange,
+  onToggleStationStatus,
+  togglingStationIds,
+  isPageLoading = false,
+}: StationsTableProps) {
   const router = useRouter();
   const [stationData, setStationData] = useState(stations);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedDistrict, setSelectedDistrict] = useState<string>("");
-  const [currentPage, setCurrentPage] = useState(1);
 
-  // Get unique districts
-  const districts = useMemo(() => {
-    const uniqueDistricts = Array.from(new Set(stationData.map((s) => s.district)));
-    return uniqueDistricts.sort();
-  }, [stationData]);
+  useEffect(() => {
+    setStationData(stations);
+  }, [stations]);
 
-  // Filter and search logic
-  const filteredStations = useMemo(() => {
-    return stationData.filter((station) => {
-      const matchesSearch =
-        station.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        station.address.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesDistrict =
-        selectedDistrict === "" || station.district === selectedDistrict;
-      return matchesSearch && matchesDistrict;
-    });
-  }, [stationData, searchQuery, selectedDistrict]);
-
-  // Pagination logic
-  const totalPages = Math.ceil(filteredStations.length / ITEMS_PER_PAGE);
-  const paginatedStations = useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const endIndex = startIndex + ITEMS_PER_PAGE;
-    return filteredStations.slice(startIndex, endIndex);
-  }, [filteredStations, currentPage]);
-
-  const toggleStationStatus = (stationId: string) => {
-    setStationData((prev) =>
-      prev.map((station) =>
-        station.id === stationId
-          ? {
-              ...station,
-              status: station.status === "OFF" ? "AVAILABLE" : "OFF",
-            }
-          : station
-      )
-    );
-  };
-
-  // Reset to first page when filters change
-  const handleSearchChange = (query: string) => {
-    setSearchQuery(query);
-    setCurrentPage(1);
-  };
-
-  const handleDistrictChange = (district: string) => {
-    setSelectedDistrict(district);
-    setCurrentPage(1);
-  };
+  const startItem = totalElements === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const endItem = totalElements === 0 ? 0 : startItem + stations.length - 1;
 
   return (
     <div className="space-y-4">
-      {/* Search and Filter Bar */}
       <div className="space-y-4 bg-white rounded-lg border border-gray-200 p-4">
-        {/* Search */}
         <div className="relative">
           <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
             type="text"
             placeholder="Search stations by name or address..."
-            value={searchQuery}
-            onChange={(e) => handleSearchChange(e.target.value)}
+            value={keyword}
+            onChange={(e) => onKeywordChange(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
           />
         </div>
 
-        {/* District Filter */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 text-gray-700 font-medium">
-            <FiFilter className="w-4 h-4" />
-            <span>Filter by District:</span>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => handleDistrictChange("")}
-              className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                selectedDistrict === ""
-                  ? "bg-green-600 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-2 text-gray-700 font-medium">
+              <FiFilter className="w-4 h-4" />
+              <span>Filter by District:</span>
+            </div>
+            <select
+              value={district}
+              onChange={(e) => onDistrictChange(e.target.value)}
+              className="min-w-40 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
             >
-              All Districts
-            </button>
-            {districts.map((district) => (
-              <button
-                key={district}
-                onClick={() => handleDistrictChange(district)}
-                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                  selectedDistrict === district
-                    ? "bg-green-600 text-white"
-                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                }`}
-              >
-                {district}
-              </button>
-            ))}
+              <option value="">All Districts</option>
+              {DISTRICTS.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
           </div>
+
+          <button
+            onClick={onApply}
+            disabled={isPageLoading}
+            className="inline-flex items-center justify-center rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Apply
+          </button>
         </div>
       </div>
 
-      {/* Table */}
       <div className="overflow-x-auto rounded-lg border border-gray-200">
         <table className="w-full">
           <thead className="bg-gray-50">
@@ -151,9 +145,11 @@ export function StationsTable({ stations }: StationsTableProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 bg-white">
-            {paginatedStations.length > 0 ? (
-              paginatedStations.map((station) => {
+            {stationData.length > 0 ? (
+              stationData.map((station) => {
                 const statusConfig = statusColors[station.status];
+                const isToggling = togglingStationIds.includes(station.id);
+
                 return (
                   <tr
                     key={station.id}
@@ -184,16 +180,21 @@ export function StationsTable({ stations }: StationsTableProps) {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          toggleStationStatus(station.id);
+                          onToggleStationStatus(station.id);
                         }}
-                        className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        disabled={isToggling}
+                        className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
                           station.status === "OFF"
                             ? "bg-green-100 text-green-700 hover:bg-green-200"
                             : "bg-red-100 text-red-700 hover:bg-red-200"
                         }`}
                       >
-                        <FiPower className="w-4 h-4" />
-                        {station.status === "OFF" ? "Enable" : "Disable"}
+                        <FiPower className={`w-4 h-4 ${isToggling ? "animate-spin" : ""}`} />
+                        {isToggling
+                          ? "Updating..."
+                          : station.status === "OFF"
+                            ? "Enable"
+                            : "Disable"}
                       </button>
                     </td>
                   </tr>
@@ -210,18 +211,15 @@ export function StationsTable({ stations }: StationsTableProps) {
         </table>
       </div>
 
-      {/* Pagination */}
-      {filteredStations.length > 0 && (
+      {totalElements > 0 && (
         <div className="flex items-center justify-between border-t border-gray-200 pt-4">
           <div className="text-sm text-gray-600">
-            Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to{" "}
-            {Math.min(currentPage * ITEMS_PER_PAGE, filteredStations.length)} of{" "}
-            {filteredStations.length} stations
+            Showing {startItem} to {endItem} of {totalElements} stations
           </div>
           <div className="flex gap-2">
             <button
-              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
+              onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1 || isPageLoading}
               className="px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Previous
@@ -230,22 +228,21 @@ export function StationsTable({ stations }: StationsTableProps) {
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                 <button
                   key={page}
-                  onClick={() => setCurrentPage(page)}
+                  onClick={() => onPageChange(page)}
+                  disabled={isPageLoading}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     currentPage === page
                       ? "bg-green-600 text-white"
                       : "border border-gray-300 text-gray-700 hover:bg-gray-50"
-                  }`}
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
                   {page}
                 </button>
               ))}
             </div>
             <button
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(totalPages, prev + 1))
-              }
-              disabled={currentPage === totalPages}
+              onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+              disabled={currentPage === totalPages || isPageLoading}
               className="px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Next

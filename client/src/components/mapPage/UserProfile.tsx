@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import React, { useState, useRef, useEffect } from "react";
 import { useUserStore } from "@/store/useUserStore";
 import { useStationStore } from "@/store/useStationStore";
@@ -19,6 +19,7 @@ import {
   IoPersonCircleOutline,
 } from "react-icons/io5";
 import { MdOutlineElectricalServices, MdLogout } from "react-icons/md";
+import { StationMarkerData } from "@/type/station";
 
 const UserProfile = () => {
   const { user, updateUser, deleteStation, clearUser } = useUserStore();
@@ -29,7 +30,8 @@ const UserProfile = () => {
 
   const closeModal = () => setModalType(null);
 
-  const { selectStation, selectedStation } = useStationStore();
+  const { selectStation, selectedStation, stationMarkers, setStationMarkers } =
+    useStationStore();
   const { clearRouting } = useRoutingStore();
   const setFlyTo = useMapStore((s) => s.setFlyTo);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -99,6 +101,22 @@ const UserProfile = () => {
     if (station !== null) {
       selectStation(station);
       setFlyTo(station.position);
+
+      const marker: StationMarkerData = {
+        id: station.id,
+        name: station.name,
+        manufacturer: station.manufacturer,
+        coordinate: station.position,
+        status: String(station.status),
+      };
+
+      const hasMarker = stationMarkers.some(
+        (stationMarker) => stationMarker.id === marker.id,
+      );
+
+      if (!hasMarker) {
+        setStationMarkers([...stationMarkers, marker]);
+      }
     }
   };
 

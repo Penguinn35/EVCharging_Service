@@ -27,7 +27,7 @@ export const login = async (
 export const getUserDetails = async (
 ): Promise<UserDetailResponse> => {
   const response = await apiClient.get<ApiResponse<UserDetailResponse>>(
-  "api/users/detail"
+  "api/users/profile"
 );
   return response.data.responseData;
 }
