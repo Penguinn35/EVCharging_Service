@@ -1,0 +1,42 @@
+package com.dacn.backend.model;
+
+import jakarta.persistence.*;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
+
+@Entity
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class EVUser {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
+    @Column(unique = true, nullable = false)
+    private String username;
+    private String role;
+    private String fullName;
+    @Column(unique = true, nullable = false)
+    private String email;
+    private String address;
+    private String password;
+
+    @OneToMany(mappedBy = "user")
+    private List<Rating> ratings;
+
+    @OneToMany(mappedBy = "eVUser")
+    private List<UserSavesStation> savedStations;
+
+    @OneToOne(mappedBy = "manager")
+    private CPO company;
+
+    @OneToMany(mappedBy = "user")
+    private List<UserSuggestedStation> suggestedStation;
+
+    @OneToMany(mappedBy = "user")
+    private List<UserLocationHistory> locationHistories;
+}

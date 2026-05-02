@@ -34,3 +34,9 @@ build/
 
 ### ENV ###
 .env
+.env.*
+
+!.env.example
+
+/map_data/*.osm
+
