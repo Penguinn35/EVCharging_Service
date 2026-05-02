@@ -59,7 +59,7 @@ services:
       osm2pgrouting -f /map_data/hcmc.osm -h postgres -p ${DB_PORT} -U ${DB_USERNAME} -d ${DB_NAME} -W ${DB_PASSWORD} --conf /usr/share/osm2pgrouting/mapconfig.xml --clean;
       "
     volumes:
-      - ../map_data:/map_data
+      - ./map_data:/map_data
     networks:
       - ev-network
     depends_on:
@@ -74,7 +74,7 @@ services:
     env_file:
       - ".env"
     volumes:
-      - ../simulated_data:/simulated_data
+      - ./simulated_data:/simulated_data
     networks:
       - ev-network
     depends_on:

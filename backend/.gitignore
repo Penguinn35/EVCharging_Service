@@ -37,3 +37,6 @@ build/
 .env.*
 
 !.env.example
+
+/map_data/*.osm
+
