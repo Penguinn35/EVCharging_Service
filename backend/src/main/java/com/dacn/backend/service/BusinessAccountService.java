@@ -7,7 +7,15 @@ import com.dacn.backend.model.EVUser;
 import com.dacn.backend.repository.CPORepo;
 import com.dacn.backend.repository.EVUserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetUrlRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+
+import java.io.IOException;
 
 @Service
 public class BusinessAccountService {
@@ -15,6 +23,10 @@ public class BusinessAccountService {
     private EVUserRepo eVUserRepo;
     @Autowired
     private CPORepo cpoRepo;
+    @Autowired
+    private S3Client s3Client;
+    @Value("${aws.bucket.name}")
+    private String bucketName;
 
     public void saveBusinessAccount(CPORegisterDTO user) {
         EVUser newUser = new EVUser();
@@ -54,5 +66,28 @@ public class BusinessAccountService {
         response.setManagerAddress(manager.getAddress());
         response.setManagerEmail(manager.getEmail());
         return response;
+    }
+
+    public boolean saveLogo(MultipartFile newImage, String companyId) throws IOException {
+        CPO cpo = cpoRepo.findById(companyId).orElse(null);
+        if (cpo == null) {
+            return false;
+        }
+        String url = uploadToS3(newImage, companyId + "-logo");
+        cpo.setLogoUrl(url);
+        cpoRepo.save(cpo);
+        return true;
+    }
+
+    private String uploadToS3(MultipartFile file, String key) throws IOException {
+        s3Client.putObject(PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .build(), RequestBody.fromBytes(file.getBytes()));
+
+        return s3Client.utilities().getUrl(GetUrlRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .build()).toExternalForm();
     }
 }
