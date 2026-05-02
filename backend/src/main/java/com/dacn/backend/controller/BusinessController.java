@@ -37,7 +37,7 @@ public class BusinessController {
     @PutMapping(value = "image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "API doanh nghiệp thêm/chỉnh sửa logo")
     public ResponseEntity<ResponseObject<Boolean>> updateLogo(
-            @RequestPart("Logo image") MultipartFile newImage,
+            @RequestPart("logoImage") MultipartFile newImage,
             @AuthenticationPrincipal UserPrincipal principal
     ) throws IOException {
         boolean isSaved = businessAccountService.saveLogo(newImage, principal.getCompanyId());
