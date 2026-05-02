@@ -3,11 +3,18 @@ import { registerType, loginType } from "@/models/user";
 import { UserLoginResponse, UserDetailResponse } from "@/type/user";
 import { ApiResponse } from "@/type/share";
 
+export type UserSuggestionRequest = {
+  location: {
+    longitude: number;
+    latitude: number;
+  };
+  description: string;
+};
+
 export const getUsers = async () => {
   const response = await apiClient.get("/users");
   return response.data;
 };
-
 
 export const createUser = async (data: registerType) => {
   const response = await publicApiClient.post<ApiResponse<Boolean>>("/auth/register", data);
@@ -31,3 +38,14 @@ export const getUserDetails = async (
 );
   return response.data.responseData;
 }
+
+export const createUserSuggestion = async (
+  data: UserSuggestionRequest,
+): Promise<boolean> => {
+  const response = await apiClient.post<ApiResponse<boolean>>(
+    "/api/users/suggestion",
+    data,
+  );
+
+  return response.data.responseData;
+};

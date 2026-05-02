@@ -1,4 +1,4 @@
-﻿// import { ChargingStation } from "@/models/station";
+// import { ChargingStation } from "@/models/station";
 import { StationDetail, StationMarkerData } from "@/type/station";
 import { ApiResponse, Coordinate } from "@/type/share";
 import { apiClient, publicApiClient } from "@/lib/apiClient";
@@ -13,6 +13,53 @@ type RatingRequest = {
   stationId: string;
   point: number;
   comment: string;
+};
+
+type PageableSort = {
+  sorted: boolean;
+  empty: boolean;
+  unsorted: boolean;
+};
+
+type RatingPageable = {
+  pageNumber: number;
+  pageSize: number;
+  sort: PageableSort;
+  offset: number;
+  paged: boolean;
+  unpaged: boolean;
+};
+
+export type StationRating = {
+  id: string;
+  comment: string;
+  point: number;
+  timePosted: string;
+};
+
+export type StationRatingResponse = {
+  content: StationRating[];
+  pageable: RatingPageable;
+  last: boolean;
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  sort: PageableSort;
+  first: boolean;
+  numberOfElements: number;
+  empty: boolean;
+};
+
+type GetStationRatingsParams = {
+  stationId: string;
+  page?: number;
+  size?: number;
+};
+
+export type StationRatingStatistic = {
+  starPoint: number;
+  totalNumberOfRating: number;
 };
 
 type SuggestedStationResponse = {
@@ -76,7 +123,6 @@ export async function getSuggestedStation(
   );
 
   return response.data.responseData.id;
-
 }
 
 export const saveStation = async (
@@ -116,3 +162,34 @@ export const ratingStation = async (
 
   return res.data.responseData;
 };
+
+export const getRating = async (
+  params: GetStationRatingsParams,
+): Promise<StationRatingResponse> => {
+  const response = await publicApiClient.get<ApiResponse<StationRatingResponse>>(
+    "/api/stations/ratings",
+    {
+      params: {
+        ...params,
+        page: params.page ?? 0,
+        size: params.size ?? 10,
+      },
+    },
+  );
+
+  return response.data.responseData;
+};
+
+export const getRatingStatistics = async (
+  stationId: string,
+): Promise<StationRatingStatistic[]> => {
+  const response = await publicApiClient.get<ApiResponse<StationRatingStatistic[]>>(
+    "/api/stations/ratings/statistics",
+    {
+      params: { stationId },
+    },
+  );
+
+  return response.data.responseData;
+};
+
