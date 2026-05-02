@@ -1,6 +1,5 @@
 package com.dacn.backend.service;
 
-import com.dacn.backend.model.ChargingStation;
 import com.dacn.backend.repository.ChargingStationRepo;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
