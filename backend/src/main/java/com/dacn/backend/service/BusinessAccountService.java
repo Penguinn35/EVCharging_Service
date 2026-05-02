@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
@@ -69,11 +70,18 @@ public class BusinessAccountService {
     }
 
     public boolean saveLogo(MultipartFile newImage, String companyId) throws IOException {
+        if (!isValidImageFormat(newImage)) {
+            return false;
+        }
         CPO cpo = cpoRepo.findById(companyId).orElse(null);
         if (cpo == null) {
             return false;
         }
-        String url = uploadToS3(newImage, companyId + "-logo");
+        String logoKey = companyId + "-logo";
+        if (cpo.getLogoUrl() != null) {
+            deleteFromS3(logoKey);
+        }
+        String url = uploadToS3(newImage, logoKey);
         cpo.setLogoUrl(url);
         cpoRepo.save(cpo);
         return true;
@@ -89,5 +97,19 @@ public class BusinessAccountService {
                 .bucket(bucketName)
                 .key(key)
                 .build()).toExternalForm();
+    }
+
+    private void deleteFromS3(String key) {
+        s3Client.deleteObject(DeleteObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .build());
+    }
+
+    private boolean isValidImageFormat(MultipartFile file) {
+        String contentType = file.getContentType();
+        return contentType != null && (
+                contentType.contains("png") || contentType.contains("jpeg") || contentType.contains("jpg")
+        );
     }
 }
