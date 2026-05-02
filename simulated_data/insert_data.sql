@@ -241,9 +241,6 @@ INSERT INTO charging_station (id, address, district, status, manufacturer_id, na
 ('cs-vn-1199', '20 Dân Tộc, Phường Tân Thành', 'Tân Phú', 0, 'cpo-chargeplus', 'Trạm sạc Dân Tộc', 10.7915, 106.6321),
 ('cs-vn-1200', '85 Cây Keo, Phường Hiệp Tân', 'Tân Phú', 1, 'cpo-vinfast', 'Trạm sạc Cây Keo', 10.7821, 106.6211);
 
-UPDATE charging_station 
-SET number_of_saves = 0, hit_full_count = 0;
-
 
 -- ==============================================================================
 -- 2. INSERT DATA CHO CHARGING_POINT
@@ -303,3 +300,60 @@ SELECT
     END AS voltage,
     point_id AS charging_point_id
 FROM connector_mock;
+
+
+-- ==============================================================================
+-- 4. KHỞI TẠO GIÁ TRỊ BAN ĐẦU CHO CÁC FIELD THỐNG KÊ
+-- ==============================================================================
+UPDATE charging_station 
+SET 
+    current_vehicle_count = 0,
+    hit_full_count = 0,
+    number_of_saves = 0,
+    -- Set capacity ngẫu nhiên từ 10 đến 100
+    capacity = floor(random() * (100 - 10 + 1) + 10)::int;
+
+-- ==============================================================================
+-- 5. TẠO TRIGGER XỬ LÝ LOGIC TRẠNG THÁI VÀ HIT_FULL_COUNT
+-- Logic: 
+-- 1. Tự động tính Ratio = current_vehicle_count / capacity
+-- 2. Nếu Ratio >= 0.9 => Status = 3 (FULL)
+-- 3. Nếu Ratio < 0.9  => Status = 1 (AVAILABLE)
+-- 4. Nếu Status chuyển từ <3 sang 3 => Tăng hit_full_count thêm 1
+-- ==============================================================================
+
+CREATE OR REPLACE FUNCTION fn_station_auto_logic()
+RETURNS TRIGGER AS $$
+DECLARE
+    usage_ratio DOUBLE PRECISION;
+BEGIN
+    -- Tránh chia cho 0 nếu capacity chưa có
+    IF (NEW.capacity IS NULL OR NEW.capacity = 0) THEN
+        RETURN NEW;
+    END IF;
+
+    -- 1. Tính toán tỉ lệ lấp đầy
+    usage_ratio := NEW.current_vehicle_count::DOUBLE PRECISION / NEW.capacity::DOUBLE PRECISION;
+
+    -- 2. Cập nhật Status dựa trên Ratio (3: FULL, 1: AVAILABLE)
+    IF (usage_ratio >= 0.9) THEN
+        NEW.status := 3;
+    ELSE
+        NEW.status := 1;
+    END IF;
+
+    -- 3. Logic Trigger HitFullCount (Chỉ tăng khi trạng thái THỰC SỰ chuyển sang FULL)
+    -- NEW.status = 3 (FULL) và trạng thái cũ khác 3
+    IF (NEW.status = 3 AND (OLD.status IS NULL OR OLD.status != 3)) THEN
+        NEW.hit_full_count := COALESCE(OLD.hit_full_count, 0) + 1;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Gán trigger vào bảng (Sẽ chạy TRƯỚC khi dữ liệu được ghi xuống)
+CREATE TRIGGER trg_station_auto_logic
+BEFORE UPDATE ON charging_station
+FOR EACH ROW
+EXECUTE FUNCTION fn_station_auto_logic();

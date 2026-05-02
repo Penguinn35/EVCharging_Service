@@ -4,7 +4,6 @@ import java.util.List;
 
 import com.dacn.backend.constants.StationStatus;
 import jakarta.persistence.*;
-import org.springframework.stereotype.Component;
 
 import com.dacn.backend.model.type.Coordinate;
 

@@ -215,4 +215,12 @@ ORDER BY s.number_of_saves DESC
             WHERE s.manufacturer_id = :companyId
             """)
     Page<SaveStatisticResponseDTO> getSaveStationCount(String companyId, Pageable pageable);
+
+    @Modifying
+    @Query(nativeQuery = true, value = """
+UPDATE charging_station s
+SET current_vehicle_count = :currentCount
+WHERE s.id = :stationId
+""")
+    void updateCurrentVehicleCount(@Param("currentCount") Long currentCount, @Param("stationId") String stationId);
 }
