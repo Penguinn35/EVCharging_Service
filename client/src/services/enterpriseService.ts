@@ -39,6 +39,36 @@ export type BusinessStationListResponse = {
   empty: boolean;
 };
 
+export type BusinessStationRating = {
+  id: string;
+  comment: string;
+  point: number;
+  timePosted: string;
+};
+
+export type BusinessStationRatingResponse = {
+  content: BusinessStationRating[];
+  pageable: BusinessStationsPageable;
+  last: boolean;
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  sort: PageableSort;
+  first: boolean;
+  numberOfElements: number;
+  empty: boolean;
+};
+
+export type GetBusinessStationRatingsParams = {
+  fromDate?: string;
+  toDate?: string;
+  lowestPoint?: number;
+  highestPoint?: number;
+  page?: number;
+  size?: number;
+};
+
 export type GetBusinessStationsParams = {
   keyword?: string;
   district?: string;
@@ -89,7 +119,6 @@ export const uploadBusinessStationImage = async (
   return response.data.responseData;
 };
 
-
 export const updateBusinessStationImage = async (
   stationId: string,
   key: string,
@@ -117,6 +146,23 @@ export const deleteBusinessStationImage = async (
 ): Promise<boolean> => {
   const response = await apiClient.delete<ApiResponse<boolean>>(
     `/api/business/stations/image/${key}`,
+  );
+
+  return response.data.responseData;
+};
+
+export const getBusinessStationRatings = async (
+  params: GetBusinessStationRatingsParams,
+): Promise<BusinessStationRatingResponse> => {
+  const response = await apiClient.get<ApiResponse<BusinessStationRatingResponse>>(
+    "/api/business/stations/ratings",
+    {
+      params: {
+        ...params,
+        page: params.page ?? 0,
+        size: params.size ?? 10,
+      },
+    },
   );
 
   return response.data.responseData;
