@@ -57,6 +57,9 @@ public class BusinessAccountService {
 
     public BusinessProfileDTO getBusinessProfile(String companyId) {
         CPO company = cpoRepo.findById(companyId).orElse(null);
+        if (company == null) {
+            return null;
+        }
         BusinessProfileDTO response = new BusinessProfileDTO();
         response.setCompanyName(company.getCompanyName());
         response.setCompanyAddress(company.getAddress());
