@@ -16,7 +16,6 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Component
 public class ChargingStation {
     @Id
     private String id;
@@ -32,6 +31,8 @@ public class ChargingStation {
     private int status;
     private Long numberOfSaves;
     private Long hitFullCount;
+    private Long capacity;
+    private Long currentVehicleCount;
 
     @OneToMany(mappedBy = "chargingStation", cascade = CascadeType.ALL)
     private List<ChargingPoint> chargingPoints;
@@ -53,6 +54,21 @@ public class ChargingStation {
     public void incrementHitFullCount() {
         if (this.status == StationStatus.FULL.getCode()) {
             this.hitFullCount = (this.hitFullCount == null ? 0 : this.hitFullCount) + 1;
+        }
+    }
+
+    public void updateVehicleCount(Long newCount) {
+        this.currentVehicleCount = newCount;
+
+        if (this.capacity != null && this.capacity > 0) {
+            double usageRatio = (double) this.currentVehicleCount / this.capacity;
+
+            if (usageRatio >= 0.9) {
+                this.status = StationStatus.FULL.getCode();
+            } else {
+                // Đổi lại thành trạng thái bình thường (ví dụ: AVAILABLE) nếu dưới 90%
+                this.status = StationStatus.AVAILABLE.getCode();
+            }
         }
     }
 }
