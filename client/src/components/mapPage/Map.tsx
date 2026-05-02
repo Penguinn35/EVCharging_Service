@@ -16,14 +16,13 @@ import { MapCenterTracker } from "./MapCenterTracker";
 import { StationMarkerData } from "@/type/station";
 import { getStationById } from "@/services/stationService";
 import { toast } from "react-toastify";
-
+import { useMapStore } from "@/store/useMapStore";
 
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: markerIcon2x,
   iconUrl: markerIcon,
   shadowUrl: markerShadow,
 });
-
 
 const CustomMarker = ({ station }: { station: StationMarkerData }) => {
   const [L, setLeaflet] = useState<any>(null);
@@ -78,6 +77,27 @@ const CustomMarker = ({ station }: { station: StationMarkerData }) => {
   );
 };
 
+const SuggestionCenterMarker = () => {
+  const isSuggestionPicking = useMapStore((state) => state.isSuggestionPicking);
+
+  if (!isSuggestionPicking) return null;
+
+  return (
+    <div className="pointer-events-none absolute inset-0 z-[700] flex items-center justify-center">
+      <div className="relative -translate-y-5 flex flex-col items-center">
+        <div className="rounded-full bg-white/95 px-3 py-1 text-[11px] font-semibold text-gray-700 shadow-md border border-gray-200">
+          Di chuyen ban do de chon vi tri
+        </div>
+        <div className="relative mt-2 h-10 w-10">
+          <div className="absolute left-1/2 top-0 h-10 w-10 -translate-x-1/2 rounded-full border-4 border-white bg-red-500 shadow-xl" />
+          <div className="absolute left-1/2 top-7 h-5 w-5 -translate-x-1/2 rotate-45 rounded-sm bg-red-500 shadow-lg" />
+          <div className="absolute left-1/2 top-3 h-3 w-3 -translate-x-1/2 rounded-full bg-white" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function Map() {
   console.log("Map render");
   const stationMarkerDatas = useStationStore((state) => state.stationMarkers);
@@ -117,6 +137,7 @@ export default function Map() {
           to={[location?.latitude || 0, location?.longitude || 0]}
         />
       )}
+      <SuggestionCenterMarker />
     </MapContainer>
   );
 }

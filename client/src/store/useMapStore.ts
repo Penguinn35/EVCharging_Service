@@ -6,17 +6,22 @@ interface MapStore {
   center: Coordinate;
   flyTo: Coordinate | null;
   flyTrigger: number;
+  isSuggestionPicking: boolean;
   setFlyTo: (c: Coordinate | null) => void;
-   setCenter: (c: Coordinate) => void; 
+  setCenter: (c: Coordinate) => void;
+  setIsSuggestionPicking: (value: boolean) => void;
 }
 
 export const useMapStore = create<MapStore>((set) => ({
   flyTo: null,
   center: { longitude: 0, latitude: 0 },
   flyTrigger: 0,
-  setFlyTo: (c) => set((state) => ({
-    flyTo: c,
-    flyTrigger: state.flyTrigger + 1,
-  })),
+  isSuggestionPicking: false,
+  setFlyTo: (c) =>
+    set((state) => ({
+      flyTo: c,
+      flyTrigger: state.flyTrigger + 1,
+    })),
   setCenter: (c) => set({ center: c }),
+  setIsSuggestionPicking: (value) => set({ isSuggestionPicking: value }),
 }));
