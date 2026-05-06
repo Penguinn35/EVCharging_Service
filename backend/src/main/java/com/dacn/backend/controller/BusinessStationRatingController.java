@@ -1,13 +1,12 @@
 package com.dacn.backend.controller;
 
-import com.dacn.backend.dto.RatingResponseDTO;
+import com.dacn.backend.dto.BusinessRatingResponseDTO;
 import com.dacn.backend.model.UserPrincipal;
 import com.dacn.backend.object.ResponseObject;
 import com.dacn.backend.service.BusinessStationRatingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,12 +30,14 @@ public class BusinessStationRatingController {
     @Operation(
             summary = "API lấy dữ liệu rating từ khách hàng"
     )
-    public ResponseEntity<ResponseObject<Page<RatingResponseDTO>>> getRatingOfBusiness(
+    public ResponseEntity<ResponseObject<BusinessRatingResponseDTO>> getRatingOfBusiness(
             @RequestParam(value = "fromDate", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate fromDate,
 
-            @RequestParam(value = "toDate", required = false) LocalDate toDate,
+            @RequestParam(value = "toDate", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate toDate,
 
             @RequestParam(value = "lowestPoint", defaultValue = "0") int lowestPoint,
             @RequestParam(value = "highestPoint", defaultValue = "5") int highestPoint,
@@ -45,19 +46,18 @@ public class BusinessStationRatingController {
             @AuthenticationPrincipal UserPrincipal principal
     ) {
         String companyId = principal.getCompanyId();
-        Page<RatingResponseDTO> response = null;
+        BusinessRatingResponseDTO ratingResponses = null;
         if (fromDate == null && toDate == null) {
-            response = ratingService.getRatingWithNoFilter(companyId, page, size);
+            ratingResponses = ratingService.getRatingWithNoFilter(companyId, page, size);
         }
         else {
-            response = ratingService.getRatingWithFilter(fromDate, toDate, lowestPoint, highestPoint,
+            ratingResponses = ratingService.getRatingWithFilter(fromDate, toDate, lowestPoint, highestPoint,
                     companyId, page, size);
         }
         return new ResponseEntity<>(new ResponseObject<>(
                 HttpStatus.OK,
                 "Returned successfully",
-                response,
-                response.getSize()
+                ratingResponses
         ), HttpStatus.OK);
     }
 }

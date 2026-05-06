@@ -22,7 +22,7 @@ public interface StationStatisticRepo extends JpaRepository<StationStatistic, St
     int incrementViewCount(String date, String stationId);
 
     @Query(nativeQuery = true, value = """
-SELECT cs.id AS stationId, cs.name AS stationName, cs.address AS address,
+SELECT cs.id AS stationId, cs.name AS stationName, cs.address || ', ' || cs.district AS address,
        COALESCE(SUM(st.view_detail_count), 0) AS sumOfViewDetailCount
 FROM charging_station cs
     LEFT JOIN station_statistic st ON cs.id = st.station_id
