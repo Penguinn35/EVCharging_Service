@@ -132,7 +132,12 @@ public class StationService {
 
     @Transactional
     public RatingResponseDTO rateStation(String userId, RatingRequestDTO rating) throws RuntimeException {
-        Rating newRating = new Rating();
+        Rating newRating = ratingRepo.findByUserAndStation(
+                eVUserRepo.getReferenceById(userId), stationRepo.getReferenceById(rating.getStationId())
+        ).orElse(null);
+        if (newRating == null) {
+            newRating = new Rating();
+        }
         newRating.setDatePosted(LocalDateTime.now());
         newRating.setPoint(rating.getPoint());
         newRating.setComment(rating.getComment());

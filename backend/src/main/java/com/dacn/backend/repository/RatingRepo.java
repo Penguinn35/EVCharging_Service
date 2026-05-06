@@ -3,6 +3,8 @@ package com.dacn.backend.repository;
 import com.dacn.backend.dto.BusinessRatingTotalStatistics;
 import com.dacn.backend.dto.RatingResponseDTO;
 import com.dacn.backend.dto.RatingStatisticDTO;
+import com.dacn.backend.model.ChargingStation;
+import com.dacn.backend.model.EVUser;
 import com.dacn.backend.model.Rating;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface RatingRepo extends JpaRepository<Rating, String> {
@@ -92,4 +95,6 @@ GROUP BY r.point
     List<RatingStatisticDTO> getBusinessRatingStatisticsWithFilters(LocalDateTime fromDate, LocalDateTime toDate,
                                                                     int lowestPoint, int highestPoint,
                                                                     String companyId);
+
+    Optional<Rating> findByUserAndStation(EVUser user, ChargingStation station);
 }
