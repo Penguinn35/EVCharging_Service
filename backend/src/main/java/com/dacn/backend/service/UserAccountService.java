@@ -10,11 +10,8 @@ import com.dacn.backend.dto.SavedStationDTO;
 import com.dacn.backend.dto.UserDetailDTO;
 import com.dacn.backend.dto.UserResponseDTO;
 import com.dacn.backend.repository.UserSavesStationRepo;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.io.DecodingException;
 import io.jsonwebtoken.security.Keys;
-import io.jsonwebtoken.security.WeakKeyException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
@@ -149,6 +146,7 @@ public class UserAccountService {
         userDetail.setFullName(user.getFullName());
         userDetail.setAddress(user.getAddress());
         userDetail.setEmail(user.getEmail());
+        userDetail.setRole(user.getRole());
 
         return userDetail;
     }
