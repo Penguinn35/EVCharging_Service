@@ -132,7 +132,12 @@ public class StationService {
 
     @Transactional
     public RatingResponseDTO rateStation(String userId, RatingRequestDTO rating) throws RuntimeException {
-        Rating newRating = new Rating();
+        Rating newRating = ratingRepo.findByUserAndStation(
+                eVUserRepo.getReferenceById(userId), stationRepo.getReferenceById(rating.getStationId())
+        ).orElse(null);
+        if (newRating == null) {
+            newRating = new Rating();
+        }
         newRating.setDatePosted(LocalDateTime.now());
         newRating.setPoint(rating.getPoint());
         newRating.setComment(rating.getComment());
@@ -186,5 +191,25 @@ public class StationService {
 
     public List<LogoResponseDTO> getAllLogos() {
         return cpoRepo.findAllLogos();
+    }
+
+    public boolean updateChargingPointStatus(String pointId, int status) {
+        ChargingPoint chargingPoint = chargingPointRepo.findById(pointId).orElse(null);
+        if (chargingPoint == null) {
+            return false;
+        }
+        chargingPoint.setStatus(status);
+        chargingPointRepo.save(chargingPoint);
+        return true;
+    }
+
+    public boolean updateCurrentVehicleCount(String stationId, Long vehicleCount) {
+        ChargingStation station = stationRepo.findById(stationId).orElse(null);
+        if (station == null) {
+            return false;
+        }
+        station.setCurrentVehicleCount(vehicleCount);
+        stationRepo.save(station);
+        return true;
     }
 }

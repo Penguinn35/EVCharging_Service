@@ -126,8 +126,8 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
         best_pair AS (
             SELECT start_vid, end_vid
             FROM routes
-            WHERE edge = -1 
-            ORDER BY start_vid ASC 
+            WHERE edge = -1
+            ORDER BY start_vid ASC
             LIMIT 1
         )
         -- Trích xuất hình học của con đường chiến thắng
@@ -145,11 +145,12 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
     );
 
     @Query(nativeQuery = true, value = """
-        SELECT id, name, address || ', ' || district AS address, status
-                FROM charging_station s
+        SELECT s.id, s.name, s.address || ', ' || s.district AS address, s.status, COUNT(p.id) AS numberOfChargingPoints
+                FROM charging_station s LEFT JOIN charging_point p ON s.id = p.charging_station_id
                 WHERE (LOWER(unaccent(s.name)) LIKE :keyword OR LOWER(unaccent(s.address || ' ' || s.district)) LIKE :keyword
                                    OR LOWER(unaccent(s.id)) LIKE :keyword) AND (:district IS NULL OR s.district = :district)
                                     AND s.manufacturer_id = :manufacturerId
+                GROUP BY s.id, s.name, s.address || ', ' || s.district, s.status
                 ORDER BY s.name ASC
 """, countQuery = """
             SELECT count(*)
@@ -166,9 +167,10 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
     );
 
     @Query(nativeQuery = true, value = """
-        SELECT id, name, address || ', ' || district AS address, status
-                FROM charging_station s
+        SELECT s.id, s.name, s.address || ', ' || s.district AS address, s.status, COUNT(p.id) AS numberOfChargingPoints
+                FROM charging_station s LEFT JOIN charging_point p ON s.id = p.charging_station_id
                 WHERE s.manufacturer_id = :manufacturerId AND (:district IS NULL OR s.district = :district)
+                GROUP BY s.id, s.name, s.address || ', ' || s.district, s.status
                 ORDER BY s.name ASC
 """, countQuery = """
             SELECT count(*)

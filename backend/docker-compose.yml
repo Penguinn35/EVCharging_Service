@@ -1,14 +1,14 @@
 services:
-  mqtt-broker:
-    image: eclipse-mosquitto
-    container_name: mqtt-broker
-    ports:
-      - "1883:1883"
-      - "9001:9001"
-    volumes:
-      - ./mosquitto/config:/mosquitto/config
-    networks:
-      - ev-network
+#  mqtt-broker:
+#    image: eclipse-mosquitto
+#    container_name: mqtt-broker
+#    ports:
+#      - "1883:1883"
+#      - "9001:9001"
+#    volumes:
+#      - ./mosquitto/config:/mosquitto/config
+#    networks:
+#      - ev-network
 
   app:
     env_file:
@@ -22,8 +22,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      mqtt-broker:
-        condition: service_started
+#      mqtt-broker:
+#        condition: service_started
 
   postgres:
     env_file:
@@ -83,20 +83,23 @@ services:
       app:
         condition: service_started
     command: >
-      sh -c "
-      echo 'Đang chờ Spring Boot (JPA) tạo schema (20s)...';
-      sleep 20;
-      
-      export PGPASSWORD=${DB_PASSWORD};
-      DATA_EXISTS=\$$(psql -h postgres -U ${DB_USERNAME} -d ${DB_NAME} -tAc \"SELECT EXISTS (SELECT 1 FROM charging_station LIMIT 1);\");
-      
-      if [ \"\$$DATA_EXISTS\" = \"t\" ]; then
-        echo 'Dữ liệu trạm sạc đã tồn tại. Bỏ qua seeding.';
-      else
-        echo 'Bắt đầu import simulated data...';
-        psql -h postgres -U ${DB_USERNAME} -d ${DB_NAME} -f /simulated_data/insert_data.sql;
-      fi
-      "
+      sh -c '
+            echo "Đang chờ Spring Boot (JPA) tạo schema (20s)..."
+            sleep 20
+
+            export PGPASSWORD=$$DB_PASSWORD
+
+            echo "Kiểm tra dữ liệu hiện tại..."
+            DATA_EXISTS=$$(psql -h postgres -U $$DB_USERNAME -d $$DB_NAME -tAc "SELECT EXISTS (SELECT 1 FROM charging_station LIMIT 1);")
+
+            if [ "$$DATA_EXISTS" = "t" ]; then
+              echo "Dữ liệu trạm sạc đã tồn tại. Bỏ qua seeding."
+            else
+              echo "Bắt đầu import simulated data..."
+              psql -h postgres -U $$DB_USERNAME -d $$DB_NAME -f /simulated_data/insert_data.sql
+              echo "Import hoàn tất!"
+            fi
+      '
     restart: "no"
     profiles:
       - setup

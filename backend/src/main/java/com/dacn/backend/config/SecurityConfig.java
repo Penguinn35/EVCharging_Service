@@ -46,19 +46,20 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request -> request.requestMatchers(
-                        "/auth/**",
-                        "/v3/api-docs/**",
-                        "/swagger-ui/**",
-                        "/swagger-ui.html",
-                        "/error"
-                ).permitAll()
-                .requestMatchers("/api/users/**").hasAuthority("CLIENT")
-                .requestMatchers("/api/business/**").hasAuthority("BUSINESS")
-                .requestMatchers(HttpMethod.POST, "/api/**").hasAuthority("CLIENT")
-                .requestMatchers(HttpMethod.PUT, "/api/**").hasAuthority("CLIENT")
-                .requestMatchers(HttpMethod.DELETE, "/api/**").hasAuthority("CLIENT")
-                .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
-                .anyRequest().authenticated())
+                                "/auth/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/error"
+                        ).permitAll()
+                        .requestMatchers("/api/users/**").hasAuthority("CLIENT")
+                        .requestMatchers("/api/business/**").hasAuthority("BUSINESS")
+                        .requestMatchers("/ocpi/cpo/**").hasAuthority("BUSINESS")
+                        .requestMatchers(HttpMethod.POST, "/api/**").hasAuthority("CLIENT")
+                        .requestMatchers(HttpMethod.PUT, "/api/**").hasAuthority("CLIENT")
+                        .requestMatchers(HttpMethod.DELETE, "/api/**").hasAuthority("CLIENT")
+                        .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
+                        .anyRequest().authenticated())
     /*
         Phân quyền:
         - CLIENT: dành cho khách
