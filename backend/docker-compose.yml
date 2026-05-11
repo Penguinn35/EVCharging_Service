@@ -1,14 +1,14 @@
 services:
-  mqtt-broker:
-    image: eclipse-mosquitto
-    container_name: mqtt-broker
-    ports:
-      - "1883:1883"
-      - "9001:9001"
-    volumes:
-      - ./mosquitto/config:/mosquitto/config
-    networks:
-      - ev-network
+#  mqtt-broker:
+#    image: eclipse-mosquitto
+#    container_name: mqtt-broker
+#    ports:
+#      - "1883:1883"
+#      - "9001:9001"
+#    volumes:
+#      - ./mosquitto/config:/mosquitto/config
+#    networks:
+#      - ev-network
 
   app:
     env_file:
@@ -22,8 +22,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      mqtt-broker:
-        condition: service_started
+#      mqtt-broker:
+#        condition: service_started
 
   postgres:
     env_file:
