@@ -1,0 +1,46 @@
+name: Deploy to Hostinger VPS
+
+# Kích hoạt quy trình này mỗi khi có code mới được Push lên nhánh 'main'
+on:
+  push:
+    branches:
+      - main 
+    paths:
+      - 'backend/**' # Chỉ kích hoạt khi có thay đổi trong thư mục backend
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+
+    steps:
+      # 1. Checkout code từ GitHub Repo sang máy chủ của GitHub Actions
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 2. Copy code mới từ GitHub Actions sang VPS thông qua SCP
+      - name: Copy code to VPS via SCP
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          source: "./backend/*" # Chỉ copy nội dung bên trong thư mục backend
+          target: "~/EVCharging_Service/backend" # Đảm bảo đúng đường dẫn thư mục backend trên VPS
+          rm: false # QUAN TRỌNG: Giữ lại false để KHÔNG xoá mất file .env và map_data hiện có
+
+      # 3. SSH vào VPS và chạy lệnh Docker Compose
+      - name: Build and Restart App
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          script: |
+            cd ~/EVCharging_Service/backend
+            
+            # Chỉ yêu cầu docker build và khởi động lại container 'app'
+            # Các container khác (postgres, mqtt) sẽ giữ nguyên trạng thái đang chạy
+            docker compose up -d --build app
+            
+            # (Tuỳ chọn) Xoá các image cũ lơ lửng để giải phóng ổ cứng cho VPS
+            docker image prune -f
