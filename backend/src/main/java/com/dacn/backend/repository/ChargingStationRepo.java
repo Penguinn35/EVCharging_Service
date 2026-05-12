@@ -127,7 +127,7 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
             SELECT start_vid, end_vid
             FROM routes
             WHERE edge = -1
-            ORDER BY start_vid ASC
+            ORDER BY agg_cost ASC
             LIMIT 1
         )
         -- Trích xuất hình học của con đường chiến thắng
