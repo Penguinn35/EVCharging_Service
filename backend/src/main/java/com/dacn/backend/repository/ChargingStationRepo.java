@@ -103,37 +103,29 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
     CoordinateDTO findPositionOfStation(@Param("stationId") String stationId);
 
     @Query(nativeQuery = true, value = """
-        WITH start_nodes AS (
+        WITH start_node AS (
             SELECT source AS id FROM ways
+            WHERE component = 1
             ORDER BY the_geom <-> ST_SetSRID(ST_MakePoint(:startLon, :startLat), 4326)
-            LIMIT 10
+            LIMIT 1
         ),
-        end_nodes AS (
+        end_node AS (
             SELECT target AS id FROM ways
+            WHERE component = 1
             ORDER BY the_geom <-> ST_SetSRID(ST_MakePoint(:endLon, :endLat), 4326)
-            LIMIT 10
+            LIMIT 1
         ),
         -- pgr_dijkstra nhận vào array và tính toán tất cả tổ hợp
-        routes AS (
+        route AS (
             SELECT * FROM pgr_dijkstra(
-                'SELECT gid AS id, source, target, length_m AS cost, reverse_cost FROM ways',
-                (SELECT array_agg(id)::bigint[] FROM start_nodes),
-                (SELECT array_agg(id)::bigint[] FROM end_nodes),
+                'SELECT gid AS id, source, target, cost, reverse_cost FROM ways WHERE component = 1',
+                (SELECT id FROM start_node),
+                (SELECT id FROM end_node),
                 directed := true
             )
-        ),
-        -- Tìm cặp (start_vid, end_vid) có tổng chi phí (agg_cost) thấp nhất
-        best_pair AS (
-            SELECT start_vid, end_vid
-            FROM routes
-            WHERE edge = -1
-            ORDER BY agg_cost ASC # find by smallest cost
-            LIMIT 1
         )
-        -- Trích xuất hình học của con đường chiến thắng
         SELECT ST_AsGeoJSON(ST_Union(w.the_geom))
-        FROM routes r
-        JOIN best_pair bp ON r.start_vid = bp.start_vid AND r.end_vid = bp.end_vid
+        FROM route r
         JOIN ways w ON r.edge = w.gid
         WHERE r.edge != -1
         """)
