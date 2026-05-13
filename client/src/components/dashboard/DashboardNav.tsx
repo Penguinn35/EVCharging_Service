@@ -7,17 +7,17 @@ import { FiLayers, FiBarChart, FiMap } from "react-icons/fi";
 const tabs = [
   {
     href: "/dashboard/manage-stations",
-    label: "Manage Stations",
+    label: "Quản lý trạm",
     icon: FiLayers,
   },
   {
     href: "/dashboard/system-statistics",
-    label: "System Statistics",
+    label: "Thống kê hệ thống",
     icon: FiBarChart,
   },
   {
     href: "/dashboard/high-demand-heatmap",
-    label: "High Demand Spots",
+    label: "Bản đồ nhiệt",
     icon: FiMap,
   },
 ];
@@ -53,3 +53,4 @@ export function DashboardNav() {
     </div>
   );
 }
+

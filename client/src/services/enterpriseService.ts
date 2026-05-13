@@ -1,6 +1,16 @@
 import { ApiResponse } from "@/type/share";
 import { apiClient } from "@/lib/apiClient";
 
+export type BusinessProfile = {
+  companyName: string;
+  companyAddress: string;
+  taxCode: string;
+  logoUrl: string | null;
+  managerFullName: string;
+  managerEmail: string;
+  managerAddress: string;
+};
+
 export type BusinessStationSummary = {
   id: string;
   name: string;
@@ -46,7 +56,7 @@ export type BusinessStationRating = {
   timePosted: string;
 };
 
-export type BusinessStationRatingResponse = {
+export type BusinessStationRatingPage = {
   content: BusinessStationRating[];
   pageable: BusinessStationsPageable;
   last: boolean;
@@ -58,6 +68,22 @@ export type BusinessStationRatingResponse = {
   first: boolean;
   numberOfElements: number;
   empty: boolean;
+};
+
+export type BusinessStationTotalStatistics = {
+  totalNumberOfRatings: number;
+  averagePoint: number;
+};
+
+export type BusinessStationRatingStatistic = {
+  starPoint: number;
+  totalNumberOfRating: number;
+};
+
+export type BusinessStationRatingResponse = {
+  ratingResponses: BusinessStationRatingPage;
+  totalStatistics: BusinessStationTotalStatistics;
+  ratingStatistics: BusinessStationRatingStatistic[];
 };
 
 export type GetBusinessStationRatingsParams = {
@@ -74,6 +100,14 @@ export type GetBusinessStationsParams = {
   district?: string;
   page?: number;
   size?: number;
+};
+
+export const getBusinessProfile = async (): Promise<BusinessProfile> => {
+  const response = await apiClient.get<ApiResponse<BusinessProfile>>(
+    "/api/business/profile",
+  );
+
+  return response.data.responseData;
 };
 
 export const getBusinessStations = async (
@@ -167,3 +201,5 @@ export const getBusinessStationRatings = async (
 
   return response.data.responseData;
 };
+
+

@@ -28,6 +28,7 @@ export interface Connector {
   id: number;
   pointId: number;
   type: "Type 1" | "Type 2" | "CCS" | "CHAdeMO" | string;
-  maxPowerKW: number;
+  maxPower: number;
   voltageV: number;
+  available:boolean;
 }

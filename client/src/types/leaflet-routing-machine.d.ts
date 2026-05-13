@@ -11,7 +11,7 @@ declare module "leaflet" {
       fitSelectedRoutes?: boolean;
     }
 
-    interface IRouter {}
+    type IRouter = object;
 
     function control(options: RoutingControlOptions): L.Control;
     function graphHopper(apiKey: string | undefined, options?: object): IRouter;
@@ -20,3 +20,4 @@ declare module "leaflet" {
 
 declare module "leaflet-routing-machine" {}
 declare module "lrm-graphhopper" {}
+

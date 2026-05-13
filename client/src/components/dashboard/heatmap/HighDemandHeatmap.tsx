@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useRef, useState } from "react";
-import L from "leaflet";
+import type * as Leaflet from "leaflet";
 import { heatmapData } from "@/lib/data/heatmap";
 import { FiCalendar, FiInfo, FiLayers } from "react-icons/fi";
 
@@ -10,8 +10,9 @@ type DateFilter = "day" | "week" | "month" | "custom";
 
 export function HighDemandHeatmap() {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<L.Map | null>(null);
-  const markerLayerRef = useRef<L.LayerGroup | null>(null);
+  const mapRef = useRef<Leaflet.Map | null>(null);
+  const markerLayerRef = useRef<Leaflet.LayerGroup | null>(null);
+  const leafletRef = useRef<typeof Leaflet | null>(null);
 
   const layersButtonRef = useRef<HTMLButtonElement>(null);
   const timeButtonRef = useRef<HTMLButtonElement>(null);
@@ -39,37 +40,51 @@ export function HighDemandHeatmap() {
   } as const;
 
   useEffect(() => {
-    if (!mapContainer.current || mapRef.current) return;
+    let isMounted = true;
 
-    mapRef.current = L.map(mapContainer.current, {
-      zoomControl: false,
-    }).setView([40.7128, -74.006], 11);
+    const initMap = async () => {
+      if (!mapContainer.current || mapRef.current) return;
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      maxZoom: 19,
-    }).addTo(mapRef.current);
+      const L = await import("leaflet");
+      if (!isMounted || !mapContainer.current || mapRef.current) return;
 
-    L.control
-      .zoom({
-        position: "bottomright",
-      })
-      .addTo(mapRef.current);
+      leafletRef.current = L;
+      mapRef.current = L.map(mapContainer.current, {
+        zoomControl: false,
+      }).setView([40.7128, -74.006], 11);
 
-    markerLayerRef.current = L.layerGroup().addTo(mapRef.current);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 19,
+      }).addTo(mapRef.current);
+
+      L.control
+        .zoom({
+          position: "bottomright",
+        })
+        .addTo(mapRef.current);
+
+      markerLayerRef.current = L.layerGroup().addTo(mapRef.current);
+    };
+
+    void initMap();
 
     return () => {
+      isMounted = false;
       mapRef.current?.remove();
       mapRef.current = null;
       markerLayerRef.current = null;
+      leafletRef.current = null;
     };
   }, []);
 
   useEffect(() => {
-    if (!markerLayerRef.current) return;
+    if (!markerLayerRef.current || !leafletRef.current) return;
 
-    markerLayerRef.current.clearLayers();
+    const L = leafletRef.current;
+    const markerLayer = markerLayerRef.current;
+    markerLayer.clearLayers();
 
     heatmapData.forEach((point) => {
       if (activeLayer !== "all" && point.type !== layerTypeMap[activeLayer]) {
@@ -86,7 +101,7 @@ export function HighDemandHeatmap() {
         fillOpacity: opacity * 0.6,
         weight: 2,
         radius: radius * 400,
-      }).addTo(markerLayerRef.current!);
+      }).addTo(markerLayer);
 
       const typeLabel = {
         user_recommendation: "User Recommendation",
@@ -131,7 +146,6 @@ export function HighDemandHeatmap() {
       <div className="relative h-full w-full bg-gray-100 overflow-hidden">
         <div ref={mapContainer} className="absolute inset-0" />
 
-        {/* Floating controls */}
         <div className="absolute top-4 left-4 z-[1000] flex flex-col gap-3">
           <button
             ref={layersButtonRef}
@@ -152,7 +166,6 @@ export function HighDemandHeatmap() {
           </button>
         </div>
 
-        {/* Expandable filter panels */}
         {showLayerFilters && (
           <div
             ref={layersPanelRef}
@@ -166,7 +179,7 @@ export function HighDemandHeatmap() {
                   activeLayer === "all" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
-                All
+                Táº¥t cáº£
               </button>
               <button
                 onClick={() => setActiveLayer("recommendation")}
@@ -176,7 +189,7 @@ export function HighDemandHeatmap() {
                     : "bg-green-100 text-green-700 hover:bg-green-200"
                 }`}
               >
-                Recommendations
+                Äiá»ƒm Ä‘Æ°á»£c gá»i Ã½
               </button>
               <button
                 onClick={() => setActiveLayer("location")}
@@ -184,7 +197,7 @@ export function HighDemandHeatmap() {
                   activeLayer === "location" ? "bg-blue-600 text-white" : "bg-blue-100 text-blue-700 hover:bg-blue-200"
                 }`}
               >
-                User Locations
+                Vá»‹ trÃ­ ngÆ°á»i dÃ¹ng
               </button>
               <button
                 onClick={() => setActiveLayer("full")}
@@ -192,7 +205,7 @@ export function HighDemandHeatmap() {
                   activeLayer === "full" ? "bg-red-600 text-white" : "bg-red-100 text-red-700 hover:bg-red-200"
                 }`}
               >
-                Full Status
+                CÃ¡c tráº¡m bá»‹ Ä‘áº§y
               </button>
             </div>
           </div>
@@ -241,7 +254,6 @@ export function HighDemandHeatmap() {
           </div>
         )}
 
-        {/* Minimal legend */}
         <div className="absolute bottom-4 left-4 z-[1000] rounded-xl bg-white/90 backdrop-blur border border-gray-200 shadow-md px-3 py-2">
           <div className="text-[11px] font-semibold text-gray-700 mb-1">Heatmap Layers</div>
           <div className="flex items-center gap-3 text-[11px] text-gray-700">
@@ -251,7 +263,6 @@ export function HighDemandHeatmap() {
           </div>
         </div>
 
-        {/* Hovered point information */}
         {selectedPoint && (
           <div className="absolute bottom-4 right-4 z-[1000] max-w-xs bg-white/95 backdrop-blur border border-blue-100 rounded-xl shadow-md p-3 flex items-start gap-2">
             <FiInfo className="w-4 h-4 text-blue-600 mt-0.5" />
@@ -261,8 +272,8 @@ export function HighDemandHeatmap() {
                 {selectedPoint.type === "user_recommendation"
                   ? "User Recommendation"
                   : selectedPoint.type === "user_location"
-                  ? "User Starting Location"
-                  : "Station Full Status"}
+                    ? "User Starting Location"
+                    : "Station Full Status"}
               </p>
               <p className="text-xs text-blue-700 font-medium">Intensity: {selectedPoint.intensity}%</p>
             </div>
@@ -272,3 +283,5 @@ export function HighDemandHeatmap() {
     </div>
   );
 }
+
+

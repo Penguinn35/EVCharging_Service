@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { AxiosError } from "axios";
 import { FaSearch } from "react-icons/fa";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { getStationNearBy } from "@/services/stationService";
@@ -20,11 +21,11 @@ const QuickSearch = () => {
     try {
       const response = await getStationNearBy(center);
 
-      const mapped: StationMarkerData[] = response.map((item: any) => ({
+      const mapped: StationMarkerData[] = response.map((item: StationMarkerData) => ({
         id: item.id,
         name: item.name,
         manufacturer: item.id.slice(-2),
-        coordinate: {
+        position: {
           latitude: item.position.latitude,
           longitude: item.position.longitude,
         },
@@ -36,8 +37,13 @@ const QuickSearch = () => {
       if (mapped.length === 0) {
         toast.info("No stations found nearby");
       }
-    } catch (error: any) {
-      if (error.response?.status === 404) {
+    } catch (error: unknown) {
+      const status =
+        error instanceof AxiosError && error.response
+          ? error.response.status
+          : undefined;
+
+      if (status === 404) {
         toast.error("Cannot find any nearby stations");
         setStationMarkers([]);
       } else {
@@ -65,3 +71,5 @@ const QuickSearch = () => {
 };
 
 export default QuickSearch;
+
+

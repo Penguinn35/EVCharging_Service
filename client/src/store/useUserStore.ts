@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { Coordinate } from "@/models/shared";
-import { StationSavedList } from "@/type/user";
+import { StationSavedList, UserRole } from "@/type/user";
 import {
   saveStation as saveStationApi,
   deleteSavedStation as deleteSavedStationApi,
@@ -12,6 +12,7 @@ interface User {
   email: string;
   name: string;
   address: string;
+  role: UserRole | "";
   accessToken: string;
   vehiclePlug: "Type 2" | "CCS2" | "Both";
   coordinate: Coordinate | null;
@@ -31,6 +32,7 @@ const defaultUser: User = {
   email: "",
   name: "",
   address: "",
+  role: "",
   accessToken: "",
   vehiclePlug: "Both",
   coordinate: null,

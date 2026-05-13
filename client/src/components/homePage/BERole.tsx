@@ -24,7 +24,6 @@ const SPEED = 0.5;
 export default function FERole() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [tags, setTags] = useState<Tag[]>([]);
-  const [hover, setHover] = useState(false);
 
   // init tags
   useEffect(() => {
@@ -135,7 +134,7 @@ export default function FERole() {
         const width = rect.width;
         const height = rect.height;
 
-        let next = prev.map((t) => {
+        const next = prev.map((t) => {
           let nx = t.x + t.vx;
           let ny = t.y + t.vy;
           let vx = t.vx;
@@ -279,7 +278,7 @@ export default function FERole() {
               Backend developer
             </h3>
             <p className="text-gray-500 text-xs mt-1">
-              "Pointer pointing to a pointer, wich pointing to a pointer,..."
+              &quot;Pointer pointing to a pointer, wich pointing to a pointer,...&quot;
             </p>
           </div>
 

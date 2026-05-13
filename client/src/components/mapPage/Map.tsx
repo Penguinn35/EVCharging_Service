@@ -18,14 +18,30 @@ import { getStationById } from "@/services/stationService";
 import { toast } from "react-toastify";
 import { useMapStore } from "@/store/useMapStore";
 
+type LeafletModule = typeof import("leaflet");
+
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: markerIcon2x,
   iconUrl: markerIcon,
   shadowUrl: markerShadow,
 });
 
+const LOGO_VARIANTS = [
+  { src: "/CPOLogo/datbike.png", alt: "Dat Bike", weight: 15 },
+  { src: "/CPOLogo/eboost.png", alt: "eBoost", weight: 35 },
+  { src: "/CPOLogo/vgreen.png", alt: "V-Green", weight: 50 },
+];
+
+const getRandomMarkerLogo = () => {
+  const pick = Math.random() * 100;
+
+  if (pick < 50) return LOGO_VARIANTS[0];
+  if (pick < 80) return LOGO_VARIANTS[1];
+  return LOGO_VARIANTS[2];
+};
+
 const CustomMarker = ({ station }: { station: StationMarkerData }) => {
-  const [L, setLeaflet] = useState<any>(null);
+  const [leaflet, setLeaflet] = useState<LeafletModule | null>(null);
   const selectStation = useStationStore((state) => state.selectStation);
   const clearRouting = useRoutingStore((s) => s.clearRouting);
   const [loading, setLoading] = useState(false);
@@ -35,8 +51,8 @@ const CustomMarker = ({ station }: { station: StationMarkerData }) => {
       setLoading(true);
       const data = await getStationById(stationId);
       selectStation(data);
-    } catch (err: any) {
-      toast.error(err?.message || "Failed to fetch station");
+    } catch (err) {
+      toast.error( "Failed to fetch station");
     } finally {
       setLoading(false);
     }
@@ -48,24 +64,28 @@ const CustomMarker = ({ station }: { station: StationMarkerData }) => {
     });
   }, []);
 
-  if (!L) return null;
+  const [markerLogo] = useState(() => getRandomMarkerLogo());
 
-  const markerIcon = L.divIcon({
+  if (!leaflet) return null;
+
+  const markerIcon = leaflet.divIcon({
     className: "custom-marker",
     html: `
-      <div class="pin status-${station.status}">
-        <div class="pin-inner">
-          <span class="brand">${station.manufacturer}</span>
+      <div class="marker-shell">
+        <div class="marker-outer-ring">
+          <div class="marker-inner-circle">
+            <img class="marker-logo" src="${markerLogo.src}" alt="${markerLogo.alt}" />
+          </div>
         </div>
       </div>
     `,
-    iconSize: [42, 48],
-    iconAnchor: [21, 48],
+    iconSize: [52, 52],
+    iconAnchor: [26, 26],
   });
 
   return (
     <Marker
-      position={[station.coordinate.latitude, station.coordinate.longitude]}
+      position={[station.position.latitude, station.position.longitude]}
       icon={markerIcon}
       eventHandlers={{
         click: () => {
@@ -141,3 +161,8 @@ export default function Map() {
     </MapContainer>
   );
 }
+
+
+
+
+
