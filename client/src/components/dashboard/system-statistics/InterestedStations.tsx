@@ -117,7 +117,7 @@ export function InterestedStations() {
             <div className="flex items-start justify-between mb-3 gap-3">
               <div>
                 <div className="text-sm font-semibold text-gray-500 uppercase">
-                  #{index + 1} Top Station
+                  #{index + 1}
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mt-1">{station.stationName}</h3>
               </div>
@@ -131,7 +131,7 @@ export function InterestedStations() {
                 <span className="text-3xl font-bold text-green-600">
                   {station.sumOfViewDetailCount}
                 </span>
-                <span className="text-sm text-gray-600">detail views</span>
+                <span className="text-sm text-gray-600">lượt quan tâm</span>
               </div>
             </div>
           </div>
@@ -146,7 +146,7 @@ export function InterestedStations() {
 
       <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <h3 className="text-lg font-semibold text-gray-900">All Stations Interest Ranking</h3>
+          <h3 className="text-lg font-semibold text-gray-900">Thống kê lượt xem chi tiết</h3>
 
           <div className="flex flex-wrap items-center gap-3">
             <FiCalendar className="w-5 h-5 text-gray-600" />
@@ -199,11 +199,11 @@ export function InterestedStations() {
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Rank</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Station Name</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Address</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">District</th>
-                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase">Detail Views</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Hạng</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Tên trạm sạc</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Địa chỉ</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Quận</th>
+                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase">Lượt xem</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">

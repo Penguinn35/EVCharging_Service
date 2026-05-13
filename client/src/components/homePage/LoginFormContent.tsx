@@ -4,11 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { FiUser, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
 import { FcGoogle } from "react-icons/fc";
-import { Header } from "@/components/homePage/Header";
 import { ApiError } from "@/lib/apiClient";
 import { useRouter } from "next/navigation";
 import { loginType } from "@/models/user";
 import { login, getUserDetails } from "@/services/userService";
+import { getBusinessProfile } from "@/services/enterpriseService";
+import { useEnterpriseStore } from "@/store/useEnterpriseStore";
 import { useUserStore } from "@/store/useUserStore";
 import { toast } from "react-toastify";
 
@@ -50,7 +51,21 @@ export default function LoginFormContent({
       useUserStore.getState().updateUser({
         accessToken: result.token,
         isLogedin: true,
+        name: result.user.fullName,
+        email: result.user.email,
+        address: result.user.address ?? "",
+        role: result.user.role,
       });
+
+      if (result.user.role === "BUSINESS") {
+        const businessProfile = await getBusinessProfile();
+        useEnterpriseStore.getState().updateEnterprise(businessProfile);
+
+        toast.success("Logged in");
+        closeModal();
+        router.push("/dashboard");
+        return;
+      }
 
       const userDetail = await getUserDetails();
 
@@ -68,6 +83,7 @@ export default function LoginFormContent({
       const error = err as ApiError;
 
       useUserStore.getState().clearUser();
+      useEnterpriseStore.getState().clearEnterprise();
       console.error("Login failed:", error.message);
       toast.error("Login failed");
     } finally {
@@ -78,7 +94,6 @@ export default function LoginFormContent({
   return (
     <div>
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Username */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Username
@@ -100,7 +115,6 @@ export default function LoginFormContent({
           </div>
         </div>
 
-        {/* Password */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Mật khẩu
@@ -134,7 +148,6 @@ export default function LoginFormContent({
           </div>
         </div>
 
-        {/* Remember & Forgot */}
         <div className="flex items-center justify-between">
           <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
             <input
@@ -152,7 +165,6 @@ export default function LoginFormContent({
           </Link>
         </div>
 
-        {/* Login button */}
         <button
           type="submit"
           disabled={loading || !formData.username || !formData.password}
@@ -161,7 +173,6 @@ export default function LoginFormContent({
           {loading ? "Đang đăng nhập..." : "Đăng Nhập"}
         </button>
 
-        {/* Divider */}
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-gray-300"></div>
@@ -174,7 +185,6 @@ export default function LoginFormContent({
           </div>
         </div>
 
-        {/* Google login */}
         <button
           type="button"
           className="w-full flex items-center justify-center gap-3 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium"

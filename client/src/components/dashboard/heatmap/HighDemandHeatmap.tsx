@@ -166,7 +166,7 @@ export function HighDemandHeatmap() {
                   activeLayer === "all" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
-                All
+                Tất cả
               </button>
               <button
                 onClick={() => setActiveLayer("recommendation")}
@@ -176,7 +176,7 @@ export function HighDemandHeatmap() {
                     : "bg-green-100 text-green-700 hover:bg-green-200"
                 }`}
               >
-                Recommendations
+                Điểm được gọi ý
               </button>
               <button
                 onClick={() => setActiveLayer("location")}
@@ -184,7 +184,7 @@ export function HighDemandHeatmap() {
                   activeLayer === "location" ? "bg-blue-600 text-white" : "bg-blue-100 text-blue-700 hover:bg-blue-200"
                 }`}
               >
-                User Locations
+                Vị trí người dùng
               </button>
               <button
                 onClick={() => setActiveLayer("full")}
@@ -192,7 +192,7 @@ export function HighDemandHeatmap() {
                   activeLayer === "full" ? "bg-red-600 text-white" : "bg-red-100 text-red-700 hover:bg-red-200"
                 }`}
               >
-                Full Status
+                Các trạm bị đầy
               </button>
             </div>
           </div>

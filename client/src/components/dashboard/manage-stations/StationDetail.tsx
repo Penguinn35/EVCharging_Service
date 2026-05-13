@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
-import { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ChangeEvent, SyntheticEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   FiArrowLeft,
   FiChevronLeft,
@@ -41,6 +41,17 @@ type StationStatusLabel = "AVAILABLE" | "BUSY" | "FULL" | "OFF";
 const FALLBACK_IMAGE =
   "https://images.unsplash.com/photo-1593941707882-a5bac6861d75?w=1200&h=600&fit=crop";
 const DEFAULT_RATING_PAGE_SIZE = 10;
+
+const handleImageError = (event: SyntheticEvent<HTMLImageElement, Event>) => {
+  if (event.currentTarget.src === FALLBACK_IMAGE) {
+    event.currentTarget.onerror = null;
+    event.currentTarget.src =
+      "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 600'%3E%3Crect width='1200' height='600' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%236b7280' font-family='Arial, sans-serif' font-size='42'%3EImage unavailable%3C/text%3E%3C/svg%3E";
+    return;
+  }
+
+  event.currentTarget.src = FALLBACK_IMAGE;
+};
 
 const mapStationStatus = (status: number): StationStatusLabel => {
   switch (status) {
@@ -303,7 +314,7 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
           className="inline-flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200"
         >
           <FiArrowLeft className="h-4 w-4" />
-          Back to Stations
+          Quay lại bảng trạm
         </Link>
         <div className="rounded-lg border border-gray-200 bg-white px-4 py-16 text-center text-sm text-gray-500">
           Loading station details...
@@ -320,7 +331,7 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
           className="inline-flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200"
         >
           <FiArrowLeft className="h-4 w-4" />
-          Back to Stations
+          Quay lại bảng trạm
         </Link>
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-8 text-sm text-red-700">
           {error}
@@ -340,7 +351,7 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
         className="inline-flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200"
       >
         <FiArrowLeft className="h-4 w-4" />
-        Back to Stations
+        Quay lại bảng trạm
       </Link>
 
       {error ? (
@@ -366,9 +377,7 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
               src={displayImage}
               alt={station.name}
               className="h-full w-full object-cover"
-              onError={(event) => {
-                event.currentTarget.src = FALLBACK_IMAGE;
-              }}
+              onError={handleImageError}
             />
           </button>
 
@@ -415,7 +424,7 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
             className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {uploading ? <FiLoader className="h-4 w-4 animate-spin" /> : <FiUpload className="h-4 w-4" />}
-            Add image
+            Thêm ảnh
           </button>
 
           {images.length > 0 ? (
@@ -431,7 +440,7 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
                 ) : (
                   <FiEdit2 className="h-4 w-4" />
                 )}
-                Replace current
+                Thay ảnh này
               </button>
               <button
                 type="button"
@@ -444,7 +453,7 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
                 ) : (
                   <FiTrash2 className="h-4 w-4" />
                 )}
-                Delete current
+                Xóa ảnh
               </button>
             </>
           ) : null}
@@ -466,9 +475,7 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
                     src={image.url}
                     alt={`${station.name} ${index + 1}`}
                     className="h-full w-full object-cover"
-                    onError={(event) => {
-                      event.currentTarget.src = FALLBACK_IMAGE;
-                    }}
+                    onError={handleImageError}
                   />
                 </button>
                 <input
@@ -487,7 +494,7 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
                     className="inline-flex items-center gap-1 text-xs"
                   >
                     <FiEdit2 className="h-3 w-3" />
-                    Edit
+                    Sửa
                   </button>
                   <button
                     type="button"
@@ -495,7 +502,7 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
                     className="inline-flex items-center gap-1 text-xs"
                   >
                     <FiTrash2 className="h-3 w-3" />
-                    Delete
+                    Xóa
                   </button>
                 </div>
               </div>
@@ -504,7 +511,7 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
         ) : (
           <div className="flex items-center gap-3 border-t border-gray-200 px-4 py-8 text-sm text-gray-500">
             <FiImage className="h-5 w-5" />
-            This station does not have any images yet.
+            Trạm này hiện chưa có ảnh.
           </div>
         )}
       </div>
@@ -522,9 +529,7 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
               src={displayImage}
               alt={`${station.name} full preview`}
               className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain shadow-2xl"
-              onError={(event) => {
-                event.currentTarget.src = FALLBACK_IMAGE;
-              }}
+              onError={handleImageError}
             />
           </div>
         </div>
@@ -537,38 +542,38 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
             <FiMapPin className="h-4 w-4" />
             <span>{station.address}</span>
           </div>
-          <div className="text-sm text-gray-500">Manufacturer: {station.manufacturer}</div>
+          <div className="text-sm text-gray-500">Quản lý: {station.manufacturer}</div>
         </div>
 
         <div className="space-y-2">
-          <div className="text-sm font-medium text-gray-600">Status</div>
+          <div className="text-sm font-medium text-gray-600">Trạng thái</div>
           <span className={`inline-flex rounded-full px-3 py-1 text-sm font-semibold ${statusColors[statusLabel]}`}>
             {statusLabel}
           </span>
         </div>
 
         <div className="space-y-2">
-          <div className="text-sm font-medium text-gray-600">District</div>
+          <div className="text-sm font-medium text-gray-600">Quận</div>
           <div className="font-semibold text-gray-900">{station.district}</div>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <div className="mb-2 text-xs font-medium uppercase text-gray-600">Connectors</div>
+          <div className="mb-2 text-xs font-medium uppercase text-gray-600">Đầu sạc</div>
           <div className="text-2xl font-bold text-green-600">{station.connectors.length}</div>
-          <div className="mt-1 text-xs text-gray-500">{availableConnectors.length} available</div>
+          <div className="mt-1 text-xs text-gray-500">{availableConnectors.length} đang hoạt động</div>
         </div>
 
         <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <div className="mb-2 text-xs font-medium uppercase text-gray-600">Coordinates</div>
+          <div className="mb-2 text-xs font-medium uppercase text-gray-600">Tọa độ</div>
           <div className="break-all font-mono text-sm text-gray-900">
             {station.position.latitude.toFixed(4)}, {station.position.longitude.toFixed(4)}
           </div>
         </div>
 
         <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <div className="mb-2 text-xs font-medium uppercase text-gray-600">Connector Types</div>
+          <div className="mb-2 text-xs font-medium uppercase text-gray-600">Đầu sạc</div>
           <div className="space-y-1">
             {connectorTypes.length > 0 ? (
               connectorTypes.map((type) => (
@@ -577,13 +582,13 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
                 </div>
               ))
             ) : (
-              <div className="text-sm text-gray-500">No connectors</div>
+              <div className="text-sm text-gray-500">Trống</div>
             )}
           </div>
         </div>
 
         <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <div className="mb-2 text-xs font-medium uppercase text-gray-600">Max Power</div>
+          <div className="mb-2 text-xs font-medium uppercase text-gray-600">Công suất</div>
           <div className="space-y-1">
             {maxPowers.length > 0 ? (
               maxPowers.map((power) => (
@@ -599,18 +604,18 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
       </div>
 
       <div className="rounded-lg border border-gray-200 bg-white p-6">
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">Charging Points</h2>
-        {station.connectors.length > 0 ? (
+        <h2 className="mb-4 text-lg font-semibold text-gray-900">Điểm sạc</h2>
+        {/* {station.connectors.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="border-b border-gray-200 bg-gray-50">
                 <tr>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">Connector ID</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">Connector Type</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">Voltage</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">Max Power</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">Price</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">Availability</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">Đầu sạc</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">Nguồn</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">Công suất</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">Giá</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">Trạng thái</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -634,14 +639,16 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
             </table>
           </div>
         ) : (
-          <div className="text-sm text-gray-500">No connector data available.</div>
-        )}
+          <div className="text-sm text-gray-500">Không có dữ liệu.</div>
+        )} */}
+          <div className="text-sm text-gray-500">Không có dữ liệu.</div>
+
       </div>
 
       <div className="rounded-lg border border-gray-200 bg-white p-6">
         <div className="mb-4 flex items-center gap-2">
           <FiStar className="h-5 w-5 text-amber-500" />
-          <h2 className="text-lg font-semibold text-gray-900">Ratings & Reviews</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Đánh giá</h2>
         </div>
 
         {ratingsError ? (
@@ -652,12 +659,12 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
           <div className="rounded-lg bg-gray-50 p-4">
-            <div className="text-sm font-medium text-gray-600">Average Rating</div>
+            <div className="text-sm font-medium text-gray-600">Điểm trung bình</div>
             <div className="mt-2 flex items-end gap-2">
               <span className="text-3xl font-bold text-amber-500">{averageRating.toFixed(1)}</span>
               <span className="text-sm text-gray-500">/ 5</span>
             </div>
-            <div className="mt-1 text-sm text-gray-500">{totalRatings} total reviews</div>
+            <div className="mt-1 text-sm text-gray-500">Tổng: {totalRatings}</div>
 
             <div className="mt-5 space-y-3">
               {ratingDistribution.map((item) => {
@@ -740,7 +747,7 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
 
             {!isRatingsLoading && !ratingsError && (ratingsData?.content.length ?? 0) === 0 ? (
               <div className="rounded-lg border border-dashed border-gray-300 px-4 py-10 text-center text-sm text-gray-500">
-                No ratings found for this station.
+                Chưa có đánh giá.
               </div>
             ) : null}
           </div>
@@ -750,15 +757,15 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
       <div className="rounded-lg border border-gray-200 bg-white p-6">
         <div className="mb-4 flex items-center gap-2">
           <FiZap className="h-5 w-5 text-green-600" />
-          <h2 className="text-lg font-semibold text-gray-900">Station Overview</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Định vị</h2>
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="rounded-lg bg-gray-50 p-4">
-            <div className="text-sm font-medium text-gray-600">Full Address</div>
+            <div className="text-sm font-medium text-gray-600">Địa chỉ</div>
             <div className="mt-1 text-sm text-gray-900">{station.address}</div>
           </div>
           <div className="rounded-lg bg-gray-50 p-4">
-            <div className="text-sm font-medium text-gray-600">Location</div>
+            <div className="text-sm font-medium text-gray-600">Tọa độ</div>
             <div className="mt-1 text-sm text-gray-900">
               {station.position.latitude}, {station.position.longitude}
             </div>
@@ -768,4 +775,5 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
     </div>
   );
 }
+
 

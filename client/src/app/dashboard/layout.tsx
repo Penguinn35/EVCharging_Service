@@ -19,7 +19,7 @@ export default function DashboardLayout({
         className={
           isHeatmapPage
             ? "flex-1 min-h-0 overflow-hidden"
-            : "flex-1 min-h-0 overflow-y-auto max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8"
+            : "flex-1 min-h-0 overflow-y-auto w-full px-4 sm:px-6 lg:px-8 py-8"
         }
       >
         {children}
@@ -27,3 +27,4 @@ export default function DashboardLayout({
     </div>
   );
 }
+

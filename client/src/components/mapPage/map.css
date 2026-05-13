@@ -1,49 +1,41 @@
-.custom-marker {
+﻿.custom-marker {
   background: none;
   border: none;
 }
 
-/* Outer pin */
-.pin {
-  position: relative;
-  width: 42px;
-  height: 42px;
-  background: green; /* status color */
-  border-radius: 50% 50% 50% 0;
-  transform: rotate(-45deg);
-}
-
-/* Inner white circle */
-.pin-inner {
-  position: absolute;
-  top: 6px;
-  left: 6px;
-  width: 30px;
-  height: 30px;
-  background: white;
-  border-radius: 50%;
+.marker-shell {
   display: flex;
   align-items: center;
   justify-content: center;
-  transform: rotate(45deg);
+  width: 52px;
+  height: 52px;
 }
 
-/* Brand text/logo */
-.brand {
-  font-size: 12px;
-  font-weight: bold;
-  color: black;
+.marker-outer-ring {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 9999px;
+  background: #0bb44c;
+  box-shadow: 0 10px 24px rgba(29, 78, 216, 0.25);
 }
 
-/* Status colors */
-.status-available {
-  background: #34c759;
+.marker-inner-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  background: #ffffff;
+  overflow: hidden;
 }
 
-.status-busy {
-  background: #ff9500;
-}
-
-.status-full {
-  background: #ff3b30;
+.marker-logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 9999px;
+  object-fit: cover;
 }

@@ -14,30 +14,31 @@ export function SystemStatistics() {
   const tabs = [
     {
       id: "interested" as StatisticsTab,
-      label: "User Interest",
+      label: "Người dùng quan tâm",
       icon: FiTrendingUp,
-      description: "Top interested stations and brand comparison",
+      description: "Các trạm có mức độ quan tâm cao",
     },
     {
       id: "ratings" as StatisticsTab,
-      label: "Ratings & Reviews",
+      label: "Đánh giá",
       icon: FiStar,
-      description: "User ratings and feedback by score",
+      description: "Xếp hạng và phản hồi của người dùng",
     },
     {
       id: "saved" as StatisticsTab,
-      label: "My Saved Stations",
+      label: "Lượt lưu trạm",
       icon: FiBookmark,
-      description: "Your bookmarked stations and preferences",
+      description: "Các trạm được lưu lại nhiều",
     },
   ];
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">System Statistics</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Thống kê hệ thống</h2>
         <p className="text-gray-600 mt-1">
-          Insights on user engagement, ratings, and preferences
+          Thông tin chi tiết về mức độ tương tác, xếp hạng và sở thích của người dùng
+
         </p>
       </div>
 

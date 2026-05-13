@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import L from "leaflet";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import { useEffect, useState } from "react";
@@ -24,6 +24,20 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
+const LOGO_VARIANTS = [
+  { src: "/CPOLogo/datbike.png", alt: "Dat Bike", weight: 15 },
+  { src: "/CPOLogo/eboost.png", alt: "eBoost", weight: 35 },
+  { src: "/CPOLogo/vgreen.png", alt: "V-Green", weight: 50 },
+];
+
+const getRandomMarkerLogo = () => {
+  const pick = Math.random() * 100;
+
+  if (pick < 50) return LOGO_VARIANTS[0];
+  if (pick < 80) return LOGO_VARIANTS[1];
+  return LOGO_VARIANTS[2];
+};
+
 const CustomMarker = ({ station }: { station: StationMarkerData }) => {
   const [L, setLeaflet] = useState<any>(null);
   const selectStation = useStationStore((state) => state.selectStation);
@@ -48,19 +62,23 @@ const CustomMarker = ({ station }: { station: StationMarkerData }) => {
     });
   }, []);
 
+  const [markerLogo] = useState(() => getRandomMarkerLogo());
+
   if (!L) return null;
 
   const markerIcon = L.divIcon({
     className: "custom-marker",
     html: `
-      <div class="pin status-${station.status}">
-        <div class="pin-inner">
-          <span class="brand">${station.manufacturer}</span>
+      <div class="marker-shell">
+        <div class="marker-outer-ring">
+          <div class="marker-inner-circle">
+            <img class="marker-logo" src="${markerLogo.src}" alt="${markerLogo.alt}" />
+          </div>
         </div>
       </div>
     `,
-    iconSize: [42, 48],
-    iconAnchor: [21, 48],
+    iconSize: [52, 52],
+    iconAnchor: [26, 26],
   });
 
   return (
@@ -141,3 +159,5 @@ export default function Map() {
     </MapContainer>
   );
 }
+
+

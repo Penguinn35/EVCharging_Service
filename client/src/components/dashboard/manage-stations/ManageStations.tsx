@@ -48,7 +48,7 @@ const mapStationsForTable = (
     id: station.id,
     name: station.name,
     address: station.address,
-    district: station.district ?? "Unknown",
+    district: station.district ?? "Khong ro",
     status: mapStatusToLabel(station.status),
     availablePoints: station.points ?? 0,
     totalPoints: station.points ?? 0,
@@ -87,7 +87,7 @@ export function ManageStations() {
       setPagination(response);
       setCurrentPage(response.number);
     } catch {
-      setError("Failed to load stations.");
+      setError("Khong the tai danh sach tram.");
     } finally {
       setIsRefreshing(false);
       setIsLoading(false);
@@ -125,7 +125,7 @@ export function ManageStations() {
         ),
       );
     } catch {
-      setError("Failed to toggle station status.");
+      setError("Khong the thay doi trang thai tram.");
     } finally {
       setTogglingStationIds((prev) => prev.filter((id) => id !== stationId));
     }
@@ -135,9 +135,9 @@ export function ManageStations() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Manage Stations</h2>
+          <h2 className="text-2xl font-bold text-gray-900">Quản lý trạm</h2>
           <p className="text-gray-600 mt-1">
-            View and control charging station status
+            Xem và điều khiển trạng thái các trạm
           </p>
         </div>
         <div className="flex gap-3">
@@ -158,7 +158,7 @@ export function ManageStations() {
         </div>
       ) : isLoading ? (
         <div className="rounded-lg border border-gray-200 bg-white px-4 py-8 text-center text-sm text-gray-500">
-          Loading stations...
+         Đang tải danh sách trạm...
         </div>
       ) : (
         <StationsTable
@@ -181,9 +181,10 @@ export function ManageStations() {
 
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <p className="text-sm text-blue-800">
-          <strong>Status Legend:</strong> Green = Available, Yellow = Busy, Orange = Full, Gray = Offline
+          <strong>Chú thích trạng thái:</strong> Xanh lá: Sănx sàng | vàng: bận | Cam: đầy | Xám: không xác định
         </p>
       </div>
     </div>
   );
 }
+
