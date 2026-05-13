@@ -52,7 +52,7 @@ const CustomMarker = ({ station }: { station: StationMarkerData }) => {
       const data = await getStationById(stationId);
       selectStation(data);
     } catch (err) {
-      toast.error( "Failed to fetch station");
+      toast.error("Failed to fetch station");
     } finally {
       setLoading(false);
     }
@@ -133,9 +133,13 @@ export default function Map() {
       zoomControl={false}
       style={{ height: "100vh", width: "100%" }}
     >
-      <TileLayer
+      {/* <TileLayer
         attribution="&copy; OpenStreetMap"
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      /> */}
+      <TileLayer
+        attribution="&copy; OpenStreetMap contributors"
+        url={`https://api.maptiler.com/maps/streets/{z}/{x}/{y}.png?key=${process.env.NEXT_PUBLIC_MAPTILER_KEY}`}
       />
       {coordinate && (
         <>
@@ -161,8 +165,3 @@ export default function Map() {
     </MapContainer>
   );
 }
-
-
-
-
-
