@@ -72,7 +72,7 @@ export default function QuickSuggest() {
         id: station.id,
         name: station.name,
         manufacturer: station.manufacturer,
-        coordinate: station.position,
+        position: station.position,
         status: String(station.status),
       };
 

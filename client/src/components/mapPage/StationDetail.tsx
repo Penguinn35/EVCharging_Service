@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ChargingStation } from "@/models/station";
+import { Connector } from "@/type/station";
 import { StationDetail as StationDetailType } from "@/type/station";
 import { BsFillLightningChargeFill } from "react-icons/bs";
 import { FaRegStar } from "react-icons/fa";
@@ -17,6 +17,13 @@ type StationDetailProps = {
   station: StationDetailType;
   onClose: () => void;
   distance?: number;
+};
+
+type GroupedConnector = {
+  maxPower: number;
+  voltage: number;
+  type: number;
+  count: number;
 };
 
 const statusColor = {
@@ -56,12 +63,15 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
     2: "CCS2",
     3: "CHAdeMO",
   };
-  const groupConnectors = (connectors: any[], available: boolean) => {
+  const groupConnectors = (
+    connectors: Connector[],
+    available: boolean,
+  ): GroupedConnector[] => {
     return Object.values(
       connectors
         .filter((c) => c.available === available)
         .sort((a, b) => b.maxPower - a.maxPower)
-        .reduce((acc: any, curr: any) => {
+        .reduce<Record<string, GroupedConnector>>((acc, curr) => {
           const key = `${curr.maxPower}-${curr.available}`;
 
           if (!acc[key]) {
@@ -150,7 +160,7 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
             </span>
           </div>
 
-          {availableGroups.map((group: any, index: number) => (
+          {availableGroups.map((group, index: number) => (
             <div
               key={index}
               className="shadow-md/30 shadow-green-500 rounded-2xl p-3 flex flex-row items-center"
@@ -185,7 +195,7 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
           </div>
         </div>
 
-        {busyGroups.map((group: any, index: number) => (
+        {busyGroups.map((group, index: number) => (
           <div
             key={index}
             className="shadow-md/30 shadow-gray-400 rounded-2xl p-3 flex flex-row items-center"
@@ -302,4 +312,5 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
 };
 
 export default StationDetail;
+
 

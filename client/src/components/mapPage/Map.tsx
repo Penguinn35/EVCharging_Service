@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import L from "leaflet";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import { useEffect, useState } from "react";
@@ -17,6 +17,8 @@ import { StationMarkerData } from "@/type/station";
 import { getStationById } from "@/services/stationService";
 import { toast } from "react-toastify";
 import { useMapStore } from "@/store/useMapStore";
+
+type LeafletModule = typeof import("leaflet");
 
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: markerIcon2x,
@@ -39,7 +41,7 @@ const getRandomMarkerLogo = () => {
 };
 
 const CustomMarker = ({ station }: { station: StationMarkerData }) => {
-  const [L, setLeaflet] = useState<any>(null);
+  const [leaflet, setLeaflet] = useState<LeafletModule | null>(null);
   const selectStation = useStationStore((state) => state.selectStation);
   const clearRouting = useRoutingStore((s) => s.clearRouting);
   const [loading, setLoading] = useState(false);
@@ -49,8 +51,8 @@ const CustomMarker = ({ station }: { station: StationMarkerData }) => {
       setLoading(true);
       const data = await getStationById(stationId);
       selectStation(data);
-    } catch (err: any) {
-      toast.error(err?.message || "Failed to fetch station");
+    } catch (err) {
+      toast.error( "Failed to fetch station");
     } finally {
       setLoading(false);
     }
@@ -64,9 +66,9 @@ const CustomMarker = ({ station }: { station: StationMarkerData }) => {
 
   const [markerLogo] = useState(() => getRandomMarkerLogo());
 
-  if (!L) return null;
+  if (!leaflet) return null;
 
-  const markerIcon = L.divIcon({
+  const markerIcon = leaflet.divIcon({
     className: "custom-marker",
     html: `
       <div class="marker-shell">
@@ -83,7 +85,7 @@ const CustomMarker = ({ station }: { station: StationMarkerData }) => {
 
   return (
     <Marker
-      position={[station.coordinate.latitude, station.coordinate.longitude]}
+      position={[station.position.latitude, station.position.longitude]}
       icon={markerIcon}
       eventHandlers={{
         click: () => {
@@ -159,5 +161,8 @@ export default function Map() {
     </MapContainer>
   );
 }
+
+
+
 
 

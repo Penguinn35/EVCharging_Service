@@ -41,7 +41,7 @@ export const getUsers = async () => {
 };
 
 export const createUser = async (data: registerType) => {
-  const response = await publicApiClient.post<ApiResponse<Boolean>>("/auth/register", data);
+  const response = await publicApiClient.post<ApiResponse<boolean>>("/auth/register", data);
   return response.data;
 };
 

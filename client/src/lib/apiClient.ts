@@ -39,7 +39,7 @@ apiClient.interceptors.response.use(
 
     if (error.response) {
       apiError = {
-        message: (error.response.data as any)?.message || "Request failed",
+        message: "Request failed",
         status: error.response.status,
       };
 

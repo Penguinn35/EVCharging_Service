@@ -25,8 +25,7 @@ const SPEED = 0.5;
 
 export default function FERole() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [tags, setTags] = useState<Tag[]>([]);
-  const [hover, setHover] = useState(false);
+  const [tags, setTags] = useState<Tag[]>([]); 
 
   // init tags
   useEffect(() => {
@@ -146,7 +145,7 @@ export default function FERole() {
         const width = rect.width;
         const height = rect.height;
 
-        let next = prev.map((t) => {
+        const next = prev.map((t) => {
           let nx = t.x + t.vx;
           let ny = t.y + t.vy;
           let vx = t.vx;
@@ -290,7 +289,7 @@ export default function FERole() {
               Frontend developer
             </h3>
             <p className="text-gray-500 text-xs mt-1">
-              "Dream become second life, if you can remember it"
+              &quot;Dream become second life, if you can remember it&quot;
             </p>
           </div>
 

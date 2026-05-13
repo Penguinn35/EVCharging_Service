@@ -9,7 +9,7 @@ export type StationMarkerData = {
   id: string;
   name: string;
   manufacturer: string;
-  coordinate: Coordinate;
+  position: Coordinate;
   status: string;
 };
 
