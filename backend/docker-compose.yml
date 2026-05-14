@@ -19,6 +19,7 @@ services:
       - "8080"
     networks:
       - ev-network
+      - traefik-proxy
     depends_on:
       postgres:
         condition: service_healthy
