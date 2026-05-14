@@ -16,7 +16,7 @@ services:
     restart: always
     build: .
     ports:
-      - "8090:8080"
+      - "8080"
     networks:
       - ev-network
     depends_on:
@@ -24,6 +24,12 @@ services:
         condition: service_healthy
 #      mqtt-broker:
 #        condition: service_started
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}.rule=Host(`${COMPOSE_PROJECT_NAME}.${TRAEFIK_HOST}`)"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}.entrypoints=websecure"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.${COMPOSE_PROJECT_NAME}.loadbalancer.server.port=8080"
 
   postgres:
     env_file:
@@ -107,6 +113,8 @@ services:
 networks:
   ev-network:
     driver: bridge
+  traefik-proxy:
+    external: true
 
 volumes:
   ev-data:
