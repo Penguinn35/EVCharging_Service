@@ -25,6 +25,7 @@ services:
         condition: service_healthy
 #      mqtt-broker:
 #        condition: service_started
+#This comment is for reuse
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik-proxy"
