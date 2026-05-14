@@ -24,7 +24,7 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USERNAME }}
           password: ${{ secrets.VPS_PASSWORD }}
-          source: "./backend/*" # Chỉ copy nội dung bên trong thư mục backend
+          source: "backend" # Chỉ copy nội dung bên trong thư mục backend
           target: "~/EVCharging_Service/backend" # Đảm bảo đúng đường dẫn thư mục backend trên VPS
           rm: false # QUAN TRỌNG: Giữ lại false để KHÔNG xoá mất file .env và map_data hiện có
 
