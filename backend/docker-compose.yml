@@ -15,8 +15,8 @@ services:
       - ".env"
     restart: always
     build: .
-    ports:
-      - "8080"
+    # ports:
+    #   - "8080"
     networks:
       - ev-network
       - traefik-proxy
@@ -27,6 +27,7 @@ services:
 #        condition: service_started
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=traefik-proxy"
       - "traefik.http.routers.${COMPOSE_PROJECT_NAME}.rule=Host(`${COMPOSE_PROJECT_NAME}.${TRAEFIK_HOST}`)"
       - "traefik.http.routers.${COMPOSE_PROJECT_NAME}.entrypoints=websecure"
       - "traefik.http.routers.${COMPOSE_PROJECT_NAME}.tls.certresolver=letsencrypt"
