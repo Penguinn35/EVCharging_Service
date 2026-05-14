@@ -78,6 +78,25 @@ services:
     profiles:
       - setup
 
+  map_data_configure:
+    image: postgres:16-alpine
+    env_file:
+      - ".env"
+    volumes:
+      - ./sql_script:/sql_script
+    networks:
+      - ev-network
+    depends_on:
+      osm-importer:
+        condition: service_completed_successfully
+    command: >
+      sh -c '
+            psql -h postgres -U $$DB_USERNAME -d $$DB_NAME -f /sql_script/ways_component.sql
+      '
+    restart: no
+    profiles:
+      - setup
+
   data-seeder:
     image: postgres:16-alpine
     env_file:
