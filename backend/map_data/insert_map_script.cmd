@@ -1,1 +1,0 @@
-docker run --rm -v ${PWD}:/map_data iboates/osm2pgrouting osm2pgrouting -f /map_data/hcmc.osm -h host.docker.internal -p 5432 -U postgres -d evchargingdb -W 0000 --conf /usr/share/osm2pgrouting/mapconfig.xml --clean
