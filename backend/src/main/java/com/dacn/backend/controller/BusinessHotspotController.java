@@ -1,6 +1,7 @@
 package com.dacn.backend.controller;
 
 import com.dacn.backend.dto.CoordinateDTO;
+import com.dacn.backend.dto.UserLocationHistoryDTO;
 import com.dacn.backend.object.ResponseObject;
 import com.dacn.backend.service.BusinessHotspotService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -35,8 +36,8 @@ public class BusinessHotspotController {
 
     @GetMapping("users/locations")
     @Operation(summary = "API trả về các dữ liệu vị trí khi người dùng gọi gợi ý trạm sạc")
-    public ResponseEntity<ResponseObject<List<CoordinateDTO>>> getUserLocationHistory() {
-        List<CoordinateDTO> response = hotspotService.getLocationHistory();
+    public ResponseEntity<ResponseObject<List<UserLocationHistoryDTO>>> getUserLocationHistory() {
+        List<UserLocationHistoryDTO> response = hotspotService.getLocationHistory();
         return new ResponseEntity<>(new ResponseObject<>(
                 HttpStatus.OK,
                 "Location history list returned",
