@@ -127,11 +127,11 @@ public class StationService {
 
         StationResponseDTO response = stationRepo.findByCableType(categories.getChargeCableType(), categories.getPosition().getLongitude(), categories.getPosition().getLatitude());
 
-//        UserLocationHistory userLocation = new UserLocationHistory();
-//        userLocation.setLocation(categories.getPosition());
-//        userLocation.setTimestamp(LocalDateTime.now());
-//        userLocation.setUser(eVUserRepo.getReferenceById(userId));
-//        userLocationHistoryRepo.save(userLocation);
+        UserLocationHistory userLocation = new UserLocationHistory();
+        userLocation.setLocation(categories.getPosition());
+        userLocation.setTimestamp(LocalDateTime.now());
+        userLocation.setUser(eVUserRepo.getReferenceById(userId));
+        userLocationHistoryRepo.save(userLocation);
 
         return response;
     }
