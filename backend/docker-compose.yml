@@ -57,16 +57,31 @@ services:
       timeout: 5s
       retries: 5
 
-  osm-importer:
-    image: iboates/osm2pgrouting
-    entrypoint: ["/bin/sh", "-c"]
-    command: >
-      "
-      export PGPASSWORD=${DB_PASSWORD};
-      
-      echo 'Đang import dữ liệu bản đồ...';
-      osm2pgrouting -f /map_data/hcmc.osm -h postgres -p ${DB_PORT} -U ${DB_USERNAME} -d ${DB_NAME} -W ${DB_PASSWORD} --conf /usr/share/osm2pgrouting/mapconfig.xml --clean;
-      "
+#  osm-importer:
+#    image: iboates/osm2pgrouting
+#    entrypoint: ["/bin/sh", "-c"]
+#    command: >
+#      "
+#      export PGPASSWORD=${DB_PASSWORD};
+#
+#      echo 'Đang import dữ liệu bản đồ...';
+#      osm2pgrouting -f /map_data/hcmc.osm -h postgres -p ${DB_PORT} -U ${DB_USERNAME} -d ${DB_NAME} -W ${DB_PASSWORD} --conf /usr/share/osm2pgrouting/mapconfig.xml --clean;
+#      "
+#    volumes:
+#      - ./map_data:/map_data
+#    networks:
+#      - ev-network
+#    depends_on:
+#      postgres:
+#        condition: service_healthy
+#    restart: "no"
+#    profiles:
+#      - setup
+
+  osm_importer:
+    image: postgres:16-alpine
+    env_file:
+      - ".env"
     volumes:
       - ./map_data:/map_data
     networks:
@@ -74,24 +89,11 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    restart: "no"
-    profiles:
-      - setup
-
-  map_data_configure:
-    image: postgres:16-alpine
-    env_file:
-      - ".env"
-    volumes:
-      - ./sql_script:/sql_script
-    networks:
-      - ev-network
-    depends_on:
-      osm-importer:
-        condition: service_completed_successfully
     command: >
       sh -c '
-            psql -h postgres -U $$DB_USERNAME -d $$DB_NAME -f /sql_script/ways_component.sql
+            export PGPASSWORD=$$DB_PASSWORD
+            echo "Importing map data"
+            psql -h postgres -U $$DB_USERNAME -d $$DB_NAME -f /map_data/hcmc_2po_4pgr.sql
       '
     restart: no
     profiles:
