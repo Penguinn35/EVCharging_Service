@@ -95,7 +95,7 @@ services:
             echo "Importing map data"
             psql -h postgres -U $$DB_USERNAME -d $$DB_NAME -f /map_data/hcmc_2po_4pgr.sql
       '
-    restart: no
+    restart: "no"
     profiles:
       - setup
 
