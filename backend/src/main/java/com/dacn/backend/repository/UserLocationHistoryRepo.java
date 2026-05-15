@@ -12,8 +12,8 @@ import java.util.List;
 @Repository
 public interface UserLocationHistoryRepo extends JpaRepository<UserLocationHistory, String> {
     @Query(nativeQuery = true, value = """
-SELECT longitude, latitude, timestamp
-FROM user_location_history
+SELECT u.longitude, u.latitude, u.timestamp
+FROM user_location_history u
 """)
     List<UserLocationHistoryDTO> getLocations();
 }
