@@ -5,6 +5,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "leaflet/dist/leaflet.css";
 import { AuthProvider } from "../context/AuthContext";
+import AuthModal from "@/components/auth/AuthModal";
 import { Header } from "@/components/homePage/Header";
 import Head from "next/head";
 const sairaFont = Saira({
@@ -32,6 +33,7 @@ export default function RootLayout({
         <AuthProvider>
           <main>
             {children}
+            <AuthModal />
             <ToastContainer
               position="top-right"
               autoClose={3000}

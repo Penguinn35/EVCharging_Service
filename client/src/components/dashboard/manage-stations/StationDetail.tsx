@@ -134,6 +134,8 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
   }, [stationId]);
 
   const loadRatings = useCallback(async () => {
+    console.log("in rating fetch");
+    
     setIsRatingsLoading(true);
     setRatingsError(null);
 

@@ -11,9 +11,8 @@ import {
 } from "@/services/userService";
 import { ApiError } from "@/lib/apiClient";
 import { useMapStore } from "@/store/useMapStore";
-import LoginFormContent from "../homePage/LoginFormContent";
-import RegisterFormContent from "../homePage/RegisterFormContent ";
 import { Modal } from "@/components/Modal";
+import { useAuthModalStore } from "@/store/useAuthModalStore";
 import { FiLogIn } from "react-icons/fi";
 import {
   IoMailOutline,
@@ -35,9 +34,9 @@ type SuggestionStep = "idle" | "pick-location" | "write-description";
 const UserProfile = () => {
   const { user, updateUser, deleteStation, clearUser } = useUserStore();
   const isLoggedIn = useUserStore((state) => state.user.isLogedin);
+  const openLogin = useAuthModalStore((state) => state.openLogin);
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [modalType, setModalType] = useState<"login" | "register" | null>(null);
   const [suggestionStep, setSuggestionStep] = useState<SuggestionStep>("idle");
   const [suggestionDescription, setSuggestionDescription] = useState("");
   const [confirmedLocation, setConfirmedLocation] = useState<Coordinate | null>(null);
@@ -45,8 +44,6 @@ const UserProfile = () => {
   const [currentAddress, setCurrentAddress] = useState<string | null>(null);
   const [isResolvingAddress, setIsResolvingAddress] = useState(false);
   const [isSubmittingSuggestion, setIsSubmittingSuggestion] = useState(false);
-
-  const closeModal = () => setModalType(null);
 
   const { selectStation, selectedStation, stationMarkers, setStationMarkers } =
     useStationStore();
@@ -280,7 +277,7 @@ const UserProfile = () => {
         <button
           onClick={() => {
             if (!isLoggedIn) {
-              setModalType("login");
+              openLogin();
             } else {
               setIsProfileOpen((prev) => !prev);
             }
@@ -490,22 +487,6 @@ const UserProfile = () => {
             </button>
           </div>
         </div>
-      </Modal>
-
-      <Modal open={modalType !== null} onClose={closeModal}>
-        {modalType === "login" && (
-          <LoginFormContent
-            closeModal={closeModal}
-            switchToRegister={() => setModalType("register")}
-          />
-        )}
-
-        {modalType === "register" && (
-          <RegisterFormContent
-            closeModal={closeModal}
-            switchToLogin={() => setModalType("login")}
-          />
-        )}
       </Modal>
     </>
   );
