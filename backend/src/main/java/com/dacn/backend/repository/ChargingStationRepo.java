@@ -103,32 +103,29 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
     CoordinateDTO findPositionOfStation(@Param("stationId") String stationId);
 
     @Query(nativeQuery = true, value = """
-        WITH start_node AS (
-            SELECT source AS id FROM ways
-            WHERE component = 1
-            ORDER BY the_geom <-> ST_SetSRID(ST_MakePoint(:startLon, :startLat), 4326)
-            LIMIT 1
-        ),
-        end_node AS (
-            SELECT target AS id FROM ways
-            WHERE component = 1
-            ORDER BY the_geom <-> ST_SetSRID(ST_MakePoint(:endLon, :endLat), 4326)
-            LIMIT 1
-        ),
-        -- pgr_dijkstra nhận vào array và tính toán tất cả tổ hợp
-        route AS (
-            SELECT * FROM pgr_dijkstra(
-                'SELECT gid AS id, source, target, cost, reverse_cost FROM ways WHERE component = 1',
-                (SELECT id FROM start_node),
-                (SELECT id FROM end_node),
-                directed := true
-            )
+    WITH start_node AS (
+        SELECT source AS id FROM hcmc_2po_4pgr
+        ORDER BY geom_way <-> ST_SetSRID(ST_MakePoint(:startLon, :startLat), 4326)
+        LIMIT 1
+    ),
+    end_node AS (
+        SELECT target AS id FROM hcmc_2po_4pgr
+        ORDER BY geom_way <-> ST_SetSRID(ST_MakePoint(:endLon, :endLat), 4326)
+        LIMIT 1
+    ),
+    route AS (
+        SELECT * FROM pgr_aStar(
+            'SELECT id, source, target, cost, reverse_cost, x1, y1, x2, y2 FROM hcmc_2po_4pgr',
+            (SELECT id FROM start_node),
+            (SELECT id FROM end_node),
+            directed := true
         )
-        SELECT ST_AsGeoJSON(ST_Union(w.the_geom))
-        FROM route r
-        JOIN ways w ON r.edge = w.gid
-        WHERE r.edge != -1
-        """)
+    )
+    SELECT ST_AsGeoJSON(ST_Union(w.geom_way))
+    FROM route r
+    JOIN hcmc_2po_4pgr w ON r.edge = w.id
+    WHERE r.edge != -1
+    """)
     String findOptimalRouteGeoJSON(
             @Param("startLon") double startLon,
             @Param("startLat") double startLat,
