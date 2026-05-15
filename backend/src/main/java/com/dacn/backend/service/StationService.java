@@ -66,6 +66,12 @@ public class StationService {
 
     public List<StationByLocationResponseDTO> searchByLocation(Coordinate position) {
         // TODO Auto-generated method stub
+        UserLocationHistory userLocation = new UserLocationHistory();
+        userLocation.setLocation(position);
+        userLocation.setTimestamp(LocalDateTime.now());
+        userLocation.setUser(null);
+        userLocationHistoryRepo.save(userLocation);
+
         return stationRepo.findByLongitudeAndLatitude(position.getLongitude(), position.getLatitude());
     }
 
@@ -121,11 +127,11 @@ public class StationService {
 
         StationResponseDTO response = stationRepo.findByCableType(categories.getChargeCableType(), categories.getPosition().getLongitude(), categories.getPosition().getLatitude());
 
-        UserLocationHistory userLocation = new UserLocationHistory();
-        userLocation.setLocation(categories.getPosition());
-        userLocation.setTimestamp(LocalDateTime.now());
-        userLocation.setUser(eVUserRepo.getReferenceById(userId));
-        userLocationHistoryRepo.save(userLocation);
+//        UserLocationHistory userLocation = new UserLocationHistory();
+//        userLocation.setLocation(categories.getPosition());
+//        userLocation.setTimestamp(LocalDateTime.now());
+//        userLocation.setUser(eVUserRepo.getReferenceById(userId));
+//        userLocationHistoryRepo.save(userLocation);
 
         return response;
     }
