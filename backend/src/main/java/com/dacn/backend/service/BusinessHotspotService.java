@@ -1,6 +1,7 @@
 package com.dacn.backend.service;
 
 import com.dacn.backend.dto.CoordinateDTO;
+import com.dacn.backend.dto.UserLocationHistoryDTO;
 import com.dacn.backend.repository.UserLocationHistoryRepo;
 import com.dacn.backend.repository.UserSuggestionRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,7 @@ public class BusinessHotspotService {
         return suggestionRepo.getSuggestions();
     }
 
-    public List<CoordinateDTO> getLocationHistory() {
+    public List<UserLocationHistoryDTO> getLocationHistory() {
         return locationHistoryRepo.getLocations();
     }
 }
