@@ -119,12 +119,40 @@ const SuggestionCenterMarker = () => {
 };
 
 export default function Map() {
-  console.log("Map render");
   const stationMarkerDatas = useStationStore((state) => state.stationMarkers);
-
+  const updateUser = useUserStore((state) => state.updateUser);
   const coordinate = useUserStore((state) => state.user.coordinate);
   const isOpen = useRoutingStore((s) => s.isOpen);
   const location = useRoutingStore((s) => s.location);
+
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+
+    const syncCoordinate = (pos: GeolocationPosition) => {
+      updateUser({
+        coordinate: {
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+        },
+      });
+    };
+
+    navigator.geolocation.getCurrentPosition(syncCoordinate, (error) => {
+      console.error("Failed to get current location", error);
+    });
+
+    const watchId = navigator.geolocation.watchPosition(
+      syncCoordinate,
+      (error) => {
+        console.error("Failed to watch current location", error);
+      },
+      { enableHighAccuracy: true }
+    );
+
+    return () => {
+      navigator.geolocation.clearWatch(watchId);
+    };
+  }, [updateUser]);
 
   return (
     <MapContainer
@@ -165,3 +193,4 @@ export default function Map() {
     </MapContainer>
   );
 }
+

@@ -1,4 +1,5 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
+import { useAuthModalStore } from "@/store/useAuthModalStore";
 import { useUserStore } from "@/store/useUserStore";
 
 export type ApiError = {
@@ -45,6 +46,7 @@ apiClient.interceptors.response.use(
 
       if (error.response.status === 401) {
         useUserStore.getState().clearUser();
+        useAuthModalStore.getState().openLogin();
         console.log("token invalid or expired, cleared user information");
       }
     } else if (error.request) {

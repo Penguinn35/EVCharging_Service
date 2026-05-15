@@ -11,9 +11,8 @@ import {
 } from "@/services/userService";
 import { ApiError } from "@/lib/apiClient";
 import { useMapStore } from "@/store/useMapStore";
-import LoginFormContent from "../homePage/LoginFormContent";
-import RegisterFormContent from "../homePage/RegisterFormContent ";
 import { Modal } from "@/components/Modal";
+import { useAuthModalStore } from "@/store/useAuthModalStore";
 import { FiLogIn } from "react-icons/fi";
 import {
   IoMailOutline,
@@ -35,9 +34,9 @@ type SuggestionStep = "idle" | "pick-location" | "write-description";
 const UserProfile = () => {
   const { user, updateUser, deleteStation, clearUser } = useUserStore();
   const isLoggedIn = useUserStore((state) => state.user.isLogedin);
+  const openLogin = useAuthModalStore((state) => state.openLogin);
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [modalType, setModalType] = useState<"login" | "register" | null>(null);
   const [suggestionStep, setSuggestionStep] = useState<SuggestionStep>("idle");
   const [suggestionDescription, setSuggestionDescription] = useState("");
   const [confirmedLocation, setConfirmedLocation] = useState<Coordinate | null>(null);
@@ -45,8 +44,6 @@ const UserProfile = () => {
   const [currentAddress, setCurrentAddress] = useState<string | null>(null);
   const [isResolvingAddress, setIsResolvingAddress] = useState(false);
   const [isSubmittingSuggestion, setIsSubmittingSuggestion] = useState(false);
-
-  const closeModal = () => setModalType(null);
 
   const { selectStation, selectedStation, stationMarkers, setStationMarkers } =
     useStationStore();
@@ -222,7 +219,7 @@ const UserProfile = () => {
 
   const handleConfirmLocation = () => {
     if (!mapCenter.latitude && !mapCenter.longitude) {
-      toast.error("Khong lay duoc vi tri tu ban do");
+      toast.error("Không lấy được vị trí từ bản đồ");
       return;
     }
 
@@ -243,12 +240,12 @@ const UserProfile = () => {
     const description = suggestionDescription.trim();
 
     if (!description) {
-      toast.error("Vui long nhap mo ta cho vi tri de xuat");
+      toast.error("Vui lòng nhập mô tả cho vị trí đề xuất");
       return;
     }
 
     if (!confirmedLocation) {
-      toast.error("Vui long xac nhan dia diem truoc khi gui");
+      toast.error("Vui lòng xác nhận địa điểm trước khi gửi");
       return;
     }
 
@@ -260,10 +257,10 @@ const UserProfile = () => {
       });
 
       resetSuggestionFlow();
-      toast.success("Gui goi y thanh cong. Cam on ban da dong gop!");
+      toast.success("Gửi gợi ý thành công. Cảm ơn bạn đã đóng góp!");
     } catch (err) {
       const error = err as ApiError;
-      toast.error(error.message || "Khong the gui goi y luc nay");
+      toast.error(error.message || "Không thể gửi gợi ý lúc này");
     } finally {
       setIsSubmittingSuggestion(false);
     }
@@ -280,7 +277,7 @@ const UserProfile = () => {
         <button
           onClick={() => {
             if (!isLoggedIn) {
-              setModalType("login");
+              openLogin();
             } else {
               setIsProfileOpen((prev) => !prev);
             }
@@ -325,7 +322,7 @@ const UserProfile = () => {
             <div className="p-5 space-y-6">
               <section>
                 <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                  <IoFlash className="text-yellow-500" /> Cau hinh sac
+                  <IoFlash className="text-yellow-500" /> Cấu hình sạc
                 </label>
                 <div className="relative">
                   <select
@@ -345,25 +342,25 @@ const UserProfile = () => {
 
               <section>
                 <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                  <IoLocationOutline className="text-red-500" /> Goi y tram sac
+                  <IoLocationOutline className="text-red-500" /> Gợi ý trạm sạc
                 </label>
                 <button
                   onClick={handleStartSuggestion}
                   className="w-full rounded-xl border border-dashed border-green-300 bg-green-50 px-4 py-3 text-sm font-semibold text-green-700 transition-colors hover:bg-green-100 flex items-center justify-center gap-2"
                 >
                   <IoLocationOutline size={18} />
-                  Bat dau goi y vi tri moi
+                  Bắt đầu gợi ý vị trí mới
                 </button>
               </section>
 
               <section>
                 <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                  <IoLocationOutline className="text-red-500" /> Tram yeu thich
+                  <IoLocationOutline className="text-red-500" /> Trạm yêu thích
                 </label>
 
                 {user.savedStation.length === 0 ? (
                   <div className="text-center py-6 bg-gray-50 rounded-xl border-2 border-dashed border-gray-100">
-                    <p className="text-xs text-gray-400 italic">Danh sach trong</p>
+                    <p className="text-xs text-gray-400 italic">Danh sách trống</p>
                   </div>
                 ) : (
                   <ul className="space-y-2 max-h-48 overflow-y-auto pr-1">
@@ -376,13 +373,13 @@ const UserProfile = () => {
                         <div className="flex items-center gap-2">
                           <div className="w-2 h-2 rounded-full bg-green-400" />
                           <span className="font-medium text-gray-700">
-                            Tram #{station.name}
+                            Trạm #{station.name}
                           </span>
                         </div>
                         <button
                           onClick={(event) => handleDeleteStation(event, station.id)}
                           className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Go bo"
+                          title="Gỡ bỏ"
                         >
                           <IoTrashOutline size={16} />
                         </button>
@@ -399,7 +396,7 @@ const UserProfile = () => {
                 className="flex flex-row gap-2 justify-center text-xs font-semibold text-green-600 hover:text-green-800 uppercase tracking-tighter"
               >
                 <MdLogout className="text-xl" />
-                <p className="my-auto">Dang xuat</p>
+                <p className="my-auto">Đăng xuất</p>
               </button>
             </div>
           </div>
@@ -409,14 +406,14 @@ const UserProfile = () => {
       {isLoggedIn && suggestionStep === "pick-location" && (
         <div className="absolute inset-x-0 top-4 z-[1100] flex justify-center px-4 pointer-events-none">
           <div className="pointer-events-auto w-full max-w-md rounded-2xl border border-gray-200 bg-white/95 p-4 shadow-2xl backdrop-blur-sm">
-            <p className="text-sm font-semibold text-gray-800">Chon vi tri de goi y</p>
+            <p className="text-sm font-semibold text-gray-800">Chọn vị trí để gợi ý</p>
             <p className="mt-1 text-xs text-gray-500">
-              Di chuyen ban do, marker giua man hinh se la diem duoc chon.
+              Di chuyển bản đồ, marker giữa màn hình sẽ là điểm được chọn.
             </p>
             <div className="mt-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-600 space-y-2">
-              <p>Toa do dang chon: {locationPreview}</p>
+              <p>Tọa độ đang chọn: {locationPreview}</p>
               <p>
-                Dia chi: {isResolvingAddress ? "Dang tim dia chi..." : currentAddress ?? "Chua lay duoc dia chi, se dung toa do"}
+                Địa chỉ: {isResolvingAddress ? "Đang tìm địa chỉ..." : currentAddress ?? "Chưa lấy được địa chỉ, sẽ dùng tọa độ"}
               </p>
             </div>
             <div className="mt-3 flex gap-2">
@@ -425,14 +422,14 @@ const UserProfile = () => {
                 className="flex-1 rounded-xl bg-green-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-green-700 flex items-center justify-center gap-2"
               >
                 <IoCheckmarkCircleOutline size={18} />
-                Xac nhan vi tri
+                Xác nhận vị trí
               </button>
               <button
                 onClick={handleCancelSuggestion}
                 className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 flex items-center justify-center gap-2"
               >
                 <IoCloseOutline size={18} />
-                Huy
+                Hủy
               </button>
             </div>
           </div>
@@ -443,12 +440,12 @@ const UserProfile = () => {
         open={isLoggedIn && suggestionStep === "write-description"}
         onClose={handleCancelSuggestion}
       >
-        <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+        <div className="w-full max-w-md rounded-2xl bg-white">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Mo ta diem de xuat</h3>
+              <h3 className="text-lg font-bold text-gray-900">Mô tả điểm đề xuất</h3>
               <p className="mt-1 text-sm text-gray-500">
-                Them mo ta ngan de doi ngu de danh gia nhu cau mo tram sac.
+                Thêm mô tả ngắn để đội ngũ đánh giá nhu cầu mở trạm sạc.
               </p>
             </div>
             <button
@@ -460,15 +457,15 @@ const UserProfile = () => {
           </div>
 
           <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600 space-y-2">
-            <p>Toa do da chon: {confirmedLocationPreview}</p>
-            <p>Dia chi: {confirmedAddress ?? "Chua lay duoc dia chi, se gui kem toa do"}</p>
+            <p>Tọa độ đã chọn: {confirmedLocationPreview}</p>
+            <p>Địa chỉ: {confirmedAddress ?? "Chưa lấy được địa chỉ, sẽ gửi kèm tọa độ"}</p>
           </div>
 
           <textarea
             value={suggestionDescription}
             onChange={(event) => setSuggestionDescription(event.target.value)}
             rows={4}
-            placeholder="Vi du: khu vuc nay dong xe dien nhung chua co tram sac gan"
+            placeholder="Ví dụ: khu vực này đông xe điện nhưng chưa có trạm sạc gần"
             className="mt-4 w-full resize-none rounded-xl border border-gray-200 bg-white px-3 py-3 text-sm outline-none transition-all focus:ring-2 focus:ring-green-500"
           />
 
@@ -478,7 +475,7 @@ const UserProfile = () => {
               disabled={isSubmittingSuggestion}
               className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed"
             >
-              Huy
+              Hủy
             </button>
             <button
               onClick={handleSubmitSuggestion}
@@ -486,26 +483,10 @@ const UserProfile = () => {
               className="flex-1 rounded-xl bg-green-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-green-300 flex items-center justify-center gap-2"
             >
               <IoPaperPlaneOutline size={16} />
-              {isSubmittingSuggestion ? "Dang gui..." : "Gui goi y"}
+              {isSubmittingSuggestion ? "Đang gửi..." : "Gửi gợi ý"}
             </button>
           </div>
         </div>
-      </Modal>
-
-      <Modal open={modalType !== null} onClose={closeModal}>
-        {modalType === "login" && (
-          <LoginFormContent
-            closeModal={closeModal}
-            switchToRegister={() => setModalType("register")}
-          />
-        )}
-
-        {modalType === "register" && (
-          <RegisterFormContent
-            closeModal={closeModal}
-            switchToLogin={() => setModalType("login")}
-          />
-        )}
       </Modal>
     </>
   );

@@ -1,17 +1,15 @@
 "use client";
 
 import { useState } from "react";
-// import { LoginFormContent } from "@/components/LoginFormContent";
-import LoginFormContent from "./LoginFormContent";
 import { FiZap, FiMenu, FiX } from "react-icons/fi";
-import RegisterFormContent from "./RegisterFormContent ";
-import { Modal } from "@/components/Modal";
+import { useAuthModalStore } from "@/store/useAuthModalStore";
 import Link from "next/link";
 
 export function Header() {
   const [open, setOpen] = useState(false);
-  const [modalType, setModalType] = useState<"login" | "register" | null>(null);
-  const closeModal = () => setModalType(null);
+  const openLogin = useAuthModalStore((state) => state.openLogin);
+  const openRegister = useAuthModalStore((state) => state.openRegister);
+
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-sm">
@@ -27,8 +25,8 @@ export function Header() {
 
           {/* Desktop */}
           <div className="hidden md:flex gap-4">
-            <button onClick={() => setModalType("login")}>Đăng nhập</button>
-            <button onClick={() => setModalType("register")}>Đăng kí</button>
+            <button onClick={openLogin}>Đăng nhập</button>
+            <button onClick={openRegister}>Đăng ký</button>
           </div>
 
           {/* Mobile toggle */}
@@ -42,7 +40,7 @@ export function Header() {
           <div className="md:hidden px-4 pb-4 flex flex-col gap-3">
             <button
               onClick={() => {
-                setModalType("login");
+                openLogin();
                 setOpen(false);
               }}
             >
@@ -51,32 +49,15 @@ export function Header() {
 
             <button
               onClick={() => {
-                setModalType("register");
+                openRegister();
                 setOpen(false);
               }}
             >
-              Đăng kí
+              Đăng ký
             </button>
           </div>
         )}
       </header>
-
-      {/* Modal */}
-      <Modal open={modalType !== null} onClose={closeModal}>
-        {modalType === "login" && (
-          <LoginFormContent
-            closeModal={closeModal}
-            switchToRegister={() => setModalType("register")}
-          />
-        )}
-
-        {modalType === "register" && (
-          <RegisterFormContent
-            closeModal={closeModal}
-            switchToLogin={() => setModalType("login")}
-          />
-        )}
-      </Modal>
     </>
   );
 }
