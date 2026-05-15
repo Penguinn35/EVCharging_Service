@@ -66,6 +66,12 @@ public class StationService {
 
     public List<StationByLocationResponseDTO> searchByLocation(Coordinate position) {
         // TODO Auto-generated method stub
+        UserLocationHistory userLocation = new UserLocationHistory();
+        userLocation.setLocation(position);
+        userLocation.setTimestamp(LocalDateTime.now());
+        userLocation.setUser(null);
+        userLocationHistoryRepo.save(userLocation);
+
         return stationRepo.findByLongitudeAndLatitude(position.getLongitude(), position.getLatitude());
     }
 
