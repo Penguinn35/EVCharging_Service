@@ -25,8 +25,8 @@ export function Header() {
 
           {/* Desktop */}
           <div className="hidden md:flex gap-4">
-            <button onClick={openLogin}>Dang nhap</button>
-            <button onClick={openRegister}>Dang ky</button>
+            <button onClick={openLogin}>Đăng nhập</button>
+            <button onClick={openRegister}>Đăng ký</button>
           </div>
 
           {/* Mobile toggle */}
@@ -44,7 +44,7 @@ export function Header() {
                 setOpen(false);
               }}
             >
-              Dang nhap
+              Đăng nhập
             </button>
 
             <button
@@ -53,7 +53,7 @@ export function Header() {
                 setOpen(false);
               }}
             >
-              Dang ky
+              Đăng ký
             </button>
           </div>
         )}
