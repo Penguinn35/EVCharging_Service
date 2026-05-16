@@ -1,7 +1,9 @@
 package com.dacn.backend.controller;
 
 import com.dacn.backend.dto.CoordinateDTO;
+import com.dacn.backend.dto.HitfullResponseDTO;
 import com.dacn.backend.dto.UserLocationHistoryDTO;
+import com.dacn.backend.model.UserPrincipal;
 import com.dacn.backend.object.ResponseObject;
 import com.dacn.backend.service.BusinessHotspotService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -43,6 +46,17 @@ public class BusinessHotspotController {
                 "Location history list returned",
                 response,
                 response.size()
+        ), HttpStatus.OK);
+    }
+
+    @GetMapping("stations/hitfull-count")
+    @Operation(summary = "API trả về hitfull count của tất cả các station thuộc doanh nghiệp")
+    public ResponseEntity<ResponseObject<List<HitfullResponseDTO>>> getHitFullOfAllStations(
+            @AuthenticationPrincipal UserPrincipal principal
+            ) {
+        List<HitfullResponseDTO> response = hotspotService.getHitfullCount(principal.getCompanyId());
+        return new ResponseEntity<>(new ResponseObject<>(
+                HttpStatus.OK, "Hitfull count list is returned", response, response.size()
         ), HttpStatus.OK);
     }
 }

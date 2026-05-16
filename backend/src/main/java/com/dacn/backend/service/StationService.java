@@ -56,12 +56,15 @@ public class StationService {
 //        return stationRepo.findAll();
 //    }
 
-    public List<StationSearchResponseDTO> searchByKeyword(String keyword) {
-        // TODO Auto-generated method 
-
-        keyword = "%" + deAccent(keyword) + "%";
-        int limit = 5; // to limit the rows returned
-        return stationRepo.findByKeyword(keyword, limit);
+    public List<StationSearchResponseDTO> searchByKeyword(String keyword, String district) {
+        // TODO Auto-generated method
+        int limit = 100;
+        if (keyword != null) {
+            keyword = "%" + deAccent(keyword) + "%";
+            limit = 5;
+        }
+        // to limit the rows returned
+        return stationRepo.findByKeywordAndDistrict(keyword, district, limit);
     }
 
     public List<StationByLocationResponseDTO> searchByLocation(Coordinate position) {
@@ -217,5 +220,9 @@ public class StationService {
         station.setCurrentVehicleCount(vehicleCount);
         stationRepo.save(station);
         return true;
+    }
+
+    public List<String> getAllDistricts() {
+        return stationRepo.getAllDistricts();
     }
 }

@@ -2,10 +2,7 @@ package com.dacn.backend.repository;
 
 import java.util.List;
 
-import com.dacn.backend.dto.CoordinateDTO;
-import com.dacn.backend.dto.SaveStatisticResponseDTO;
-import com.dacn.backend.dto.StationBusinessSearchDTO;
-import com.dacn.backend.dto.StationByLocationResponseDTO;
+import com.dacn.backend.dto.*;
 import com.dacn.backend.dto.search_by_keyword.StationSearchResponseDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,18 +21,33 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
     // public List<StationResponseDTO> findByKeyword(String keyword, int limit);
 
     @Query(
-        value = """
-                SELECT id, name, address || ', ' || district
-                FROM charging_station s
-                WHERE (LOWER(unaccent(s.name)) LIKE ?1 OR LOWER(unaccent(s.address)) LIKE ?1
-                                   OR LOWER(unaccent(s.district)) LIKE ?1 OR LOWER(unaccent(s.id)) LIKE ?1)
-                                    AND s.status > 0
-                ORDER BY s.name ASC
-                LIMIT ?2
-                """,
-        nativeQuery = true
+            value = """
+            SELECT s.id, s.name, s.address || ', ' || s.district
+            FROM charging_station s
+            WHERE (:keyword IS NULL OR 
+                   LOWER(unaccent(s.name)) LIKE :keyword OR 
+                   LOWER(unaccent(s.address)) LIKE :keyword OR 
+                   LOWER(unaccent(s.district)) LIKE :keyword OR 
+                   LOWER(unaccent(CAST(s.id AS TEXT))) LIKE :keyword)
+              AND (:district IS NULL OR s.district = :district)
+              AND s.status > 0
+            ORDER BY s.name ASC
+            LIMIT :limit
+            """,
+            nativeQuery = true
     )
-    List<StationSearchResponseDTO> findByKeyword(String keyword, int limit);
+    List<StationSearchResponseDTO> findByKeywordAndDistrict(
+            @Param("keyword") String keyword,
+            @Param("district") String district,
+            @Param("limit") int limit
+    );
+
+//    @Query(nativeQuery = true, value = """
+//                SELECT id, name, address || ', ' || district
+//                FROM charging_station s
+//                WHERE s.district = :district
+//""")
+//    List<StationSearchResponseDTO> findByDistrict(String district);
 
     @Query(value = """
         SELECT * FROM (
@@ -61,15 +73,18 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
     List<StationByLocationResponseDTO> findByLongitudeAndLatitude(@Param("longitude") Double longitude, @Param("latitude") Double latitude);
 
     @Query(value = """
-            SELECT s.id, s.name, o.company_name as manufacturer, s.address || ', ' || s.district AS address, s.longitude, s.latitude, (6371000 * acos(
-                    cos(radians(:latitude)) * cos(radians(s.latitude)) * cos(radians(s.longitude) - radians(:longitude)) +
-                    sin(radians(:latitude)) * sin(radians(s.latitude))
-                )) / 1000 AS distance
-            FROM charging_station s JOIN cpo o ON o.enterprise_id = s.manufacturer_id, charging_point p, connector c
-            WHERE p.charging_station_id = s.id AND c.charging_point_id = p.id
-                AND c.type = :cableType
+            SELECT s.id, s.name, o.company_name as manufacturer, s.address || ', ' || s.district AS address, 
+                               s.longitude, s.latitude, 
+                               (ST_Distance(
+                                                   ST_MakePoint(s.longitude, s.latitude)::geography,
+                                                   ST_MakePoint(:longitude, :latitude)::geography
+                                               ) / 1000.0) AS distance
+            FROM charging_station s JOIN cpo o ON o.enterprise_id = s.manufacturer_id
+                        JOIN charging_point p ON p.charging_station_id = s.id
+                        JOIN connector c ON c.charging_point_id = p.id
+            WHERE c.type = :cableType
                 AND p.status > 0
-            ORDER BY SQRT(POWER(:longitude - s.longitude, 2) + POWER(:latitude - s.latitude, 2))
+            ORDER BY ST_MakePoint(s.longitude, s.latitude)::geography <-> ST_MakePoint(:longitude, :latitude)::geography
             LIMIT 1
             """, nativeQuery = true)
     StationResponseDTO findByCableType(
@@ -214,4 +229,17 @@ SET current_vehicle_count = :currentCount
 WHERE s.id = :stationId
 """)
     void updateCurrentVehicleCount(@Param("currentCount") Long currentCount, @Param("stationId") String stationId);
+
+    @Query(nativeQuery = true, value = """
+SELECT DISTINCT(district)
+FROM charging_station
+""")
+    List<String> getAllDistricts();
+
+    @Query(nativeQuery = true, value = """
+SELECT id, hit_full_count
+FROM charging_station
+WHERE manufacturer_id = :companyId
+""")
+    List<HitfullResponseDTO> getAllHitfull(String companyId);
 }
