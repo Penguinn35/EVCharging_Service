@@ -39,9 +39,11 @@ public class StationController {
                     @ApiResponse(responseCode = "200", description = "Trả về thành công"),
             }
     )
-    public ResponseEntity<ResponseObject<List<StationSearchResponseDTO>>> getStationByKeywords(@RequestParam String keyword) {
+    public ResponseEntity<ResponseObject<List<StationSearchResponseDTO>>> getStationByKeywords(
+            @RequestParam(required = false) String keyword, @RequestParam(required = false) String district
+    ) {
         // return new ResponseEntity<>(stationService.searchByKeyword(keyword), HttpStatus.OK);
-        List<StationSearchResponseDTO> responses = stationService.searchByKeyword(keyword);
+        List<StationSearchResponseDTO> responses = stationService.searchByKeyword(keyword, district);
         return new ResponseEntity<>(
                 new ResponseObject<>(HttpStatus.OK, "Returned successfully", responses, responses.size()),
                 HttpStatus.OK

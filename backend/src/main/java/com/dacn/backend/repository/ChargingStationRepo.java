@@ -24,18 +24,33 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
     // public List<StationResponseDTO> findByKeyword(String keyword, int limit);
 
     @Query(
-        value = """
-                SELECT id, name, address || ', ' || district
-                FROM charging_station s
-                WHERE (LOWER(unaccent(s.name)) LIKE ?1 OR LOWER(unaccent(s.address)) LIKE ?1
-                                   OR LOWER(unaccent(s.district)) LIKE ?1 OR LOWER(unaccent(s.id)) LIKE ?1)
-                                    AND s.status > 0
-                ORDER BY s.name ASC
-                LIMIT ?2
-                """,
-        nativeQuery = true
+            value = """
+            SELECT s.id, s.name, s.address || ', ' || s.district
+            FROM charging_station s
+            WHERE (:keyword IS NULL OR 
+                   LOWER(unaccent(s.name)) LIKE :keyword OR 
+                   LOWER(unaccent(s.address)) LIKE :keyword OR 
+                   LOWER(unaccent(s.district)) LIKE :keyword OR 
+                   LOWER(unaccent(CAST(s.id AS TEXT))) LIKE :keyword)
+              AND (:district IS NULL OR s.district = :district)
+              AND s.status > 0
+            ORDER BY s.name ASC
+            LIMIT :limit
+            """,
+            nativeQuery = true
     )
-    List<StationSearchResponseDTO> findByKeyword(String keyword, int limit);
+    List<StationSearchResponseDTO> findByKeywordAndDistrict(
+            @Param("keyword") String keyword,
+            @Param("district") String district,
+            @Param("limit") int limit
+    );
+
+//    @Query(nativeQuery = true, value = """
+//                SELECT id, name, address || ', ' || district
+//                FROM charging_station s
+//                WHERE s.district = :district
+//""")
+//    List<StationSearchResponseDTO> findByDistrict(String district);
 
     @Query(value = """
         SELECT * FROM (
