@@ -221,4 +221,8 @@ public class StationService {
         stationRepo.save(station);
         return true;
     }
+
+    public List<String> getAllDistricts() {
+        return stationRepo.getAllDistricts();
+    }
 }

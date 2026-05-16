@@ -232,4 +232,10 @@ SET current_vehicle_count = :currentCount
 WHERE s.id = :stationId
 """)
     void updateCurrentVehicleCount(@Param("currentCount") Long currentCount, @Param("stationId") String stationId);
+
+    @Query(nativeQuery = true, value = """
+SELECT DISTINCT(district)
+FROM charging_station
+""")
+    List<String> getAllDistricts();
 }
