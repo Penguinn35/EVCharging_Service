@@ -61,15 +61,18 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
     List<StationByLocationResponseDTO> findByLongitudeAndLatitude(@Param("longitude") Double longitude, @Param("latitude") Double latitude);
 
     @Query(value = """
-            SELECT s.id, s.name, o.company_name as manufacturer, s.address || ', ' || s.district AS address, s.longitude, s.latitude, (6371000 * acos(
-                    cos(radians(:latitude)) * cos(radians(s.latitude)) * cos(radians(s.longitude) - radians(:longitude)) +
-                    sin(radians(:latitude)) * sin(radians(s.latitude))
-                )) / 1000 AS distance
-            FROM charging_station s JOIN cpo o ON o.enterprise_id = s.manufacturer_id, charging_point p, connector c
-            WHERE p.charging_station_id = s.id AND c.charging_point_id = p.id
-                AND c.type = :cableType
+            SELECT s.id, s.name, o.company_name as manufacturer, s.address || ', ' || s.district AS address, 
+                               s.longitude, s.latitude, 
+                               (ST_Distance(
+                                                   ST_MakePoint(s.longitude, s.latitude)::geography,
+                                                   ST_MakePoint(:longitude, :latitude)::geography
+                                               ) / 1000.0) AS distance
+            FROM charging_station s JOIN cpo o ON o.enterprise_id = s.manufacturer_id
+                        JOIN charging_point p ON p.charging_station_id = s.id
+                        JOIN connector c ON c.charging_point_id = p.id
+            WHERE c.type = :cableType
                 AND p.status > 0
-            ORDER BY SQRT(POWER(:longitude - s.longitude, 2) + POWER(:latitude - s.latitude, 2))
+            ORDER BY ST_MakePoint(s.longitude, s.latitude)::geography <-> ST_MakePoint(:longitude, :latitude)::geography
             LIMIT 1
             """, nativeQuery = true)
     StationResponseDTO findByCableType(
