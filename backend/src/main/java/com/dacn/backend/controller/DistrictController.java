@@ -2,6 +2,7 @@ package com.dacn.backend.controller;
 
 import com.dacn.backend.object.ResponseObject;
 import com.dacn.backend.service.StationService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,7 @@ public class DistrictController {
     private StationService stationService;
 
     @GetMapping("districts")
+    @Operation(summary = "API lấy tất cả các quận/huyện của tất cả các trạm sạc hiện có trong db")
     public ResponseEntity<ResponseObject<List<String>>>  getAllDistricts() {
         List<String> districts = stationService.getAllDistricts();
         return new ResponseEntity<>(new ResponseObject<>(

@@ -2,10 +2,7 @@ package com.dacn.backend.repository;
 
 import java.util.List;
 
-import com.dacn.backend.dto.CoordinateDTO;
-import com.dacn.backend.dto.SaveStatisticResponseDTO;
-import com.dacn.backend.dto.StationBusinessSearchDTO;
-import com.dacn.backend.dto.StationByLocationResponseDTO;
+import com.dacn.backend.dto.*;
 import com.dacn.backend.dto.search_by_keyword.StationSearchResponseDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -238,4 +235,11 @@ SELECT DISTINCT(district)
 FROM charging_station
 """)
     List<String> getAllDistricts();
+
+    @Query(nativeQuery = true, value = """
+SELECT id, hit_full_count
+FROM charging_station
+WHERE manufacturer_id = :companyId
+""")
+    List<HitfullResponseDTO> getAllHitfull(String companyId);
 }
