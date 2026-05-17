@@ -11,6 +11,7 @@ import StationDetail from "@/components/mapPage/StationDetail";
 import UserProfile from "@/components/mapPage/UserProfile";
 import LocateMe from "@/components/mapPage/locateMe";
 import QuickSuggest from "@/components/mapPage/QuickSuggest";
+import StationSuggestionButton from "@/components/mapPage/StationSuggestionButton";
 import Link from "next/link";
 
 const Map = dynamic(() => import("@/components/mapPage/Map"), {
@@ -43,6 +44,7 @@ export default function Page() {
         </div>
         <QuickSuggest />
         <LocateMe />
+        <StationSuggestionButton />
 
         {selectedStation && (
           <StationDetail

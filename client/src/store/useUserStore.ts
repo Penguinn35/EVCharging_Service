@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { Coordinate } from "@/models/shared";
-import { StationSavedList, UserRole } from "@/type/user";
+import { StationSaved, UserRole } from "@/type/user";
 import {
   saveStation as saveStationApi,
   deleteSavedStation as deleteSavedStationApi,
@@ -16,14 +16,14 @@ interface User {
   accessToken: string;
   vehiclePlug: "Type 2" | "CCS2" | "Both";
   coordinate: Coordinate | null;
-  savedStation: StationSavedList[];
+  savedStation: StationSaved[];
 }
 
 interface UserStore {
   user: User;
   updateUser: (data: Partial<User>) => void;
   clearUser: () => void;
-  saveStation: (stationId: string) => Promise<boolean>;
+  saveStation: (newStation: StationSaved) => Promise<boolean>;
   deleteStation: (stationId: string) => Promise<boolean>;
 }
 
@@ -58,14 +58,14 @@ export const useUserStore = create<UserStore>()(
           },
         })),
 
-      saveStation: async (stationId) => {
+      saveStation: async (newStation) => {
         const { user } = get();
 
         try {
-          const success = await saveStationApi(stationId);
+          const success = await saveStationApi(newStation.id);
           if (!success) return false;
 
-          const exists = user.savedStation.some((s) => s.id === stationId);
+          const exists = user.savedStation.some((s) => s.id === newStation.id);
           if (exists) return true;
 
           set((state) => ({
@@ -73,7 +73,7 @@ export const useUserStore = create<UserStore>()(
               ...state.user,
               savedStation: [
                 ...state.user.savedStation,
-                { id: stationId } as StationSavedList,
+                newStation
               ],
             },
           }));

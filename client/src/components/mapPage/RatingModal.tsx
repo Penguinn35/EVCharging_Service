@@ -15,7 +15,7 @@ export default function RatingModal({ onClose }: Props) {
   const stationId = useStationStore.getState().selectedStation?.id;
   const onSubmit = async (rating: number, comment: string) => {
     if (!stationId) {
-      toast.error("invalid station ID");
+      toast.error("ID trạm không hợp lệ");
       return;
     }
     try {
@@ -55,7 +55,7 @@ export default function RatingModal({ onClose }: Props) {
         <textarea
           className="w-full border rounded p-2 mb-4"
           rows={4}
-          placeholder="Write your comment..."
+          placeholder="Viết đánh giá của bạn..."
           value={comment}
           onChange={(e) => setComment(e.target.value)}
         />

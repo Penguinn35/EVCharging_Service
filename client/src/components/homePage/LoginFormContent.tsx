@@ -61,7 +61,7 @@ export default function LoginFormContent({
         const businessProfile = await getBusinessProfile();
         useEnterpriseStore.getState().updateEnterprise(businessProfile);
 
-        toast.success("Logged in");
+        toast.success("Đăng nhập thành công");
         closeModal();
         router.push("/dashboard");
         return;
@@ -76,7 +76,7 @@ export default function LoginFormContent({
         savedStation: userDetail.savedStationList ?? [],
       });
 
-      toast.success("Logged in");
+      toast.success("Đăng nhập thành công");
       closeModal();
       router.push("/Map");
     } catch (err: unknown) {
@@ -84,8 +84,8 @@ export default function LoginFormContent({
 
       useUserStore.getState().clearUser();
       useEnterpriseStore.getState().clearEnterprise();
-      console.error("Login failed:", error.message);
-      toast.error("Login failed");
+      console.error("Đăng nhập không thành công:", error.message);
+      toast.error("Đăng nhập không thành công");
     } finally {
       setLoading(false);
     }
@@ -96,7 +96,7 @@ export default function LoginFormContent({
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Username
+            Tên người dùng
           </label>
 
           <div className="relative">
@@ -109,7 +109,7 @@ export default function LoginFormContent({
               type="text"
               value={formData.username}
               onChange={handleChange}
-              placeholder="your username"
+              placeholder="Nhập tên người dùng"
               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none"
             />
           </div>
