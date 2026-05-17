@@ -23,6 +23,7 @@ import { useUserStore } from "@/store/useUserStore";
 import {
   getRating,
   getRatingStatistics,
+  getStationById,
   StationRating,
   StationRatingResponse,
   StationRatingStatistic,
@@ -30,6 +31,7 @@ import {
 import { useAuthModalStore } from "@/store/useAuthModalStore";
 import { StationSaved } from "@/type/user";
 import RatingModal from "./RatingModal";
+import { useStationStore } from "@/store/useStationStore";
 
 type StationDetailProps = {
   station: StationDetailType;
@@ -87,6 +89,7 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
     state.user.savedStation.some((s) => s.id === station.id),
   );
   const isUserLoggedIn = useUserStore((state) => state.user.isLogedin);
+  const updateStation = useStationStore((state) => state.updateStation);
   const { setRouting } = useRoutingStore();
   const { saveStation, deleteStation } = useUserStore();
   const [openRating, setOpenRating] = useState(false);
@@ -106,8 +109,8 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
       id: station.id,
       name: station.name,
       address: station.address,
-      position: station.position
-    }
+      position: station.position,
+    };
     isSaved ? deleteStation(station.id) : saveStation(newStation);
   };
 
@@ -160,6 +163,30 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
       setIsRatingsLoading(false);
     }
   }, [ratingsPage, station.id]);
+
+  const refreshRatings = useCallback(async () => {
+    setRatingsPage(0);
+
+    try {
+      const [ratingsResponse, statisticsResponse] = await Promise.all([
+        getRating({
+          stationId: station.id,
+          page: 0,
+          size: DEFAULT_RATING_PAGE_SIZE,
+        }),
+        getRatingStatistics(station.id),
+      ]);
+
+      const latestStation = await getStationById(station.id);
+
+      setRatingsData(ratingsResponse);
+      setRatingStatistics(statisticsResponse);
+      updateStation(latestStation);
+    } catch {
+      setRatingsError("Không thể tải đánh giá của trạm sạc.");
+      throw new Error("Không thể tải đánh giá của trạm sạc.");
+    }
+  }, [station, updateStation]);
 
   useEffect(() => {
     setRatingsPage(0);
@@ -507,8 +534,8 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
         <RatingModal
           onClose={() => {
             setOpenRating(false);
-            void loadRatings();
           }}
+          onSuccess={refreshRatings}
         />
       )}
 
@@ -555,3 +582,5 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
 };
 
 export default StationDetail;
+
+

@@ -1,76 +1,100 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { FaStar } from "react-icons/fa";
 import { useStationStore } from "@/store/useStationStore";
 import { toast } from "react-toastify";
 import { ratingStation } from "@/services/stationService";
+
 type Props = {
   onClose: () => void;
+  onSuccess?: () => Promise<void> | void;
 };
 
-export default function RatingModal({ onClose }: Props) {
+export default function RatingModal({ onClose, onSuccess }: Props) {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const stationId = useStationStore.getState().selectedStation?.id;
-  const onSubmit = async (rating: number, comment: string) => {
+
+  const onSubmit = async (ratingValue: number, commentValue: string) => {
     if (!stationId) {
       toast.error("ID trạm không hợp lệ");
       return;
     }
-    try {
-      const data = {
-      stationId: stationId,
-      point: rating,
-      comment: comment,
-    };
-    const result = await ratingStation(data);
-    console.log("after rating: ", result);
-    if(result){
-      toast.success("Cảm ơn bạn đã đánh giá");
+
+    if (ratingValue === 0) {
+      toast.error("Vui lòng chọn số sao để đánh giá");
+      return;
     }
+
+    setIsSubmitting(true);
+
+    try {
+      const result = await ratingStation({
+        stationId,
+        point: ratingValue,
+        comment: commentValue,
+      });
+
+      if (result) {
+        await onSuccess?.();
+        toast.success("Cảm ơn bạn đã đánh giá");
+        onClose();
+      }
     } catch (error) {
-     console.log(error);
+      console.log(error);
+      toast.error("Gửi đánh giá thất bại");
+    } finally {
+      setIsSubmitting(false);
     }
   };
-  return (
-    <div className="fixed inset-0 bg-black/40 z-[2000] flex items-center justify-center">
-      <div className="bg-white rounded-xl w-[400px] p-5">
-        <h2 className="text-lg font-semibold mb-4">Đánh giá trạm sạc</h2>
 
-        {/* Stars */}
-        <div className="flex gap-2 mb-4">
+  return (
+    <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/40">
+      <div className="w-[400px] rounded-xl bg-white p-5">
+        <h2 className="mb-4 text-lg font-semibold">Đánh giá trạm sạc</h2>
+
+        <div className="mb-4 flex gap-2">
           {[1, 2, 3, 4, 5].map((star) => (
             <FaStar
               key={star}
-              onClick={() => setRating(star)}
-              className={`text-2xl cursor-pointer ${
+              onClick={() => {
+                if (!isSubmitting) {
+                  setRating(star);
+                }
+              }}
+              className={`cursor-pointer text-2xl ${
                 star <= rating ? "text-yellow-400" : "text-gray-300"
-              }`}
+              } ${isSubmitting ? "pointer-events-none opacity-70" : ""}`}
             />
           ))}
         </div>
 
-        {/* Comment */}
         <textarea
-          className="w-full border rounded p-2 mb-4"
+          className="mb-4 w-full rounded border p-2 disabled:bg-gray-100"
           rows={4}
           placeholder="Viết đánh giá của bạn..."
           value={comment}
+          disabled={isSubmitting}
           onChange={(e) => setComment(e.target.value)}
         />
 
         <div className="flex justify-end gap-2">
-          <button onClick={onClose}>Cancel</button>
+          <button
+            onClick={onClose}
+            disabled={isSubmitting}
+            className="disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Cancel
+          </button>
 
           <button
-            className="bg-green-600 text-white px-3 py-1 rounded"
-            onClick={() => {
-              onSubmit(rating, comment);
-              onClose();
-            }}
+            className="cursor-pointer rounded bg-green-600 px-3 py-1 text-white disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={isSubmitting}
+            onClick={() => void onSubmit(rating, comment)}
           >
-            Submit
+            {isSubmitting ? "Submitting..." : "Submit"}
           </button>
         </div>
       </div>
