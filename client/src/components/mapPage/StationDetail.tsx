@@ -55,10 +55,8 @@ const statusColor = {
 };
 
 const typeMap: Record<number, string> = {
-  0: "Type 1",
+  0: "CCS2",
   1: "Type 2",
-  2: "CCS2",
-  3: "CHAdeMO",
 };
 
 const formatRatingDate = (value: string) =>
