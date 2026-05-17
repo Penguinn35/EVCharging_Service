@@ -157,17 +157,15 @@ export default function Map() {
   return (
     <MapContainer
       center={[10.814889, 106.697906]}
-      zoom={10}
+      zoom={16}
       zoomControl={false}
       style={{ height: "100vh", width: "100%" }}
     >
-      {/* <TileLayer
-        attribution="&copy; OpenStreetMap"
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      /> */}
+     
       <TileLayer
         attribution="&copy; OpenStreetMap contributors"
         url={`https://api.maptiler.com/maps/streets/{z}/{x}/{y}.png?key=${process.env.NEXT_PUBLIC_MAPTILER_KEY}`}
+       
       />
       {coordinate && (
         <>
