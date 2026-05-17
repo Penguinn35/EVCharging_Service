@@ -28,7 +28,7 @@ import {
   StationRatingStatistic,
 } from "@/services/stationService";
 import { useAuthModalStore } from "@/store/useAuthModalStore";
-
+import { StationSaved } from "@/type/user";
 import RatingModal from "./RatingModal";
 
 type StationDetailProps = {
@@ -102,7 +102,13 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const toggleSave = () => {
-    isSaved ? deleteStation(station.id) : saveStation(station.id);
+    const newStation: StationSaved = {
+      id: station.id,
+      name: station.name,
+      address: station.address,
+      position: station.position
+    }
+    isSaved ? deleteStation(station.id) : saveStation(newStation);
   };
 
   const groupConnectors = (

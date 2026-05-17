@@ -1,6 +1,6 @@
 import { Coordinate } from "./share";
 
-export type StationSavedList = {
+export type StationSaved = {
   id: string;
   name: string;
   address: string;
@@ -24,5 +24,5 @@ export type UserDetailResponse = {
   fullName: string;
   email: string;
   address: string | null;
-  savedStationList: StationSavedList[];
+  savedStationList: StationSaved[];
 };

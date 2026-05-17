@@ -211,7 +211,7 @@ const UserProfile = () => {
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-green-400" />
                         <span className="font-medium text-gray-700">
-                          Trạm #{station.name}
+                          {station.name}
                         </span>
                       </div>
                       <button
