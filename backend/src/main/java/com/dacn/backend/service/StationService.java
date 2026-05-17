@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 import com.dacn.backend.dto.*;
@@ -144,8 +145,26 @@ public class StationService {
         Rating newRating = ratingRepo.findByUserAndStation(
                 eVUserRepo.getReferenceById(userId), stationRepo.getReferenceById(rating.getStationId())
         ).orElse(null);
+        if (newRating != null) {
+            return null;
+        }
+        newRating = new Rating();
+        newRating.setDatePosted(LocalDateTime.now());
+        newRating.setPoint(rating.getPoint());
+        newRating.setComment(rating.getComment());
+        newRating.setStation(stationRepo.getReferenceById(rating.getStationId()));
+        newRating.setUser(eVUserRepo.getReferenceById(userId));
+
+        Rating savedRating = ratingRepo.save(newRating);
+        return new RatingResponseDTO(savedRating.getId(), savedRating.getComment(), savedRating.getPoint(), savedRating.getDatePosted());
+    }
+
+    public RatingResponseDTO updateRating(String userId, RatingRequestDTO rating) {
+        Rating newRating = ratingRepo.findByUserAndStation(
+                eVUserRepo.getReferenceById(userId), stationRepo.getReferenceById(rating.getStationId())
+        ).orElse(null);
         if (newRating == null) {
-            newRating = new Rating();
+            return null;
         }
         newRating.setDatePosted(LocalDateTime.now());
         newRating.setPoint(rating.getPoint());
@@ -160,11 +179,22 @@ public class StationService {
     public Page<RatingResponseDTO> getRatingListOfStation(String stationId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
 
-        return ratingRepo.findByStation(stationId, pageable);
+        return ratingRepo.findByStationId(stationId, pageable);
     }
 
     public List<RatingStatisticDTO> getRatingStatistic(String stationId) {
         return ratingRepo.getStatistic(stationId);
+    }
+
+    public boolean deleteRating(String stationId, String userId) {
+        Rating deletingRating = ratingRepo.findByUserAndStation(
+                eVUserRepo.getReferenceById(userId), stationRepo.getReferenceById(stationId)
+        ).orElse(null);
+        if (deletingRating == null) {
+            return false;
+        }
+        ratingRepo.deleteById(deletingRating.getId());
+        return true;
     }
 
     @Transactional
@@ -224,5 +254,21 @@ public class StationService {
 
     public List<String> getAllDistricts() {
         return stationRepo.getAllDistricts();
+    }
+
+
+    public RatingResponseDTO getRatingOfUser(String stationId, String userId) {
+        Rating rating = ratingRepo.findByUserAndStation(
+                eVUserRepo.getReferenceById(userId), stationRepo.getReferenceById(stationId)
+        ).orElse(null);
+        if (rating == null) {
+            return null;
+        }
+        RatingResponseDTO responseDTO = new RatingResponseDTO();
+        responseDTO.setId(rating.getId());
+        responseDTO.setComment(rating.getComment());
+        responseDTO.setPoint(rating.getPoint());
+        responseDTO.setTimePosted(rating.getDatePosted());
+        return responseDTO;
     }
 }
