@@ -15,7 +15,7 @@ const sairaFont = Saira({
 
 export const metadata: Metadata = {
   title: "EVStation",
-  description: "TÃ¬m kiáº¿m nhanh chÃ³ng tráº¡m sáº¡c quanh báº¡n",
+  description: "Tìm kiếm nhanh trạm sạc quanh bạn",
   icons: {
     icon: "/appIcon.svg",
   },
