@@ -15,7 +15,7 @@ export default function RatingModal({ onClose }: Props) {
   const stationId = useStationStore.getState().selectedStation?.id;
   const onSubmit = async (rating: number, comment: string) => {
     if (!stationId) {
-      toast.error("invalid station ID");
+      toast.error("ID trạm không hợp lệ");
       return;
     }
     try {

@@ -60,7 +60,7 @@ const SearchBar = () => {
       clearSearch();
     } catch (error) {
       console.error(error);
-      toast.error("Failed to load station details");
+      toast.error("Không lấy được thông tin trạm");
     }
   };
 

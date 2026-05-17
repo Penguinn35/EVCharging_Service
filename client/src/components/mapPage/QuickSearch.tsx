@@ -35,7 +35,7 @@ const QuickSearch = () => {
       setStationMarkers(mapped);
 
       if (mapped.length === 0) {
-        toast.info("No stations found nearby");
+        toast.info("Không có trạm sạc gần đây");
       }
     } catch (error: unknown) {
       const status =
@@ -44,10 +44,10 @@ const QuickSearch = () => {
           : undefined;
 
       if (status === 404) {
-        toast.error("Cannot find any nearby stations");
+        toast.error("Không tìm thấy trạm sạc ở gần");
         setStationMarkers([]);
       } else {
-        toast.error("Something went wrong while fetching stations");
+        toast.error("Lỗi không xác định, thử lại sau");
         console.error(error);
       }
     } finally {

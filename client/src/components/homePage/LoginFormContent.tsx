@@ -61,7 +61,7 @@ export default function LoginFormContent({
         const businessProfile = await getBusinessProfile();
         useEnterpriseStore.getState().updateEnterprise(businessProfile);
 
-        toast.success("Logged in");
+        toast.success("Đăng nhập thành công");
         closeModal();
         router.push("/dashboard");
         return;
@@ -76,7 +76,7 @@ export default function LoginFormContent({
         savedStation: userDetail.savedStationList ?? [],
       });
 
-      toast.success("Logged in");
+      toast.success("Đăng nhập thành công");
       closeModal();
       router.push("/Map");
     } catch (err: unknown) {
@@ -84,8 +84,8 @@ export default function LoginFormContent({
 
       useUserStore.getState().clearUser();
       useEnterpriseStore.getState().clearEnterprise();
-      console.error("Login failed:", error.message);
-      toast.error("Login failed");
+      console.error("Đăng nhập không thành công:", error.message);
+      toast.error("Đăng nhập không thành công");
     } finally {
       setLoading(false);
     }

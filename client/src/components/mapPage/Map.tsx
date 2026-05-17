@@ -52,7 +52,7 @@ const CustomMarker = ({ station }: { station: StationMarkerData }) => {
       const data = await getStationById(stationId);
       selectStation(data);
     } catch (err) {
-      toast.error("Failed to fetch station");
+      toast.error("Không có dữ liệu");
     } finally {
       setLoading(false);
     }
@@ -106,7 +106,7 @@ const SuggestionCenterMarker = () => {
     <div className="pointer-events-none absolute inset-0 z-[700] flex items-center justify-center">
       <div className="relative -translate-y-5 flex flex-col items-center">
         <div className="rounded-full bg-white/95 px-3 py-1 text-[11px] font-semibold text-gray-700 shadow-md border border-gray-200">
-          Di chuyen ban do de chon vi tri
+         Di chuyển bản đồ để chọn vị trí
         </div>
         <div className="relative mt-2 h-10 w-10">
           <div className="absolute left-1/2 top-0 h-10 w-10 -translate-x-1/2 rounded-full border-4 border-white bg-red-500 shadow-xl" />

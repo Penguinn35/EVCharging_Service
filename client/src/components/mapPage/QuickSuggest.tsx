@@ -85,7 +85,7 @@ export default function QuickSuggest() {
       }
     } catch (error) {
       console.error(error);
-      toast.error("Failed to suggest a station");
+      toast.error("Vui lòng thử lại sau");
     } finally {
       setLoading(false);
     }
