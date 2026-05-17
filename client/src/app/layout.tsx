@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import "./globals.css";
 import { Saira } from "next/font/google";
 import { ToastContainer } from "react-toastify";
@@ -15,7 +15,10 @@ const sairaFont = Saira({
 
 export const metadata: Metadata = {
   title: "EVStation",
-  description: "Tìm kiếm nhanh chóng trạm sạc quanh bạn",
+  description: "TÃ¬m kiáº¿m nhanh chÃ³ng tráº¡m sáº¡c quanh báº¡n",
+  icons: {
+    icon: "/appIcon.svg",
+  },
 };
 
 export default function RootLayout({
@@ -45,3 +48,4 @@ export default function RootLayout({
     </html>
   );
 }
+
