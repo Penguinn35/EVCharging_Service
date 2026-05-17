@@ -119,18 +119,18 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
 
     @Query(nativeQuery = true, value = """
     WITH start_node AS (
-        SELECT source AS id FROM hcmc_2po_4pgr
+        SELECT source AS id FROM hcmc_map_2po_4pgr
         ORDER BY geom_way <-> ST_SetSRID(ST_MakePoint(:startLon, :startLat), 4326)
         LIMIT 1
     ),
     end_node AS (
-        SELECT target AS id FROM hcmc_2po_4pgr
+        SELECT target AS id FROM hcmc_map_2po_4pgr
         ORDER BY geom_way <-> ST_SetSRID(ST_MakePoint(:endLon, :endLat), 4326)
         LIMIT 1
     ),
     route AS (
         SELECT * FROM pgr_aStar(
-            'SELECT id, source, target, cost, reverse_cost, x1, y1, x2, y2 FROM hcmc_2po_4pgr',
+            'SELECT id, source, target, cost, reverse_cost, x1, y1, x2, y2 FROM hcmc_map_2po_4pgr',
             (SELECT id FROM start_node),
             (SELECT id FROM end_node),
             directed := true
@@ -138,7 +138,7 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
     )
     SELECT ST_AsGeoJSON(ST_Union(w.geom_way))
     FROM route r
-    JOIN hcmc_2po_4pgr w ON r.edge = w.id
+    JOIN hcmc_map_2po_4pgr w ON r.edge = w.id
     WHERE r.edge != -1
     """)
     String findOptimalRouteGeoJSON(
