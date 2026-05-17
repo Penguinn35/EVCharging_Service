@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 import com.dacn.backend.dto.*;
@@ -178,11 +179,22 @@ public class StationService {
     public Page<RatingResponseDTO> getRatingListOfStation(String stationId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
 
-        return ratingRepo.findByStation(stationId, pageable);
+        return ratingRepo.findByStationId(stationId, pageable);
     }
 
     public List<RatingStatisticDTO> getRatingStatistic(String stationId) {
         return ratingRepo.getStatistic(stationId);
+    }
+
+    public boolean deleteRating(String stationId, String userId) {
+        Rating deletingRating = ratingRepo.findByUserAndStation(
+                eVUserRepo.getReferenceById(userId), stationRepo.getReferenceById(stationId)
+        ).orElse(null);
+        if (deletingRating == null) {
+            return false;
+        }
+        ratingRepo.deleteById(deletingRating.getId());
+        return true;
     }
 
     @Transactional
@@ -243,4 +255,6 @@ public class StationService {
     public List<String> getAllDistricts() {
         return stationRepo.getAllDistricts();
     }
+
+
 }

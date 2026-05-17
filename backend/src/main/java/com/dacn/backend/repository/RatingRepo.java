@@ -24,7 +24,7 @@ public interface RatingRepo extends JpaRepository<Rating, String> {
     FROM Rating r
     WHERE r.station.id = ?1
 """)
-    Page<RatingResponseDTO> findByStation(String stationId, Pageable pageable);
+    Page<RatingResponseDTO> findByStationId(String stationId, Pageable pageable);
 
     @Query(value = """
         SELECT r.point AS starPoint, count(r.point) AS totalNumberOfRatings
