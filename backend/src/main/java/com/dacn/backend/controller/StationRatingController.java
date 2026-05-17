@@ -87,9 +87,22 @@ public class StationRatingController {
         RatingResponseDTO response;
         String userId = principal.getUserId();
         response = stationService.rateStation(userId, rating);
+        if (response == null)
+            return new ResponseEntity<>(new ResponseObject<>(
+                    HttpStatus.BAD_REQUEST, "You have already posted a rating for this station", null
+            ), HttpStatus.BAD_REQUEST);
         return new ResponseEntity<>(new ResponseObject<>(
                 HttpStatus.CREATED, "Send rating from user successfully", response
         ), HttpStatus.CREATED);
+    }
+
+    @PutMapping("")
+    public ResponseEntity<ResponseObject<RatingResponseDTO>> updateRating(@RequestBody RatingRequestDTO rating,
+                                                                          @AuthenticationPrincipal UserPrincipal principal) {
+        RatingResponseDTO createdRating = stationService.updateRating(principal.getUserId(), rating);
+        return new ResponseEntity<>(new ResponseObject<>(
+                HttpStatus.OK, "Updated rating successfully", createdRating
+        ), HttpStatus.OK);
     }
 
 }

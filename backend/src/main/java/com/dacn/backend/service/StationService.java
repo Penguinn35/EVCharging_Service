@@ -144,8 +144,26 @@ public class StationService {
         Rating newRating = ratingRepo.findByUserAndStation(
                 eVUserRepo.getReferenceById(userId), stationRepo.getReferenceById(rating.getStationId())
         ).orElse(null);
+        if (newRating != null) {
+            return null;
+        }
+        newRating = new Rating();
+        newRating.setDatePosted(LocalDateTime.now());
+        newRating.setPoint(rating.getPoint());
+        newRating.setComment(rating.getComment());
+        newRating.setStation(stationRepo.getReferenceById(rating.getStationId()));
+        newRating.setUser(eVUserRepo.getReferenceById(userId));
+
+        Rating savedRating = ratingRepo.save(newRating);
+        return new RatingResponseDTO(savedRating.getId(), savedRating.getComment(), savedRating.getPoint(), savedRating.getDatePosted());
+    }
+
+    public RatingResponseDTO updateRating(String userId, RatingRequestDTO rating) {
+        Rating newRating = ratingRepo.findByUserAndStation(
+                eVUserRepo.getReferenceById(userId), stationRepo.getReferenceById(rating.getStationId())
+        ).orElse(null);
         if (newRating == null) {
-            newRating = new Rating();
+            return null;
         }
         newRating.setDatePosted(LocalDateTime.now());
         newRating.setPoint(rating.getPoint());
