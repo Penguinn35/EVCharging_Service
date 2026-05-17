@@ -257,4 +257,18 @@ public class StationService {
     }
 
 
+    public RatingResponseDTO getRatingOfUser(String stationId, String userId) {
+        Rating rating = ratingRepo.findByUserAndStation(
+                eVUserRepo.getReferenceById(userId), stationRepo.getReferenceById(stationId)
+        ).orElse(null);
+        if (rating == null) {
+            return null;
+        }
+        RatingResponseDTO responseDTO = new RatingResponseDTO();
+        responseDTO.setId(rating.getId());
+        responseDTO.setComment(rating.getComment());
+        responseDTO.setPoint(rating.getPoint());
+        responseDTO.setTimePosted(rating.getDatePosted());
+        return responseDTO;
+    }
 }

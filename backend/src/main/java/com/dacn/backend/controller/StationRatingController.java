@@ -1,9 +1,6 @@
 package com.dacn.backend.controller;
 
-import com.dacn.backend.dto.RatingRemovalDTO;
-import com.dacn.backend.dto.RatingRequestDTO;
-import com.dacn.backend.dto.RatingResponseDTO;
-import com.dacn.backend.dto.RatingStatisticDTO;
+import com.dacn.backend.dto.*;
 import com.dacn.backend.model.UserPrincipal;
 import com.dacn.backend.object.ResponseObject;
 import com.dacn.backend.service.StationService;
@@ -128,5 +125,20 @@ public class StationRatingController {
         return new ResponseEntity<>(new ResponseObject<>(
                 HttpStatus.BAD_REQUEST, "Something is wrong with the deletion", false
         ), HttpStatus.BAD_REQUEST);
+    }
+
+    @GetMapping("users")
+    @Operation(summary = "API tìm đánh giá trạm sạc của user đối với 1 station")
+    public ResponseEntity<ResponseObject<RatingResponseDTO>> getUsersRating(@RequestParam String stationId,
+                                                                            @AuthenticationPrincipal UserPrincipal principal) {
+        RatingResponseDTO response = stationService.getRatingOfUser(stationId, principal.getUserId());
+        if (response == null) {
+            return new ResponseEntity<>(new ResponseObject<>(
+                    HttpStatus.NO_CONTENT, "No rating found from the user", null
+            ), HttpStatus.NO_CONTENT);
+        }
+        return new ResponseEntity<>(new ResponseObject<>(
+                HttpStatus.OK, "Return rating successfully", response
+        ), HttpStatus.OK);
     }
 }
