@@ -120,11 +120,13 @@ public interface ChargingStationRepo extends JpaRepository<ChargingStation, Stri
     @Query(nativeQuery = true, value = """
     WITH start_node AS (
         SELECT source AS id FROM hcmc_map_2po_4pgr
+                                WHERE component = 1
         ORDER BY geom_way <-> ST_SetSRID(ST_MakePoint(:startLon, :startLat), 4326)
         LIMIT 1
     ),
     end_node AS (
         SELECT target AS id FROM hcmc_map_2po_4pgr
+                                WHERE component = 1
         ORDER BY geom_way <-> ST_SetSRID(ST_MakePoint(:endLon, :endLat), 4326)
         LIMIT 1
     ),
