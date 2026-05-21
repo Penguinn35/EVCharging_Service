@@ -24,12 +24,12 @@ export function SystemStatistics() {
       icon: FiStar,
       description: "Xếp hạng và phản hồi của người dùng",
     },
-    {
-      id: "saved" as StatisticsTab,
-      label: "Lượt lưu trạm",
-      icon: FiBookmark,
-      description: "Các trạm được lưu lại nhiều",
-    },
+    // {
+    //   id: "saved" as StatisticsTab,
+    //   label: "Lượt lưu trạm",
+    //   icon: FiBookmark,
+    //   description: "Các trạm được lưu lại nhiều",
+    // },
   ];
 
   return (

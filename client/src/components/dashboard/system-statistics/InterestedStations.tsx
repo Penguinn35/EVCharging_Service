@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import {
@@ -12,6 +12,32 @@ type DateFilter = "day" | "week" | "month" | "custom";
 const ITEMS_PER_PAGE = 10;
 
 const formatDateForInput = (date: Date) => date.toISOString().split("T")[0];
+
+const getVisiblePages = (currentPage: number, totalPages: number) => {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  const pages: Array<number | string> = [1];
+  const startPage = Math.max(2, currentPage - 1);
+  const endPage = Math.min(totalPages - 1, currentPage + 1);
+
+  if (startPage > 2) {
+    pages.push("start-ellipsis");
+  }
+
+  for (let page = startPage; page <= endPage; page += 1) {
+    pages.push(page);
+  }
+
+  if (endPage < totalPages - 1) {
+    pages.push("end-ellipsis");
+  }
+
+  pages.push(totalPages);
+
+  return pages;
+};
 
 const getDateRangeByFilter = (
   filter: DateFilter,
@@ -91,7 +117,7 @@ export function InterestedStations() {
         setTotalElements(response.totalElements);
         setTotalPages(response.totalPages);
       } catch {
-        setError("Khong the tai thong ke muc do quan tam tram sac.");
+        setError("Không thể tải thống kê mức độ quan tâm trạm sạc.");
         setStations([]);
         setTotalElements(0);
         setTotalPages(0);
@@ -105,6 +131,7 @@ export function InterestedStations() {
 
   const startItem = totalElements === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1;
   const endItem = totalElements === 0 ? 0 : Math.min(currentPage * ITEMS_PER_PAGE, totalElements);
+  const visiblePages = getVisiblePages(currentPage, totalPages);
 
   return (
     <div className="space-y-6">
@@ -139,7 +166,7 @@ export function InterestedStations() {
 
         {!loading && topStations.length === 0 && (
           <div className="md:col-span-3 rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500">
-            Khong co du lieu top station trong khoang thoi gian da chon.
+            Không có dữ liệu top trạm trong khoảng thời gian đã chọn.
           </div>
         )}
       </div>
@@ -158,10 +185,10 @@ export function InterestedStations() {
               }}
               className="px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500"
             >
-              <option value="day">Last 24 Hours</option>
-              <option value="week">Last Week</option>
-              <option value="month">Last Month</option>
-              <option value="custom">Custom Range</option>
+              <option value="day">24 giờ qua</option>
+              <option value="week">7 ngày qua</option>
+              <option value="month">30 ngày qua</option>
+              <option value="custom">Tùy chọn ngày</option>
             </select>
             {dateFilter === "custom" && (
               <div className="flex flex-wrap items-center gap-2">
@@ -174,7 +201,7 @@ export function InterestedStations() {
                   }}
                   className="px-2 py-1 rounded border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
                 />
-                <span className="text-gray-500">to</span>
+                <span className="text-gray-500">đến</span>
                 <input
                   type="date"
                   value={customToDate}
@@ -210,13 +237,13 @@ export function InterestedStations() {
               {loading ? (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-sm text-gray-500">
-                    Dang tai du lieu...
+                    Đang tải dữ liệu...
                   </td>
                 </tr>
               ) : stations.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-sm text-gray-500">
-                    Khong co du lieu trong khoang thoi gian da chon.
+                    Không có dữ liệu trong khoảng thời gian đã chọn.
                   </td>
                 </tr>
               ) : (
@@ -243,45 +270,54 @@ export function InterestedStations() {
           </table>
         </div>
 
-        <div className="flex flex-col gap-3 pt-4 border-t border-gray-200 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 border-t border-gray-200 pt-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="text-sm text-gray-600">
-            Showing {startItem} to {endItem} of {totalElements} stations
+            Hiển thị {startItem} - {endItem} trên tổng {totalElements} trạm
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
               disabled={currentPage === 1 || loading}
               className="px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Previous
-            </button>
-            <div className="flex items-center gap-2">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  disabled={loading}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    currentPage === page
-                      ? "bg-green-600 text-white"
-                      : "border border-gray-300 text-gray-700 hover:bg-gray-50"
-                  } disabled:opacity-50`}
-                >
-                  {page}
-                </button>
-              ))}
+            >Trước</button>
+            <div className="flex flex-wrap items-center gap-2">
+              {visiblePages.map((page) =>
+                typeof page === "number" ? (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    disabled={loading}
+                    className={`min-w-10 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      currentPage === page
+                        ? "bg-green-600 text-white"
+                        : "border border-gray-300 text-gray-700 hover:bg-gray-50"
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  >
+                    {page}
+                  </button>
+                ) : (
+                  <span
+                    key={page}
+                    className="flex min-w-10 items-center justify-center px-2 py-2 text-sm font-medium text-gray-500"
+                  >
+                    ...
+                  </span>
+                )
+              )}
             </div>
             <button
               onClick={() => setCurrentPage((prev) => Math.min(totalPages || 1, prev + 1))}
               disabled={currentPage === totalPages || totalPages === 0 || loading}
               className="px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Next
-            </button>
+            >Sau</button>
           </div>
         </div>
       </div>
     </div>
   );
 }
+
+
+
+
 

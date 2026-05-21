@@ -87,14 +87,14 @@ export function ManageStations() {
 
     try {
       const response = await getBusinessStations({
-        page,
+        page: Math.max(0, page - 1),
         size: DEFAULT_PAGE_SIZE,
         ...(nextKeyword.trim() ? { keyword: nextKeyword.trim() } : {}),
         ...(nextDistrict ? { district: nextDistrict } : {}),
       });
       setStations(mapStationsForTable(response.content));
       setPagination(response);
-      setCurrentPage(response.number);
+      setCurrentPage(response.number + 1);
     } catch {
       setError("Khong the tai danh sach tram.");
     } finally {
@@ -144,7 +144,7 @@ export function ManageStations() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Quản lý trạm</h2>
+          <h2 className="text-2xl font-bold text-gray-900">Qu?n l� tr?m</h2>
           
         </div>
         <div className="flex gap-3">
@@ -165,7 +165,7 @@ export function ManageStations() {
         </div>
       ) : isLoading ? (
         <div className="rounded-lg border border-gray-200 bg-white px-4 py-8 text-center text-sm text-gray-500">
-         Äang táº£i danh sÃ¡ch tráº¡m...
+         Đang tải danh sách trạm...
         </div>
       ) : (
         <StationsTable
@@ -190,5 +190,6 @@ export function ManageStations() {
     </div>
   );
 }
+
 
 
