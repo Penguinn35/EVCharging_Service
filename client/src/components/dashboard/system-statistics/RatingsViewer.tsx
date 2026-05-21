@@ -298,11 +298,11 @@ export function RatingsViewer() {
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <div className="rounded-lg border border-gray-200 bg-white p-4">
-            <div className="text-sm font-medium text-gray-600">Tong so danh gia</div>
+            <div className="text-sm font-medium text-gray-600">Tổng đánh giá</div>
             <div className="mt-2 text-3xl font-bold text-gray-900">{totalNumberOfRatings}</div>
           </div>
           <div className="rounded-lg border border-gray-200 bg-white p-4">
-            <div className="text-sm font-medium text-gray-600">Diem trung binh</div>
+            <div className="text-sm font-medium text-gray-600">Điểm trung bình</div>
             <div className="mt-2 flex items-baseline gap-2">
               <span className="text-3xl font-bold text-green-600">{averagePoint.toFixed(1)}</span>
               <span className="text-sm text-gray-600">/5</span>

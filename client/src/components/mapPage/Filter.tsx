@@ -1,69 +1,80 @@
-import React, { useState, useRef, useEffect } from "react";
+﻿import React, { useEffect, useRef, useState } from "react";
 import { BiFilterAlt } from "react-icons/bi";
+
+import { useStationStore } from "@/store/useStationStore";
+
+const TAT_CA = "Tất cả";
+const HANG_OPTIONS = [TAT_CA, "V-Green", "Dat Bike", "EBOOST"];
+const TRANG_THAI_OPTIONS = [TAT_CA, "Còn trống", "Hết chỗ"];
+const LOAI_CONG_OPTIONS = [TAT_CA, "CCS 2", "Type 2"];
+
+type FilterField = "status" | "operatorId" | "connectorType";
+type FilterState = Record<FilterField, Set<string>>;
+
+const createInitialFilters = (): FilterState => ({
+  status: new Set([TAT_CA]),
+  operatorId: new Set([TAT_CA]),
+  connectorType: new Set([TAT_CA]),
+});
 
 const Filter = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedFilters, setSelectedFilters] = useState({
-    status: new Set<string>(),
-    operatorId: new Set<string>(),
-    connectorType: new Set<string>(),
-  });
+  const [selectedFilters, setSelectedFilters] = useState<FilterState>(
+    createInitialFilters,
+  );
 
+  const setSelectedManufacturers = useStationStore(
+    (state) => state.setSelectedManufacturers,
+  );
   const filterRef = useRef<HTMLDivElement>(null);
 
   const toggleFilter = () => {
-    setIsOpen(!isOpen);
+    setIsOpen((prev) => !prev);
   };
 
-  const handleTagClick = (
-    field: "status" | "operatorId" | "connectorType",
-    value: string
-  ) => {
+  const handleTagClick = (field: FilterField, value: string) => {
     setSelectedFilters((prev) => {
       const updatedSet = new Set(prev[field]);
-      if (value === "Tất cả") {
-        updatedSet.clear();
-        updatedSet.add("Tất cả");
-      } else {
-        if (updatedSet.has("Tất cả")) {
-          updatedSet.delete("Tất cả");
-        }
-        if (updatedSet.has(value)) {
-          updatedSet.delete(value);
-        } else {
-          updatedSet.add(value);
-        }
+
+      if (value === TAT_CA) {
+        return { ...prev, [field]: new Set([TAT_CA]) };
       }
+
+      updatedSet.delete(TAT_CA);
+
+      if (updatedSet.has(value)) {
+        updatedSet.delete(value);
+      } else {
+        updatedSet.add(value);
+      }
+
+      if (updatedSet.size === 0) {
+        updatedSet.add(TAT_CA);
+      }
+
       return { ...prev, [field]: updatedSet };
     });
   };
 
   const applyFilters = () => {
-    console.log("Applied Filters:", {
-      status: Array.from(selectedFilters.status),
-      operatorId: Array.from(selectedFilters.operatorId),
-      connectorType: Array.from(selectedFilters.connectorType),
-    });
+    const selectedManufacturers = selectedFilters.operatorId.has(TAT_CA)
+      ? []
+      : Array.from(selectedFilters.operatorId);
+
+    setSelectedManufacturers(selectedManufacturers);
+    setIsOpen(false);
   };
 
-  const statuses = ["Tất cả", "còn trống", "đông đúc", "hết chỗ"];
-  const operatorIds = ["Tất cả", "Operator 1", "Operator 2", "Operator 3"];
-  const connectorTypes = ["Tất cả", "CCS 2", "Type 2"];
-  const power = []
-
-  const renderTags = (
-    field: "status" | "operatorId" | "connectorType",
-    options: string[]
-  ) => {
+  const renderTags = (field: FilterField, options: string[]) => {
     return (
       <div className="flex flex-wrap gap-2">
         {options.map((option) => (
           <span
             key={option}
-            className={`px-3 py-1 rounded-full cursor-pointer text-sm border ${
+            className={`rounded-full border px-3 py-1 text-sm cursor-pointer ${
               selectedFilters[field].has(option)
-                ? "bg-green-600 text-white border-green-600"
-                : "bg-white text-gray-700 border-gray-300"
+                ? "border-green-600 bg-green-600 text-white"
+                : "border-gray-300 bg-white text-gray-700"
             }`}
             onClick={() => handleTagClick(field, option)}
           >
@@ -93,37 +104,37 @@ const Filter = () => {
   return (
     <div className="relative" ref={filterRef}>
       <div
-        className="bg-white w-10 h-10 flex items-center justify-center rounded-xl mx-2 cursor-pointer"
+        className="mx-2 flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl bg-white"
         onClick={toggleFilter}
       >
         <BiFilterAlt className="text-2xl text-green-600 hover:text-green-400" />
       </div>
 
       {isOpen && (
-        <div className="absolute top-12 left-0 bg-white border border-gray-300 rounded-lg shadow-lg p-4 z-50 w-64">
+        <div className="absolute top-12 left-0 z-50 w-64 rounded-lg border border-gray-300 bg-white p-4 shadow-lg">
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="mb-2 block text-sm font-medium text-gray-700">
               Trạng thái
             </label>
-            {renderTags("status", statuses)}
+            {renderTags("status", TRANG_THAI_OPTIONS)}
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="mb-2 block text-sm font-medium text-gray-700">
               Hãng
             </label>
-            {renderTags("operatorId", operatorIds)}
+            {renderTags("operatorId", HANG_OPTIONS)}
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="mb-2 block text-sm font-medium text-gray-700">
               Loại cổng
             </label>
-            {renderTags("connectorType", connectorTypes)}
+            {renderTags("connectorType", LOAI_CONG_OPTIONS)}
           </div>
 
           <button
-            className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-500  cursor-pointer"
+            className="w-full cursor-pointer rounded-lg bg-green-600 py-2 text-white hover:bg-green-500"
             onClick={applyFilters}
           >
             Áp dụng

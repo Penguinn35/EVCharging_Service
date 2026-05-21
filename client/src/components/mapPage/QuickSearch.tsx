@@ -24,13 +24,15 @@ const QuickSearch = () => {
       const mapped: StationMarkerData[] = response.map((item: StationMarkerData) => ({
         id: item.id,
         name: item.name,
-        manufacturer: item.id.slice(-2),
+        manufacturer: item.manufacturer,
         position: {
           latitude: item.position.latitude,
           longitude: item.position.longitude,
         },
         status: item.status,
       }));
+      console.log("data: ", mapped);
+      
 
       setStationMarkers(mapped);
 
