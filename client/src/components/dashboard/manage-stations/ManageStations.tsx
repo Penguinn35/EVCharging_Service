@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import {
@@ -41,6 +41,15 @@ const getNextStatus = (status: StationStatusLabel): StationStatusLabel => {
   return status === "OFF" ? "AVAILABLE" : "OFF";
 };
 
+const extractDistrictFromAddress = (address: string) => {
+  const parts = address
+    .split(",")
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  return parts.at(-1) ?? "Khong ro";
+};
+
 const mapStationsForTable = (
   stations: BusinessStationSummary[],
 ): ManageStationRow[] => {
@@ -48,7 +57,7 @@ const mapStationsForTable = (
     id: station.id,
     name: station.name,
     address: station.address,
-    district: station.district ?? "Khong ro",
+    district: extractDistrictFromAddress(station.address),
     status: mapStatusToLabel(station.status),
     availablePoints: station.points ?? 0,
     totalPoints: station.points ?? 0,
@@ -136,9 +145,7 @@ export function ManageStations() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Quản lý trạm</h2>
-          <p className="text-gray-600 mt-1">
-            Xem và điều khiển trạng thái các trạm
-          </p>
+          
         </div>
         <div className="flex gap-3">
           <button
@@ -158,7 +165,7 @@ export function ManageStations() {
         </div>
       ) : isLoading ? (
         <div className="rounded-lg border border-gray-200 bg-white px-4 py-8 text-center text-sm text-gray-500">
-         Đang tải danh sách trạm...
+         Äang táº£i danh sÃ¡ch tráº¡m...
         </div>
       ) : (
         <StationsTable
@@ -179,12 +186,9 @@ export function ManageStations() {
         />
       )}
 
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <p className="text-sm text-blue-800">
-          <strong>Chú thích trạng thái:</strong> Xanh lá: Sănx sàng | vàng: bận | Cam: đầy | Xám: không xác định
-        </p>
-      </div>
+    
     </div>
   );
 }
+
 

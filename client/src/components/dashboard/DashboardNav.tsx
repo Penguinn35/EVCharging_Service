@@ -57,7 +57,7 @@ export function DashboardNav() {
 
   return (
     <header className="shrink-0 border-b border-gray-200 bg-white">
-      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
+      <div className="mx-auto flex w-full  items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
         <div className="min-w-0 flex-1 overflow-x-auto scrollbar-thin">
           <div className="flex min-w-max items-center gap-1">
             {tabs.map((tab) => {
