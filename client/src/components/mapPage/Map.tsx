@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import L from "leaflet";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import { useEffect, useState } from "react";
@@ -28,19 +28,17 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
-const LOGO_VARIANTS = [
-  { src: "/CPOLogo/datbike.png", alt: "Dat Bike", weight: 15 },
-  { src: "/CPOLogo/eboost.png", alt: "eBoost", weight: 35 },
-  { src: "/CPOLogo/vgreen.png", alt: "V-Green", weight: 50 },
-];
+const LOGO_VARIANTS = {
+  "Dat Bike": { src: "/CPOLogo/datbike.png", alt: "Dat Bike" },
+  EBOOST: { src: "/CPOLogo/eboost.png", alt: "EBOOST" },
+  "V-Green": { src: "/CPOLogo/vgreen.png", alt: "V-Green" },
+} as const;
 
-const getRandomMarkerLogo = () => {
-  const pick = Math.random() * 100;
+const DEFAULT_MARKER_LOGO = LOGO_VARIANTS["V-Green"];
 
-  if (pick < 50) return LOGO_VARIANTS[0];
-  if (pick < 80) return LOGO_VARIANTS[1];
-  return LOGO_VARIANTS[2];
-};
+const getMarkerLogoByManufacturer = (manufacturer: string) =>
+  LOGO_VARIANTS[manufacturer as keyof typeof LOGO_VARIANTS] ??
+  DEFAULT_MARKER_LOGO;
 
 const CustomMarker = ({ station }: { station: StationMarkerData }) => {
   const [leaflet, setLeaflet] = useState<LeafletModule | null>(null);
@@ -66,7 +64,7 @@ const CustomMarker = ({ station }: { station: StationMarkerData }) => {
     });
   }, []);
 
-  const [markerLogo] = useState(() => getRandomMarkerLogo());
+  const markerLogo = getMarkerLogoByManufacturer(station.manufacturer);
 
   if (!leaflet) return null;
 
@@ -129,7 +127,7 @@ const RoutingLoadingOverlay = () => {
     <div className="pointer-events-none absolute inset-x-0 top-4 z-[900] flex justify-center px-4">
       <div className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-green-700 shadow-lg ring-1 ring-green-100">
         <FiLoader className="h-4 w-4 animate-spin" />
-        <span>Đang tải lộ trình...</span>
+        <span>Đan tải...</span>
       </div>
     </div>
   );
@@ -214,3 +212,4 @@ export default function Map() {
     </div>
   );
 }
+

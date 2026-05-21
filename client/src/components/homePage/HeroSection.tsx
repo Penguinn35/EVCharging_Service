@@ -6,7 +6,7 @@ import MotionWrapper from "../MotionWraper";
 
 export function HeroSection() {
   return (
-    <section className=" px-4 lg:px-8 bg-green-100 h-[calc(100vh-72px)] md:mt-[72px] ">
+    <section className=" px-4 lg:px-8 bg-green-100 h-[calc(100vh-72px)] md:mt-[62px] ">
       <div className="w-full lg:w-4/5 mx-auto text-center flex flex-col h-full relative">
         <div className="mt-40 px-3   ">
           <MotionWrapper direction="down" duration={1.7}>
