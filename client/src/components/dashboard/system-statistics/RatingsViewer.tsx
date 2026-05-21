@@ -31,8 +31,6 @@ const getDateRangeByFilter = (
   customToDate: string,
 ) => {
   const today = new Date();
-  const yesterday = new Date(today);
-  yesterday.setDate(today.getDate() - 1);
 
   if (filter === "custom") {
     return {
@@ -42,19 +40,20 @@ const getDateRangeByFilter = (
   }
 
   if (filter === "day") {
-    const date = formatDateForInput(yesterday);
+    const fromDate = new Date(today);
+    fromDate.setDate(today.getDate() - 1);
     return {
-      fromDate: date,
-      toDate: date,
+      fromDate: formatDateForInput(fromDate),
+      toDate: formatDateForInput(today),
     };
   }
 
-  const fromDate = new Date(yesterday);
-  fromDate.setDate(yesterday.getDate() - (filter === "week" ? 6 : 29));
+  const fromDate = new Date(today);
+  fromDate.setDate(today.getDate() - (filter === "week" ? 6 : 29));
 
   return {
     fromDate: formatDateForInput(fromDate),
-    toDate: formatDateForInput(yesterday),
+    toDate: formatDateForInput(today),
   };
 };
 
@@ -426,3 +425,5 @@ export function RatingsViewer() {
     </div>
   );
 }
+
+
