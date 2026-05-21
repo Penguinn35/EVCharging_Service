@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -50,6 +50,32 @@ const statusColors: Record<StationStatus, { bg: string; text: string; icon: stri
   OFF: { bg: "bg-gray-100", text: "text-gray-700", icon: "X" },
 };
 
+const getVisiblePages = (currentPage: number, totalPages: number) => {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  const pages: Array<number | string> = [1];
+  const startPage = Math.max(2, currentPage - 1);
+  const endPage = Math.min(totalPages - 1, currentPage + 1);
+
+  if (startPage > 2) {
+    pages.push("start-ellipsis");
+  }
+
+  for (let page = startPage; page <= endPage; page += 1) {
+    pages.push(page);
+  }
+
+  if (endPage < totalPages - 1) {
+    pages.push("end-ellipsis");
+  }
+
+  pages.push(totalPages);
+
+  return pages;
+};
+
 export function StationsTable({
   stations,
   currentPage,
@@ -75,6 +101,7 @@ export function StationsTable({
 
   const startItem = totalElements === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const endItem = totalElements === 0 ? 0 : startItem + stations.length - 1;
+  const visiblePages = getVisiblePages(currentPage, totalPages);
 
   return (
     <div className="space-y-4">
@@ -203,7 +230,7 @@ export function StationsTable({
             ) : (
               <tr>
                 <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
-                  No stations found matching your criteria.
+                  Không tìm thấy trạm nào phù hợp với bộ lọc.
                 </td>
               </tr>
             )}
@@ -212,44 +239,51 @@ export function StationsTable({
       </div>
 
       {totalElements > 0 && (
-        <div className="flex items-center justify-between border-t border-gray-200 pt-4">
+        <div className="flex flex-col gap-3 border-t border-gray-200 pt-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="text-sm text-gray-600">
-            Showing {startItem} to {endItem} of {totalElements} stations
+            Hiển thị {startItem} - {endItem} trên tổng {totalElements} trạm
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => onPageChange(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1 || isPageLoading}
               className="px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Previous
-            </button>
-            <div className="flex items-center gap-2">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <button
-                  key={page}
-                  onClick={() => onPageChange(page)}
-                  disabled={isPageLoading}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    currentPage === page
-                      ? "bg-green-600 text-white"
-                      : "border border-gray-300 text-gray-700 hover:bg-gray-50"
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
-                >
-                  {page}
-                </button>
-              ))}
+            >Trước</button>
+            <div className="flex flex-wrap items-center gap-2">
+              {visiblePages.map((page) =>
+                typeof page === "number" ? (
+                  <button
+                    key={page}
+                    onClick={() => onPageChange(page)}
+                    disabled={isPageLoading}
+                    className={`min-w-10 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      currentPage === page
+                        ? "bg-green-600 text-white"
+                        : "border border-gray-300 text-gray-700 hover:bg-gray-50"
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  >
+                    {page}
+                  </button>
+                ) : (
+                  <span
+                    key={page}
+                    className="flex min-w-10 items-center justify-center px-2 py-2 text-sm font-medium text-gray-500"
+                  >
+                    ...
+                  </span>
+                )
+              )}
             </div>
             <button
               onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages || isPageLoading}
               className="px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Next
-            </button>
+            >Sau</button>
           </div>
         </div>
       )}
     </div>
   );
 }
+
+
