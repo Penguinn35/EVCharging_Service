@@ -1,30 +1,51 @@
-import { create } from "zustand";
+﻿import { create } from "zustand";
 
-type Location = {
-    latitude: number;
-    longitude: number;
+type RoutingLocation = {
+  stationId: string;
+  latitude: number;
+  longitude: number;
 };
 
 type RoutingData = {
-    isOpen: boolean;
-    location: Location | null;
-    setRouting: (location: Location) => void;
-    clearRouting: () => void;
+  isOpen: boolean;
+  isLoading: boolean;
+  distanceInKilometers: number | null;
+  location: RoutingLocation | null;
+  setRouting: (location: RoutingLocation) => void;
+  setRoutingDistance: (distanceInKilometers: number | null) => void;
+  setRoutingLoading: (isLoading: boolean) => void;
+  clearRouting: () => void;
 };
 
 export const useRoutingStore = create<RoutingData>((set) => ({
-    isOpen: false,
-    location: null,
+  isOpen: false,
+  isLoading: false,
+  distanceInKilometers: null,
+  location: null,
 
-    setRouting: (location) =>
-        set({
-            isOpen: true,
-            location,
-        }),
+  setRouting: (location) =>
+    set({
+      isOpen: true,
+      isLoading: false,
+      distanceInKilometers: null,
+      location,
+    }),
 
-    clearRouting: () =>
-        set({
-            isOpen: false,
-            location: null,
-        }),
+  setRoutingDistance: (distanceInKilometers) =>
+    set({
+      distanceInKilometers,
+    }),
+
+  setRoutingLoading: (isLoading) =>
+    set({
+      isLoading,
+    }),
+
+  clearRouting: () =>
+    set({
+      isOpen: false,
+      isLoading: false,
+      distanceInKilometers: null,
+      location: null,
+    }),
 }));

@@ -71,6 +71,15 @@ type SuggestedStationResponse = {
   distanceInKilometers: number;
 };
 
+export type StationRouteRequest = Coordinate & {
+  stationId: string;
+};
+
+export type StationRouteGeoJson = {
+  type: "MultiLineString";
+  coordinates: number[][][];
+};
+
 export async function getStationById(
   stationId: string,
 ): Promise<StationDetail> {
@@ -124,6 +133,23 @@ export async function getSuggestedStation(
 
   return response.data.responseData.id;
 }
+
+export const getStationRoute = async (
+  params: StationRouteRequest,
+): Promise<StationRouteGeoJson> => {
+  const response = await publicApiClient.get<ApiResponse<string>>(
+    "/api/stations/route",
+    {
+      params: {
+        longitude: params.longitude,
+        latitude: params.latitude,
+        stationId: params.stationId,
+      },
+    },
+  );
+
+  return JSON.parse(response.data.responseData) as StationRouteGeoJson;
+};
 
 export const saveStation = async (
   stationId: string,
@@ -192,4 +218,5 @@ export const getRatingStatistics = async (
 
   return response.data.responseData;
 };
+
 

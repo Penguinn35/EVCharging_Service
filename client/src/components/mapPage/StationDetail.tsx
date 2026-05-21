@@ -85,6 +85,9 @@ const handleImageError = (event: SyntheticEvent<HTMLImageElement, Event>) => {
 };
 
 const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
+  const routingDistanceInKilometers = useRoutingStore(
+    (state) => state.distanceInKilometers,
+  );
   const isSaved = useUserStore((state) =>
     state.user.savedStation.some((s) => s.id === station.id),
   );
@@ -279,9 +282,9 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
         <div>
           <h2 className="text-lg font-semibold">{station.name}</h2>
           <p className="text-sm text-gray-500">{station.address}</p>
-          {distance && (
+          {(routingDistanceInKilometers ?? distance) != null && (
             <p className="text-sm text-gray-500">
-              Khoảng cách: {distance.toFixed(2)} km
+              Khoảng cách: {(routingDistanceInKilometers ?? distance)?.toFixed(2)} km
             </p>
           )}
         </div>
@@ -570,7 +573,13 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
           )}
         </div>
         <div
-          onClick={() => setRouting(station.position)}
+          onClick={() =>
+            setRouting({
+              stationId: station.id,
+              latitude: station.position.latitude,
+              longitude: station.position.longitude,
+            })
+          }
           className="flex cursor-pointer flex-col items-center gap-2 text-green-600 hover:text-green-700"
         >
           <FaRoute className="text-xl" />
@@ -582,5 +591,7 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
 };
 
 export default StationDetail;
+
+
 
 
