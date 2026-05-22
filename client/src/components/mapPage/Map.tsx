@@ -34,13 +34,12 @@ L.Icon.Default.mergeOptions({
 
 const VectorTileLayer = createLayerComponent(
   (props: { url: string; attribution: string }, context) => {
-    // @ts-expect-error L.maplibreGL được plugin tự động inject vào đối tượng L
     const layer = L.maplibreGL({
       style: props.url,
-      attribution: props.attribution,
     });
     return { instance: layer, context };
   },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (layer: any, props, prevProps) => {
     if (props.url !== prevProps.url) {
       layer.getMaplibreMap().setStyle(props.url);
