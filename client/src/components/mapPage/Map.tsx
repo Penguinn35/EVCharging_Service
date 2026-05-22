@@ -19,6 +19,10 @@ import { getStationById } from "@/services/stationService";
 import { FiLoader } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { useMapStore } from "@/store/useMapStore";
+import "maplibre-gl";
+import "@maplibre/maplibre-gl-leaflet";
+import "maplibre-gl/dist/maplibre-gl.css"; // <-- THÊM DÒNG NÀY
+import { createLayerComponent } from "@react-leaflet/core";
 
 type LeafletModule = typeof import("leaflet");
 
@@ -27,6 +31,22 @@ L.Icon.Default.mergeOptions({
   iconUrl: markerIcon,
   shadowUrl: markerShadow,
 });
+
+const VectorTileLayer = createLayerComponent(
+  (props: { url: string; attribution: string }, context) => {
+    // @ts-expect-error L.maplibreGL được plugin tự động inject vào đối tượng L
+    const layer = L.maplibreGL({
+      style: props.url,
+      attribution: props.attribution,
+    });
+    return { instance: layer, context };
+  },
+  (layer: any, props, prevProps) => {
+    if (props.url !== prevProps.url) {
+      layer.getMaplibreMap().setStyle(props.url);
+    }
+  }
+);
 
 const LOGO_VARIANTS = {
   "Dat Bike": { src: "/CPOLogo/datbike.png", alt: "Dat Bike" },
@@ -127,7 +147,7 @@ const RoutingLoadingOverlay = () => {
     <div className="pointer-events-none absolute inset-x-0 top-4 z-[900] flex justify-center px-4">
       <div className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-green-700 shadow-lg ring-1 ring-green-100">
         <FiLoader className="h-4 w-4 animate-spin" />
-        <span>Đan tải...</span>
+        <span>Đang tải...</span>
       </div>
     </div>
   );
@@ -179,9 +199,14 @@ export default function Map() {
         zoomControl={false}
         style={{ height: "100vh", width: "100%" }}
       >
-        <TileLayer
+        {/* <TileLayer
           attribution="&copy; OpenStreetMap contributors"
           url={`https://api.maptiler.com/maps/streets/{z}/{x}/{y}.png?key=${process.env.NEXT_PUBLIC_MAPTILER_KEY}`}
+        /> */}
+
+        <VectorTileLayer
+          attribution='&copy; <a href="https://www.maptiler.com/">MapTiler</a>'
+          url={`https://api.maptiler.com/maps/019e4cec-4547-7b64-8228-f21b61a69d49/style.json?key=${process.env.NEXT_PUBLIC_MAPTILER_KEY}`}
         />
         {coordinate && (
           <Marker position={[coordinate.latitude, coordinate.longitude]}>
