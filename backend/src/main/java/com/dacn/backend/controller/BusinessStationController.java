@@ -3,6 +3,7 @@ package com.dacn.backend.controller;
 import com.dacn.backend.dto.StationBusinessSearchDTO;
 import com.dacn.backend.dto.StationCreationDTO;
 import com.dacn.backend.dto.StationImageRequestDTO;
+import com.dacn.backend.dto.StationUpdateRequestDTO;
 import com.dacn.backend.model.UserPrincipal;
 import com.dacn.backend.object.ResponseObject;
 import com.dacn.backend.service.BusinessService;
@@ -99,6 +100,20 @@ public class BusinessStationController {
                         null),
                 HttpStatus.BAD_REQUEST
         );
+    }
+
+    @PutMapping("stations")
+    @Operation(summary = "API chỉnh sửa thông tin trạm sạc cho doanh nghiệp")
+    public ResponseEntity<ResponseObject<StationUpdateRequestDTO>> modifyStationInfo(@org.springframework.web.bind.annotation.RequestBody StationUpdateRequestDTO modifiedStation) {
+        StationUpdateRequestDTO response = businessService.modifyStation(modifiedStation);
+        if (response == null) {
+            return new ResponseEntity<>(new ResponseObject<>(
+                    HttpStatus.NOT_FOUND, "No such station with that id to update", null
+            ), HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(new ResponseObject<>(
+                HttpStatus.OK, "Updated station successfully", response
+        ), HttpStatus.OK);
     }
 
     @PostMapping(value = "stations/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

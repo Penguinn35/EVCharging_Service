@@ -86,6 +86,19 @@ public class BusinessService {
     }
 
     @Transactional
+    public StationUpdateRequestDTO modifyStation(StationUpdateRequestDTO newStation) {
+        ChargingStation station = stationRepo.findById(newStation.getId()).orElse(null);
+        if (station == null) {
+            return null;
+        }
+        station.setName(newStation.getName());
+        station.setPosition(newStation.getPosition());
+        station.setAddress(newStation.getAddress());
+        station.setDistrict(newStation.getDistrict());
+        return newStation;
+    }
+
+    @Transactional
     public boolean addImageToStation(MultipartFile imageFile, String stationId, String companyId) throws IOException {
         if (isValidImageFormat(imageFile)) return false;
 
