@@ -86,9 +86,9 @@ public class BusinessService {
     }
 
     @Transactional
-    public StationUpdateRequestDTO modifyStation(StationUpdateRequestDTO newStation) {
+    public StationUpdateRequestDTO modifyStation(StationUpdateRequestDTO newStation, String companyId) {
         ChargingStation station = stationRepo.findById(newStation.getId()).orElse(null);
-        if (station == null) {
+        if (station == null || !Objects.equals(station.getCpo().getEnterpriseId(), companyId)) {
             return null;
         }
         station.setName(newStation.getName());
@@ -96,6 +96,16 @@ public class BusinessService {
         station.setAddress(newStation.getAddress());
         station.setDistrict(newStation.getDistrict());
         return newStation;
+    }
+
+    @Transactional
+    public boolean deleteStation(String id, String companyId) {
+        ChargingStation station = stationRepo.findById(id).orElse(null);
+        if (station == null || !Objects.equals(station.getCpo().getEnterpriseId(), companyId)) {
+            return false;
+        }
+        stationRepo.deleteById(id);
+        return true;
     }
 
     @Transactional

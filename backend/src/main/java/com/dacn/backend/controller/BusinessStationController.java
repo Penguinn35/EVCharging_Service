@@ -104,8 +104,11 @@ public class BusinessStationController {
 
     @PutMapping("stations")
     @Operation(summary = "API chỉnh sửa thông tin trạm sạc cho doanh nghiệp")
-    public ResponseEntity<ResponseObject<StationUpdateRequestDTO>> modifyStationInfo(@org.springframework.web.bind.annotation.RequestBody StationUpdateRequestDTO modifiedStation) {
-        StationUpdateRequestDTO response = businessService.modifyStation(modifiedStation);
+    public ResponseEntity<ResponseObject<StationUpdateRequestDTO>> modifyStationInfo(
+            @org.springframework.web.bind.annotation.RequestBody StationUpdateRequestDTO modifiedStation,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        StationUpdateRequestDTO response = businessService.modifyStation(modifiedStation, principal.getCompanyId());
         if (response == null) {
             return new ResponseEntity<>(new ResponseObject<>(
                     HttpStatus.NOT_FOUND, "No such station with that id to update", null
@@ -114,6 +117,22 @@ public class BusinessStationController {
         return new ResponseEntity<>(new ResponseObject<>(
                 HttpStatus.OK, "Updated station successfully", response
         ), HttpStatus.OK);
+    }
+
+    @DeleteMapping("stations/{id}")
+    @Operation(summary = "API xóa trạm sạc bằng id")
+    public ResponseEntity<ResponseObject<Boolean>> deleteStation(
+            @RequestParam String id,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        if (businessService.deleteStation(id, principal.getCompanyId())) {
+            return new ResponseEntity<>(new ResponseObject<>(
+                    HttpStatus.OK, "Deleted station successfully", true
+            ), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(new ResponseObject<>(
+                HttpStatus.BAD_REQUEST, "Something went wrong when deleting station", false
+        ), HttpStatus.BAD_REQUEST);
     }
 
     @PostMapping(value = "stations/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
