@@ -11,7 +11,7 @@ import { toast } from "react-toastify";
 
 const cableTypeMap = {
   "Type 2": 1,
-  CCS2: 2,
+  CCS2: 0,
   Both: 2,
 } as const;
 
