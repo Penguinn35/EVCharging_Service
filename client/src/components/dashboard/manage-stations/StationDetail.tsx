@@ -1,7 +1,25 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
-import { ChangeEvent, SyntheticEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  ChangeEvent,
+  SyntheticEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Tooltip,
+  Legend,
+  TooltipItem,
+} from "chart.js";
+import { Bar } from "react-chartjs-2";
 import {
   FiArrowLeft,
   FiChevronLeft,
@@ -29,7 +47,13 @@ import {
   updateBusinessStationImage,
   uploadBusinessStationImage,
 } from "@/services/enterpriseService";
+import {
+  getStationDetailCountStatistics,
+  type StationDetailCountStatistic,
+} from "@/services/statisticsService";
 import type { StationDetail as StationDetailType } from "@/type/station";
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
 interface StationDetailProps {
   stationId: string;
@@ -80,10 +104,25 @@ const connectorTypeLabels: Record<number, string> = {
   3: "CHAdeMO",
 };
 
-const formatConnectorType = (type: number) => connectorTypeLabels[type] ?? `Type ${type}`;
+const formatConnectorType = (type: number) =>
+  connectorTypeLabels[type] ?? `Type ${type}`;
 const formatPower = (value: number) => `${value} kW`;
 const formatVoltage = (value: number) => `${value} V`;
 const formatPrice = (value: number) => `$${value.toFixed(2)}`;
+const formatApiDate = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+const formatStatisticDateKey = (date: Date) =>
+  formatApiDate(date).replaceAll("-", "");
+const formatChartDateLabel = (date: Date) =>
+  date.toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+  });
 const formatRatingDate = (value: string) =>
   new Date(value).toLocaleString("en-GB", {
     year: "numeric",
@@ -92,7 +131,8 @@ const formatRatingDate = (value: string) =>
     hour: "2-digit",
     minute: "2-digit",
   });
-const renderStars = (count: number) => Array.from({ length: Math.max(0, count) }, () => "?").join("");
+const renderStars = (count: number) =>
+  Array.from({ length: Math.max(0, count) }, () => "?").join("");
 
 export function StationDetail({ stationId, backHref }: StationDetailProps) {
   const [station, setStation] = useState<StationDetailType | null>(null);
@@ -105,10 +145,19 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
   const [deletingImageKey, setDeletingImageKey] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [ratingsPage, setRatingsPage] = useState(0);
-  const [ratingsData, setRatingsData] = useState<StationRatingResponse | null>(null);
-  const [ratingStatistics, setRatingStatistics] = useState<StationRatingStatistic[]>([]);
+  const [ratingsData, setRatingsData] = useState<StationRatingResponse | null>(
+    null,
+  );
+  const [ratingStatistics, setRatingStatistics] = useState<
+    StationRatingStatistic[]
+  >([]);
   const [isRatingsLoading, setIsRatingsLoading] = useState(true);
   const [ratingsError, setRatingsError] = useState<string | null>(null);
+  const [detailCountStatistics, setDetailCountStatistics] = useState<
+    StationDetailCountStatistic[]
+  >([]);
+  const [isDetailCountLoading, setIsDetailCountLoading] = useState(true);
+  const [detailCountError, setDetailCountError] = useState<string | null>(null);
   const uploadInputRef = useRef<HTMLInputElement | null>(null);
   const replaceInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
@@ -135,7 +184,7 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
 
   const loadRatings = useCallback(async () => {
     console.log("in rating fetch");
-    
+
     setIsRatingsLoading(true);
     setRatingsError(null);
 
@@ -158,6 +207,30 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
     }
   }, [ratingsPage, stationId]);
 
+  const loadDetailCountStatistics = useCallback(async () => {
+    const today = new Date();
+    const fromDate = new Date(today);
+    fromDate.setDate(today.getDate() - 29);
+
+    setIsDetailCountLoading(true);
+    setDetailCountError(null);
+
+    try {
+      const response = await getStationDetailCountStatistics(stationId, {
+        fromDate: formatApiDate(fromDate),
+        toDate: formatApiDate(today),
+        page: 0,
+        size: 30,
+      });
+
+      setDetailCountStatistics(response.content);
+    } catch {
+      setDetailCountError("Không thể tải thống kê lượt xem chi tiết.");
+    } finally {
+      setIsDetailCountLoading(false);
+    }
+  }, [stationId]);
+
   useEffect(() => {
     void loadStationDetail();
   }, [loadStationDetail]);
@@ -165,6 +238,10 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
   useEffect(() => {
     void loadRatings();
   }, [loadRatings]);
+
+  useEffect(() => {
+    void loadDetailCountStatistics();
+  }, [loadDetailCountStatistics]);
 
   useEffect(() => {
     setRatingsPage(0);
@@ -179,7 +256,11 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
       return [];
     }
     return Array.from(
-      new Set(station.connectors.map((connector) => formatConnectorType(connector.type))),
+      new Set(
+        station.connectors.map((connector) =>
+          formatConnectorType(connector.type),
+        ),
+      ),
     );
   }, [station]);
 
@@ -187,14 +268,20 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
     if (!station) {
       return [];
     }
-    return Array.from(new Set(station.connectors.map((connector) => connector.maxPower)));
+    return Array.from(
+      new Set(station.connectors.map((connector) => connector.maxPower)),
+    );
   }, [station]);
 
-  const availableConnectors = station?.connectors.filter((connector) => connector.available) ?? [];
+  const availableConnectors =
+    station?.connectors.filter((connector) => connector.available) ?? [];
 
   const ratingDistribution = useMemo(() => {
     const totals = new Map<number, number>(
-      ratingStatistics.map((item) => [item.starPoint, item.totalNumberOfRating]),
+      ratingStatistics.map((item) => [
+        item.starPoint,
+        item.totalNumberOfRating,
+      ]),
     );
 
     return [5, 4, 3, 2, 1].map((starPoint) => ({
@@ -204,7 +291,11 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
   }, [ratingStatistics]);
 
   const totalRatings = useMemo(
-    () => ratingDistribution.reduce((sum, item) => sum + item.totalNumberOfRating, 0),
+    () =>
+      ratingDistribution.reduce(
+        (sum, item) => sum + item.totalNumberOfRating,
+        0,
+      ),
     [ratingDistribution],
   );
 
@@ -220,6 +311,69 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
 
     return weightedTotal / totalRatings;
   }, [ratingDistribution, totalRatings]);
+
+  const detailCountChartData = useMemo(() => {
+    const totalsByDate = new Map(
+      detailCountStatistics.map((item) => [
+        item.date,
+        item.sumOfViewDetailCount,
+      ]),
+    );
+    const today = new Date();
+    const days = Array.from({ length: 30 }, (_, index) => {
+      const date = new Date(today);
+      date.setDate(today.getDate() - 29 + index);
+      return date;
+    });
+
+    return {
+      labels: days.map(formatChartDateLabel),
+      datasets: [
+        {
+          label: "Lượt xem chi tiết",
+          data: days.map(
+            (date) => totalsByDate.get(formatStatisticDateKey(date)) ?? 0,
+          ),
+          backgroundColor: "#16a34a",
+          borderColor: "#15803d",
+          borderWidth: 1,
+          borderRadius: 6,
+          maxBarThickness: 28,
+        },
+      ],
+    };
+  }, [detailCountStatistics]);
+
+  const detailCountChartOptions = useMemo(
+    () => ({
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: "rgba(17, 24, 39, 0.92)",
+          padding: 12,
+          cornerRadius: 8,
+          callbacks: {
+            label: (context: TooltipItem<"bar">) =>
+              `${context.parsed.y} lượt xem`,
+          },
+        },
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { maxRotation: 45, minRotation: 45, font: { size: 11 } },
+        },
+        y: {
+          beginAtZero: true,
+          ticks: { precision: 0, font: { size: 11 } },
+          grid: { color: "#f3f4f6" },
+        },
+      },
+    }),
+    [],
+  );
 
   const showTemporaryMessage = (message: string) => {
     setActionMessage(message);
@@ -254,7 +408,10 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
     }
   };
 
-  const handleReplaceImage = async (key: string, event: ChangeEvent<HTMLInputElement>) => {
+  const handleReplaceImage = async (
+    key: string,
+    event: ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
     if (!file || !station) {
       return;
@@ -388,7 +545,9 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
               <button
                 type="button"
                 onClick={() =>
-                  setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1))
+                  setCurrentImageIndex((prev) =>
+                    prev === 0 ? images.length - 1 : prev - 1,
+                  )
                 }
                 className="absolute left-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white transition hover:bg-black/60"
               >
@@ -397,7 +556,9 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
               <button
                 type="button"
                 onClick={() =>
-                  setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1))
+                  setCurrentImageIndex((prev) =>
+                    prev === images.length - 1 ? 0 : prev + 1,
+                  )
                 }
                 className="absolute right-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white transition hover:bg-black/60"
               >
@@ -407,7 +568,9 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
           ) : null}
 
           <div className="absolute bottom-4 right-4 rounded-full bg-black/55 px-3 py-1 text-xs font-medium text-white">
-            {images.length === 0 ? "No image" : `${currentImageIndex + 1} / ${images.length}`}
+            {images.length === 0
+              ? "No image"
+              : `${currentImageIndex + 1} / ${images.length}`}
           </div>
         </div>
 
@@ -425,7 +588,11 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
             disabled={uploading}
             className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {uploading ? <FiLoader className="h-4 w-4 animate-spin" /> : <FiUpload className="h-4 w-4" />}
+            {uploading ? (
+              <FiLoader className="h-4 w-4 animate-spin" />
+            ) : (
+              <FiUpload className="h-4 w-4" />
+            )}
             Thêm ảnh
           </button>
 
@@ -433,7 +600,11 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
             <>
               <button
                 type="button"
-                onClick={() => replaceInputRefs.current[images[currentImageIndex].key]?.click()}
+                onClick={() =>
+                  replaceInputRefs.current[
+                    images[currentImageIndex].key
+                  ]?.click()
+                }
                 disabled={editingImageKey === images[currentImageIndex].key}
                 className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
               >
@@ -446,7 +617,12 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
               </button>
               <button
                 type="button"
-                onClick={() => void handleDeleteImage(images[currentImageIndex].key, currentImageIndex)}
+                onClick={() =>
+                  void handleDeleteImage(
+                    images[currentImageIndex].key,
+                    currentImageIndex,
+                  )
+                }
                 disabled={deletingImageKey === images[currentImageIndex].key}
                 className="inline-flex items-center gap-2 rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
               >
@@ -487,7 +663,9 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
                   type="file"
                   accept="image/*"
                   className="hidden"
-                  onChange={(event) => void handleReplaceImage(image.key, event)}
+                  onChange={(event) =>
+                    void handleReplaceImage(image.key, event)
+                  }
                 />
                 <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-black/55 px-2 py-1 text-white opacity-0 transition group-hover:opacity-100">
                   <button
@@ -544,12 +722,16 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
             <FiMapPin className="h-4 w-4" />
             <span>{station.address}</span>
           </div>
-          <div className="text-sm text-gray-500">Quản lý: {station.manufacturer}</div>
+          <div className="text-sm text-gray-500">
+            Quản lý: {station.manufacturer}
+          </div>
         </div>
 
         <div className="space-y-2">
           <div className="text-sm font-medium text-gray-600">Trạng thái</div>
-          <span className={`inline-flex rounded-full px-3 py-1 text-sm font-semibold ${statusColors[statusLabel]}`}>
+          <span
+            className={`inline-flex rounded-full px-3 py-1 text-sm font-semibold ${statusColors[statusLabel]}`}
+          >
             {statusLabel}
           </span>
         </div>
@@ -562,20 +744,31 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <div className="mb-2 text-xs font-medium uppercase text-gray-600">Đầu sạc</div>
-          <div className="text-2xl font-bold text-green-600">{station.connectors.length}</div>
-          <div className="mt-1 text-xs text-gray-500">{availableConnectors.length} đang hoạt động</div>
-        </div>
-
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <div className="mb-2 text-xs font-medium uppercase text-gray-600">Tọa độ</div>
-          <div className="break-all font-mono text-sm text-gray-900">
-            {station.position.latitude.toFixed(4)}, {station.position.longitude.toFixed(4)}
+          <div className="mb-2 text-xs font-medium uppercase text-gray-600">
+            Đầu sạc
+          </div>
+          <div className="text-2xl font-bold text-green-600">
+            {station.connectors.length}
+          </div>
+          <div className="mt-1 text-xs text-gray-500">
+            {availableConnectors.length} đang hoạt động
           </div>
         </div>
 
         <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <div className="mb-2 text-xs font-medium uppercase text-gray-600">Đầu sạc</div>
+          <div className="mb-2 text-xs font-medium uppercase text-gray-600">
+            Tọa độ
+          </div>
+          <div className="break-all font-mono text-sm text-gray-900">
+            {station.position.latitude.toFixed(4)},{" "}
+            {station.position.longitude.toFixed(4)}
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-gray-200 bg-white p-4">
+          <div className="mb-2 text-xs font-medium uppercase text-gray-600">
+            Đầu sạc
+          </div>
           <div className="space-y-1">
             {connectorTypes.length > 0 ? (
               connectorTypes.map((type) => (
@@ -590,7 +783,9 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
         </div>
 
         <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <div className="mb-2 text-xs font-medium uppercase text-gray-600">Công suất</div>
+          <div className="mb-2 text-xs font-medium uppercase text-gray-600">
+            Công suất
+          </div>
           <div className="space-y-1">
             {maxPowers.length > 0 ? (
               maxPowers.map((power) => (
@@ -607,27 +802,48 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
 
       <div className="rounded-lg border border-gray-200 bg-white p-6">
         <h2 className="mb-4 text-lg font-semibold text-gray-900">Điểm sạc</h2>
-        {/* {station.connectors.length > 0 ? (
+        {station.connectors.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="border-b border-gray-200 bg-gray-50">
                 <tr>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">Connector ID</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">Đầu sạc</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">Nguồn</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">Công suất</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">Giá</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">Trạng thái</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    Connector ID
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    Đầu sạc
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    Nguồn
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    Công suất
+                  </th>
+                  
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    Trạng thái
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {station.connectors.map((connector) => (
-                  <tr key={connector.id} className="transition-colors hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium text-gray-900">{connector.id}</td>
-                    <td className="px-4 py-3 text-gray-700">{formatConnectorType(connector.type)}</td>
-                    <td className="px-4 py-3 text-gray-700">{formatVoltage(connector.voltage)}</td>
-                    <td className="px-4 py-3 font-medium text-gray-900">{formatPower(connector.maxPower)}</td>
-                    <td className="px-4 py-3 text-gray-700">{formatPrice(connector.price)}</td>
+                  <tr
+                    key={connector.id}
+                    className="transition-colors hover:bg-gray-50"
+                  >
+                    <td className="px-4 py-3 font-medium text-gray-900">
+                      {connector.id}
+                    </td>
+                    <td className="px-4 py-3 text-gray-700">
+                      {formatConnectorType(connector.type)}
+                    </td>
+                    <td className="px-4 py-3 text-gray-700">
+                      {formatVoltage(connector.voltage)}
+                    </td>
+                    <td className="px-4 py-3 font-medium text-gray-900">
+                      {formatPower(connector.maxPower)}
+                    </td>
+                   
                     <td className="px-4 py-3">
                       <span
                         className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${connector.available ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}`}
@@ -642,9 +858,7 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
           </div>
         ) : (
           <div className="text-sm text-gray-500">Không có dữ liệu.</div>
-        )} */}
-          <div className="text-sm text-gray-500">Không có dữ liệu.</div>
-
+        )}
       </div>
 
       <div className="rounded-lg border border-gray-200 bg-white p-6">
@@ -661,16 +875,25 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
           <div className="rounded-lg bg-gray-50 p-4">
-            <div className="text-sm font-medium text-gray-600">Điểm trung bình</div>
+            <div className="text-sm font-medium text-gray-600">
+              Điểm trung bình
+            </div>
             <div className="mt-2 flex items-end gap-2">
-              <span className="text-3xl font-bold text-amber-500">{averageRating.toFixed(1)}</span>
+              <span className="text-3xl font-bold text-amber-500">
+                {averageRating.toFixed(1)}
+              </span>
               <span className="text-sm text-gray-500">/ 5</span>
             </div>
-            <div className="mt-1 text-sm text-gray-500">Tổng: {totalRatings}</div>
+            <div className="mt-1 text-sm text-gray-500">
+              Tổng: {totalRatings}
+            </div>
 
             <div className="mt-5 space-y-3">
               {ratingDistribution.map((item) => {
-                const percentage = totalRatings === 0 ? 0 : (item.totalNumberOfRating / totalRatings) * 100;
+                const percentage =
+                  totalRatings === 0
+                    ? 0
+                    : (item.totalNumberOfRating / totalRatings) * 100;
 
                 return (
                   <div key={item.starPoint} className="space-y-1">
@@ -702,15 +925,22 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
               <>
                 <div className="space-y-3">
                   {ratingsData?.content.map((rating: StationRating) => (
-                    <div key={rating.id} className="rounded-lg border border-gray-200 p-4">
+                    <div
+                      key={rating.id}
+                      className="rounded-lg border border-gray-200 p-4"
+                    >
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div className="space-y-2">
                           <div className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-sm font-semibold text-amber-700">
                             <FiStar className="h-4 w-4 fill-current" />
                             <span>{rating.point}/5</span>
-                            <span className="text-amber-600">{renderStars(rating.point)}</span>
+                            <span className="text-amber-600">
+                              {renderStars(rating.point)}
+                            </span>
                           </div>
-                          <p className="text-sm leading-6 text-gray-700">{rating.comment || "No comment provided."}</p>
+                          <p className="text-sm leading-6 text-gray-700">
+                            {rating.comment || "No comment provided."}
+                          </p>
                         </div>
                         <div className="flex items-center gap-2 text-xs text-gray-500">
                           <FiMessageSquare className="h-4 w-4" />
@@ -723,13 +953,16 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
 
                 <div className="flex flex-col gap-3 border-t border-gray-200 pt-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="text-sm text-gray-600">
-                    Showing page {(ratingsData?.number ?? 0) + 1} of {ratingsData?.totalPages ?? 1}
+                    Showing page {(ratingsData?.number ?? 0) + 1} of{" "}
+                    {ratingsData?.totalPages ?? 1}
                   </div>
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
                       onClick={handlePreviousRatingsPage}
-                      disabled={(ratingsData?.first ?? true) || isRatingsLoading}
+                      disabled={
+                        (ratingsData?.first ?? true) || isRatingsLoading
+                      }
                       className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       Previous
@@ -747,12 +980,45 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
               </>
             ) : null}
 
-            {!isRatingsLoading && !ratingsError && (ratingsData?.content.length ?? 0) === 0 ? (
+            {!isRatingsLoading &&
+            !ratingsError &&
+            (ratingsData?.content.length ?? 0) === 0 ? (
               <div className="rounded-lg border border-dashed border-gray-300 px-4 py-10 text-center text-sm text-gray-500">
                 Chưa có đánh giá.
               </div>
             ) : null}
           </div>
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-gray-200 bg-white p-6">
+        <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">
+              Lượt xem chi tiết
+            </h2>
+            <p className="text-sm text-gray-500">Thống kê 30 ngày gần nhất</p>
+          </div>
+        </div>
+
+        {detailCountError ? (
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {detailCountError}
+          </div>
+        ) : null}
+
+        <div className="relative h-96 w-full">
+          {isDetailCountLoading ? (
+            <div className="flex h-full items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 text-sm text-gray-500">
+              <FiLoader className="h-4 w-4 animate-spin" />
+              Đang tải thống kê...
+            </div>
+          ) : (
+            <Bar
+              data={detailCountChartData}
+              options={detailCountChartOptions}
+            />
+          )}
         </div>
       </div>
 
@@ -777,5 +1043,3 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
     </div>
   );
 }
-
-

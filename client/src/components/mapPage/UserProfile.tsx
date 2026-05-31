@@ -96,6 +96,7 @@ const UserProfile = () => {
     const station = await getStationById(stationId);
     if (station !== null) {
       selectStation(station);
+      clearRouting();
       setFlyTo(station.position);
 
       const marker: StationMarkerData = {

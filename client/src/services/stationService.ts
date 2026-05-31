@@ -9,10 +9,14 @@ type SearchResult = {
   address: string;
 };
 
-type RatingRequest = {
+export type RatingRequest = {
   stationId: string;
   point: number;
   comment: string;
+};
+
+export type DeleteRatingRequest = {
+  stationId: string;
 };
 
 type PageableSort = {
@@ -189,6 +193,41 @@ export const ratingStation = async (
   return res.data.responseData;
 };
 
+export const updateStationRating = async (
+  data: RatingRequest,
+): Promise<null> => {
+  const res = await apiClient.put<ApiResponse<null>>(
+    "/api/stations/ratings",
+    data,
+  );
+
+  return res.data.responseData;
+};
+
+export const deleteStationRating = async (
+  data: DeleteRatingRequest,
+): Promise<boolean> => {
+  const res = await apiClient.delete<ApiResponse<boolean>>(
+    "/api/stations/ratings",
+    { data },
+  );
+
+  return res.data.responseData;
+};
+
+export const getCurrentUserStationRating = async (
+  stationId: string,
+): Promise<StationRating> => {
+  const response = await apiClient.get<ApiResponse<StationRating>>(
+    "/api/stations/ratings/users",
+    {
+      params: { stationId },
+    },
+  );
+
+  return response.data.responseData;
+};
+
 export const getRating = async (
   params: GetStationRatingsParams,
 ): Promise<StationRatingResponse> => {
@@ -218,5 +257,6 @@ export const getRatingStatistics = async (
 
   return response.data.responseData;
 };
+
 
 

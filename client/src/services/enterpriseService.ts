@@ -17,7 +17,7 @@ export type BusinessStationSummary = {
   address: string;
   district?: string;
   status: number;
-  points?: number;
+  numberOfChargingPoints?: number;
 };
 
 export type PageableSort = {

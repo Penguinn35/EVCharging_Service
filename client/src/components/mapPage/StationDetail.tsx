@@ -12,6 +12,7 @@ import { FaRegStar } from "react-icons/fa";
 import { TfiWrite } from "react-icons/tfi";
 import { FaRoute } from "react-icons/fa";
 import { FaStar } from "react-icons/fa6";
+import { toast } from "react-toastify";
 import {
   FiChevronLeft,
   FiChevronRight,
@@ -21,12 +22,15 @@ import {
 import { useRoutingStore } from "@/store/useRoutingStore";
 import { useUserStore } from "@/store/useUserStore";
 import {
+  deleteStationRating,
+  getCurrentUserStationRating,
   getRating,
   getRatingStatistics,
   getStationById,
   StationRating,
   StationRatingResponse,
   StationRatingStatistic,
+  updateStationRating,
 } from "@/services/stationService";
 import { useAuthModalStore } from "@/store/useAuthModalStore";
 import { StationSaved } from "@/type/user";
@@ -106,6 +110,14 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
   const [isRatingsLoading, setIsRatingsLoading] = useState(true);
   const [ratingsError, setRatingsError] = useState<string | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [currentUserRating, setCurrentUserRating] = useState<StationRating | null>(
+    null,
+  );
+  const [isEditingUserRating, setIsEditingUserRating] = useState(false);
+  const [editingRatingPoint, setEditingRatingPoint] = useState(0);
+  const [editingRatingComment, setEditingRatingComment] = useState("");
+  const [isSavingUserRating, setIsSavingUserRating] = useState(false);
+  const [isDeletingUserRating, setIsDeletingUserRating] = useState(false);
 
   const toggleSave = () => {
     const newStation: StationSaved = {
@@ -143,6 +155,25 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
         }, {}),
     );
   };
+
+
+  const loadCurrentUserRating = useCallback(async () => {
+    if (!isUserLoggedIn) {
+      setCurrentUserRating(null);
+      setIsEditingUserRating(false);
+      return;
+    }
+
+    try {
+      const rating = await getCurrentUserStationRating(station.id);
+      setCurrentUserRating(rating);
+      setEditingRatingPoint(rating.point);
+      setEditingRatingComment(rating.comment ?? "");
+    } catch {
+      setCurrentUserRating(null);
+      setIsEditingUserRating(false);
+    }
+  }, [isUserLoggedIn, station.id]);
 
   const loadRatings = useCallback(async () => {
     setIsRatingsLoading(true);
@@ -185,14 +216,17 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
       setRatingsData(ratingsResponse);
       setRatingStatistics(statisticsResponse);
       updateStation(latestStation);
+      await loadCurrentUserRating();
     } catch {
       setRatingsError("Không thể tải đánh giá của trạm sạc.");
       throw new Error("Không thể tải đánh giá của trạm sạc.");
     }
-  }, [station, updateStation]);
+  }, [loadCurrentUserRating, station, updateStation]);
 
   useEffect(() => {
     setRatingsPage(0);
+    setCurrentUserRating(null);
+    setIsEditingUserRating(false);
   }, [station.id]);
 
   useEffect(() => {
@@ -202,6 +236,10 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
   useEffect(() => {
     void loadRatings();
   }, [loadRatings]);
+
+  useEffect(() => {
+    void loadCurrentUserRating();
+  }, [loadCurrentUserRating]);
 
   const availableGroups = groupConnectors(station.connectors, true);
   const busyGroups = groupConnectors(station.connectors, false);
@@ -264,6 +302,67 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
     }
 
     setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+  };
+
+
+  const startEditUserRating = () => {
+    if (!currentUserRating) {
+      return;
+    }
+
+    setEditingRatingPoint(currentUserRating.point);
+    setEditingRatingComment(currentUserRating.comment ?? "");
+    setIsEditingUserRating(true);
+  };
+
+  const cancelEditUserRating = () => {
+    if (!currentUserRating) {
+      return;
+    }
+
+    setEditingRatingPoint(currentUserRating.point);
+    setEditingRatingComment(currentUserRating.comment ?? "");
+    setIsEditingUserRating(false);
+  };
+
+  const handleUpdateUserRating = async () => {
+    if (editingRatingPoint === 0) {
+      toast.error("Vui long chon so sao de danh gia");
+      return;
+    }
+
+    setIsSavingUserRating(true);
+
+    try {
+      await updateStationRating({
+        stationId: station.id,
+        point: editingRatingPoint,
+        comment: editingRatingComment,
+      });
+      await refreshRatings();
+      setIsEditingUserRating(false);
+      toast.success("Cap nhat danh gia thanh cong");
+    } catch {
+      toast.error("Cap nhat danh gia that bai");
+    } finally {
+      setIsSavingUserRating(false);
+    }
+  };
+
+  const handleDeleteUserRating = async () => {
+    setIsDeletingUserRating(true);
+
+    try {
+      await deleteStationRating({ stationId: station.id });
+      setCurrentUserRating(null);
+      setIsEditingUserRating(false);
+      await refreshRatings();
+      toast.success("Da xoa danh gia");
+    } catch {
+      toast.error("Xoa danh gia that bai");
+    } finally {
+      setIsDeletingUserRating(false);
+    }
   };
 
   const handlePreviousRatingsPage = () => {
@@ -458,6 +557,102 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
               })}
             </div>
           </div>
+
+          {currentUserRating ? (
+            <div className="mt-4 rounded-xl border border-green-200 bg-green-50 p-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <h4 className="text-sm font-semibold text-green-800">Đánh giá của bạn</h4>
+                {!isEditingUserRating ? (
+                  <div className="flex items-center gap-2 text-sm">
+                    <button
+                      type="button"
+                      onClick={startEditUserRating}
+                      disabled={isDeletingUserRating}
+                      className="rounded-lg border border-green-300 px-3 py-1 text-green-700 transition hover:bg-green-100 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      Sửa
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDeleteUserRating}
+                      disabled={isDeletingUserRating}
+                      className="rounded-lg border border-red-200 px-3 py-1 text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {isDeletingUserRating ? "Đang xóa..." : "Xóa"}
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+
+              {isEditingUserRating ? (
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <FaStar
+                        key={star}
+                        onClick={() => {
+                          if (!isSavingUserRating) {
+                            setEditingRatingPoint(star);
+                          }
+                        }}
+                        className={`cursor-pointer text-2xl ${
+                          star <= editingRatingPoint
+                            ? "text-yellow-400"
+                            : "text-gray-300"
+                        } ${
+                          isSavingUserRating
+                            ? "pointer-events-none opacity-70"
+                            : ""
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <textarea
+                    className="w-full rounded-lg border border-green-200 bg-white p-2 text-sm disabled:bg-gray-100"
+                    rows={3}
+                    value={editingRatingComment}
+                    disabled={isSavingUserRating}
+                    onChange={(event) => setEditingRatingComment(event.target.value)}
+                  />
+                  <div className="flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={cancelEditUserRating}
+                      disabled={isSavingUserRating}
+                      className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      Huy
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleUpdateUserRating()}
+                      disabled={isSavingUserRating}
+                      className="rounded-lg bg-green-600 px-3 py-1.5 text-sm text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {isSavingUserRating ? "Dang luu..." : "Luu"}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  <div className="inline-flex w-fit items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-sm font-semibold text-amber-700">
+                    <FaStar className="text-amber-500" />
+                    <span>{currentUserRating.point}/5</span>
+                    <span className="text-amber-600">
+                      {renderStars(currentUserRating.point)}
+                    </span>
+                  </div>
+                  <p className="text-sm leading-6 text-gray-700">
+                    {currentUserRating.comment || "Ban khong de lai binh luan."}
+                  </p>
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <FiMessageSquare className="h-4 w-4" />
+                    <span>{formatRatingDate(currentUserRating.timePosted)}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : null}
 
           <div className="mt-4 space-y-3">
             {isRatingsLoading ? (

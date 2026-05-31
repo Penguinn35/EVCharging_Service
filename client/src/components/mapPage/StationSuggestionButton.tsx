@@ -170,7 +170,7 @@ export default function StationSuggestionButton() {
     <>
       <button
         onClick={handleStartSuggestion}
-        className="absolute bottom-16 left-8 z-[1000] flex h-12 w-12 cursor-pointer items-center justify-center rounded-xl bg-white text-green-600 shadow-lg transition-all hover:border-2 hover:border-green-500 hover:bg-green-50"
+        className="absolute bottom-44 right-8 z-[1000] flex h-12 w-12 cursor-pointer items-center justify-center rounded-xl bg-white text-green-600 shadow-lg transition-all hover:border-2 hover:border-green-500 hover:bg-green-50"
         title="Gợi ý vị trí trạm sạc mới"
       >
         <MdAddLocationAlt size={22} />
