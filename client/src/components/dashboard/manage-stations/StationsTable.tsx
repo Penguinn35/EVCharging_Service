@@ -12,8 +12,8 @@ type StationTableRow = {
   address: string;
   district: string;
   status: StationStatus;
-  totalPoints: number;
-  availablePoints: number;
+  numberOfChargingPoints: number;
+  
 };
 
 interface StationsTableProps {
@@ -201,7 +201,7 @@ export function StationsTable({
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
-                      {station.availablePoints}/{station.totalPoints}
+                      {station.numberOfChargingPoints}
                     </td>
                     <td className="px-6 py-4">
                       <button

@@ -18,8 +18,7 @@ type ManageStationRow = {
   address: string;
   district: string;
   status: StationStatusLabel;
-  availablePoints: number;
-  totalPoints: number;
+  numberOfChargingPoints: number
 };
 
 const DEFAULT_PAGE_SIZE = 5;
@@ -59,8 +58,7 @@ const mapStationsForTable = (
     address: station.address,
     district: extractDistrictFromAddress(station.address),
     status: mapStatusToLabel(station.status),
-    availablePoints: station.points ?? 0,
-    totalPoints: station.points ?? 0,
+    numberOfChargingPoints: station.numberOfChargingPoints??0
   }));
 };
 
