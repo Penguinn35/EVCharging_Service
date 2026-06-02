@@ -193,6 +193,30 @@ public class BusinessService {
     }
 
     @Transactional
+    public boolean deleteChargingPoint(String pointId, String companyId) {
+        // 1. Tìm ChargingPoint trong database
+        ChargingPoint targetPoint = pointRepo.findById(pointId).orElse(null);
+
+        if (targetPoint == null) {
+            return false; // Không tìm thấy point để xóa
+        }
+
+        // 2. Kiểm tra quyền sở hữu của công ty đối với trạm sạc chứa point này
+        ChargingStation station = targetPoint.getChargingStation();
+        if (station == null || station.getCpo() == null ||
+                !Objects.equals(station.getCpo().getEnterpriseId(), companyId)) {
+            return false; // Không có quyền xóa (thuộc về công ty khác) hoặc data lỗi
+        }
+
+        // 3. Thực hiện xóa
+        // Nhờ có cascade = CascadeType.ALL và orphanRemoval = true ở Entity,
+        // các Connector thuộc về Point này cũng sẽ được tự động xóa theo.
+        pointRepo.delete(targetPoint);
+
+        return true; // Xóa thành công
+    }
+
+    @Transactional
     public boolean deleteStation(String id, String companyId) {
         ChargingStation station = stationRepo.findById(id).orElse(null);
         if (station == null || !Objects.equals(station.getCpo().getEnterpriseId(), companyId)) {

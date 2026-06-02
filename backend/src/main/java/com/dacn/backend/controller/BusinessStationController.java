@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -150,6 +151,21 @@ public class BusinessStationController {
         return new ResponseEntity<>(new ResponseObject<>(
                 HttpStatus.OK, "Deleted station successfully", createdChargingPoint
         ), HttpStatus.OK);
+    }
+
+    @DeleteMapping("stations/charging_points/{id}")
+    public ResponseEntity<ResponseObject<Boolean>> deleteChargingPoint(
+            @PathVariable("id") String pointId,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        if (businessService.deleteChargingPoint(pointId, principal.getCompanyId())) {
+            return new ResponseEntity<>(new ResponseObject<>(
+                    HttpStatus.OK, "Deleted station successfully", true
+            ), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(new ResponseObject<>(
+                HttpStatus.BAD_REQUEST, "Something went wrong when deleting charging point", false
+        ), HttpStatus.BAD_REQUEST);
     }
 
     @PostMapping(value = "stations/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
