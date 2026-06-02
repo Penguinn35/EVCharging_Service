@@ -95,6 +95,7 @@ public class BusinessService {
         station.setPosition(newStation.getPosition());
         station.setAddress(newStation.getAddress());
         station.setDistrict(newStation.getDistrict());
+        stationRepo.save(station);
         return newStation;
     }
 
