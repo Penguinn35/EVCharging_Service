@@ -1,9 +1,6 @@
 package com.dacn.backend.controller;
 
-import com.dacn.backend.dto.StationBusinessSearchDTO;
-import com.dacn.backend.dto.StationCreationDTO;
-import com.dacn.backend.dto.StationImageRequestDTO;
-import com.dacn.backend.dto.StationUpdateRequestDTO;
+import com.dacn.backend.dto.*;
 import com.dacn.backend.model.UserPrincipal;
 import com.dacn.backend.object.ResponseObject;
 import com.dacn.backend.service.BusinessService;
@@ -133,6 +130,26 @@ public class BusinessStationController {
         return new ResponseEntity<>(new ResponseObject<>(
                 HttpStatus.BAD_REQUEST, "Something went wrong when deleting station", false
         ), HttpStatus.BAD_REQUEST);
+    }
+
+    @PutMapping("stations/{id}/charging_points")
+    @Operation(summary = "API thêm vào hoặc cập nhật điểm sạc và connector, với id là id trạm sạc")
+    public ResponseEntity<ResponseObject<PointCreationDTO>> updatePoint(
+            @PathVariable("id") String id,
+            @org.springframework.web.bind.annotation.RequestBody PointCreationDTO point,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        PointCreationDTO createdChargingPoint = businessService.addOrModifyChargingPoint(
+                point, id, principal.getCompanyId()
+        );
+        if (createdChargingPoint == null) {
+            return new ResponseEntity<>(new ResponseObject<>(
+                    HttpStatus.BAD_REQUEST, "Something went wrong when deleting station", null
+            ), HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(new ResponseObject<>(
+                HttpStatus.OK, "Deleted station successfully", createdChargingPoint
+        ), HttpStatus.OK);
     }
 
     @PostMapping(value = "stations/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
