@@ -24,7 +24,9 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 public class BusinessService {
@@ -39,6 +41,8 @@ public class BusinessService {
     private CPORepo cpoRepo;
     @Autowired
     private StationImageRepo imageRepo;
+    @Autowired
+    private ChargingPointRepo pointRepo;
     @Autowired
     private S3Client s3Client;
 
@@ -97,6 +101,119 @@ public class BusinessService {
         station.setDistrict(newStation.getDistrict());
         stationRepo.save(station);
         return newStation;
+    }
+
+    @Transactional
+    public PointCreationDTO addOrModifyChargingPoint(PointCreationDTO point, String stationId, String companyId) {
+        // 1. Kiểm tra trạm sạc và quyền sở hữu
+        ChargingStation station = stationRepo.findById(stationId).orElse(null);
+        if (station == null || !Objects.equals(station.getCpo().getEnterpriseId(), companyId)) {
+            return null;
+        }
+
+        // 2. Lấy ChargingPoint từ DB lên hoặc tạo mới
+        ChargingPoint targetPoint;
+        boolean isNewPoint = false;
+        if (point.getId() != null) {
+            targetPoint = pointRepo.findById(point.getId()).orElse(null);
+            if (targetPoint == null) {
+                targetPoint = new ChargingPoint();
+                targetPoint.setId(point.getId());
+                isNewPoint = true;
+            }
+        } else {
+            targetPoint = new ChargingPoint();
+            isNewPoint = true;
+        }
+
+        // Chỉ cập nhật status nếu nó không null, HOẶC nếu đây là bản ghi mới tạo
+        if (point.getStatus() != null || isNewPoint) {
+            targetPoint.setStatus(point.getStatus());
+        }
+        targetPoint.setChargingStation(station);
+
+        // 3. Xử lý danh sách Connectors
+        if (targetPoint.getConnectors() == null) {
+            targetPoint.setConnectors(new ArrayList<>());
+        }
+
+        // Tạo Map từ các connector hiện tại trong DB để đối chiếu
+        Map<String, Connector> existingConnectors = targetPoint.getConnectors().stream()
+                .collect(Collectors.toMap(Connector::getId, c -> c));
+
+        List<Connector> updatedConnectors = new ArrayList<>();
+
+        if (point.getConnectors() != null) {
+            for (ConnectorCreationDTO connectorDto : point.getConnectors()) {
+                Connector connector;
+                boolean isNewConnector = false;
+
+                // Nếu connector đã tồn tại trong DB -> Lấy ra để update
+                if (connectorDto.getId() != null && existingConnectors.containsKey(connectorDto.getId())) {
+                    connector = existingConnectors.get(connectorDto.getId());
+                } else {
+                    // Nếu chưa tồn tại -> Tạo mới
+                    connector = new Connector();
+                    connector.setId(connectorDto.getId());
+                    connector.setChargingPoint(targetPoint);
+                    isNewConnector = true;
+                }
+
+                // Kiểm tra từng trường: Chỉ update nếu giá trị truyền lên khác null HOẶC đây là connector mới tạo hoàn toàn
+                if (connectorDto.getType() != null || isNewConnector) {
+                    connector.setType(connectorDto.getType());
+                }
+                if (connectorDto.getPrice() != null || isNewConnector) {
+                    connector.setPrice(connectorDto.getPrice());
+                }
+                if (connectorDto.getVoltage() != null || isNewConnector) {
+                    connector.setVoltage(connectorDto.getVoltage());
+                }
+                if (connectorDto.getMaxPower() != null || isNewConnector) {
+                    connector.setMaxPower(connectorDto.getMaxPower());
+                }
+
+                // Đối với kiểu boolean nguyên thủy (primitive `boolean`), mặc định nó sẽ là false chứ không null.
+                // Nếu trong DTO bạn đổi sang Object `Boolean`, hãy dùng kiểm tra null:
+                // if (connectorDto.getAvailable() != null || isNewConnector) { ... }
+                connector.setAvailable(connectorDto.isAvailable());
+
+                updatedConnectors.add(connector);
+            }
+        }
+
+        // Cập nhật lại danh sách connector cho ChargingPoint
+        targetPoint.getConnectors().clear();
+        targetPoint.getConnectors().addAll(updatedConnectors);
+
+        // 4. Lưu dữ liệu
+        pointRepo.save(targetPoint);
+
+        return point;
+    }
+
+    @Transactional
+    public boolean deleteChargingPoint(String pointId, String companyId) {
+        // 1. Tìm ChargingPoint trong database
+        ChargingPoint targetPoint = pointRepo.findById(pointId).orElse(null);
+
+        if (targetPoint == null) {
+            return false; // Không tìm thấy point để xóa
+        }
+
+        // 2. Kiểm tra quyền sở hữu của công ty đối với trạm sạc chứa point này
+        ChargingStation station = targetPoint.getChargingStation();
+        if (station == null || station.getCpo() == null ||
+                !Objects.equals(station.getCpo().getEnterpriseId(), companyId)) {
+            return false; // Không có quyền xóa (thuộc về công ty khác) hoặc data lỗi
+        }
+
+        // 3. Thực hiện xóa
+        // Nhờ có cascade = CascadeType.ALL và orphanRemoval = true ở Entity,
+        // các Connector thuộc về Point này cũng sẽ được tự động xóa theo.
+        pointRepo.delete(targetPoint);
+
+        return true; // Xóa thành công
     }
 
     @Transactional

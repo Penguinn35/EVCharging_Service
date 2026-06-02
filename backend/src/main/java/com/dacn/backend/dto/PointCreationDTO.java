@@ -7,7 +7,7 @@ import java.util.List;
 @Data
 public class PointCreationDTO {
     private String id;
-    private int status;
+    private Integer status;
 
     List<ConnectorCreationDTO> connectors;
 }

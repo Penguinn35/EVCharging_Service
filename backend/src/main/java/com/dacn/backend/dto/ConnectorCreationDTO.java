@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class ConnectorCreationDTO {
     private String id;
-    private int type;
+    private Integer type;
     private Double price;
     private Double voltage;
     private Double maxPower;
