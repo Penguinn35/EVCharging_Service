@@ -2,6 +2,10 @@ package com.dacn.backend.service;
 
 import com.dacn.backend.constants.StationStatus;
 import com.dacn.backend.dto.*;
+import com.dacn.backend.dto.command.StationUpdatedPayload;
+import com.dacn.backend.exception.InvalidStationCommandException;
+import com.dacn.backend.model.type.Coordinate;
+import com.dacn.backend.util.StationStatusMapper;
 import com.dacn.backend.model.ChargingPoint;
 import com.dacn.backend.model.ChargingStation;
 import com.dacn.backend.model.Connector;
@@ -67,6 +71,11 @@ public class BusinessService {
         newStation.setPosition(stationDto.getPosition());
         newStation.setAddress(stationDto.getAddress());
         newStation.setDistrict(stationDto.getDistrict());
+        newStation.setStatus(
+                stationDto.getStatus() != null
+                        ? stationDto.getStatus()
+                        : StationStatus.AVAILABLE.getCode()
+        );
         newStation.setCpo(cpoRepo.getReferenceById(companyId));
 
         // 3. Process Images
@@ -96,6 +105,41 @@ public class BusinessService {
         station.setAddress(newStation.getAddress());
         station.setDistrict(newStation.getDistrict());
         return newStation;
+    }
+
+    @Transactional
+    public boolean updateStationPartial(StationUpdatedPayload payload, String companyId) {
+        ChargingStation station = stationRepo.findById(payload.getExternalId()).orElse(null);
+        if (station == null || !Objects.equals(station.getCpo().getEnterpriseId(), companyId)) {
+            return false;
+        }
+
+        if (payload.getName() != null) {
+            station.setName(payload.getName());
+        }
+        if (payload.getAddress() != null) {
+            station.setAddress(payload.getAddress());
+        }
+        if (payload.getDistrict() != null) {
+            station.setDistrict(payload.getDistrict());
+        }
+        if (payload.getStatus() != null && !payload.getStatus().isBlank()) {
+            station.setStatus(StationStatusMapper.toCode(payload.getStatus()));
+        }
+        if (payload.getLatitude() != null || payload.getLongitude() != null) {
+            if (payload.getLatitude() == null || payload.getLongitude() == null) {
+                throw new InvalidStationCommandException(
+                        "Both payload.latitude and payload.longitude are required when updating coordinates"
+                );
+            }
+            Coordinate position = station.getPosition() != null ? station.getPosition() : new Coordinate();
+            position.setLatitude(payload.getLatitude());
+            position.setLongitude(payload.getLongitude());
+            station.setPosition(position);
+        }
+
+        stationRepo.save(station);
+        return true;
     }
 
     @Transactional

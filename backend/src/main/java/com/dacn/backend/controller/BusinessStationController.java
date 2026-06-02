@@ -1,15 +1,16 @@
 package com.dacn.backend.controller;
 
+import com.dacn.backend.dto.BusinessCommandRequest;
+import com.dacn.backend.dto.BusinessCommandResponseDTO;
+import com.dacn.backend.dto.BusinessEventType;
 import com.dacn.backend.dto.StationBusinessSearchDTO;
-import com.dacn.backend.dto.StationCommandRequest;
-import com.dacn.backend.dto.StationCommandResponseDTO;
-import com.dacn.backend.dto.StationCommandType;
 import com.dacn.backend.dto.StationCreationDTO;
 import com.dacn.backend.dto.StationImageRequestDTO;
 import com.dacn.backend.dto.StationUpdateRequestDTO;
 import com.dacn.backend.exception.InvalidStationCommandException;
 import com.dacn.backend.model.UserPrincipal;
 import com.dacn.backend.object.ResponseObject;
+import com.dacn.backend.service.BusinessCommandService;
 import com.dacn.backend.service.BusinessService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -28,7 +29,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 
 
@@ -39,6 +39,9 @@ public class BusinessStationController {
 
     @Autowired
     private BusinessService businessService;
+
+    @Autowired
+    private BusinessCommandService businessCommandService;
 
     @GetMapping("stations")
     @Operation(
@@ -142,20 +145,23 @@ public class BusinessStationController {
 
     @PutMapping(value = "stations/command", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(
-            summary = "API thống nhất quản lý trạm sạc (không ảnh)",
+            summary = "API thống nhất quản lý trạm sạc và connector",
             description = """
-                    Endpoint mới, gọi lại service addNewStation / modifyStation / deleteStation.
-                    Body event_type: CREATE (new_station), UPDATE (station), DELETE (id).
+                    Body: { "eventType", "payload" }.
+                    Station: STATION_CREATED, STATION_UPDATED, STATION_DELETED.
+                    Connector: CONNECTOR_CREATE, CONNECTOR_UPDATED, CONNECTOR_DELETE.
                     Không thay thế POST/PUT/DELETE stations hiện có.
                     """
     )
-    public ResponseEntity<ResponseObject<StationCommandResponseDTO>> handleStationCommand(
-            @org.springframework.web.bind.annotation.RequestBody StationCommandRequest command,
+    public ResponseEntity<ResponseObject<BusinessCommandResponseDTO>> handleBusinessCommand(
+            @org.springframework.web.bind.annotation.RequestBody BusinessCommandRequest command,
             @AuthenticationPrincipal UserPrincipal principal
     ) throws IOException {
         try {
-            StationCommandResponseDTO response = dispatchStationCommand(command, principal.getCompanyId());
-            return buildStationCommandResponse(command, response);
+            BusinessCommandResponseDTO response = businessCommandService.execute(
+                    command, principal.getCompanyId()
+            );
+            return buildBusinessCommandResponse(command.getEventType(), response);
         } catch (InvalidStationCommandException e) {
             return new ResponseEntity<>(new ResponseObject<>(
                     HttpStatus.BAD_REQUEST, e.getMessage(), null
@@ -163,87 +169,37 @@ public class BusinessStationController {
         }
     }
 
-    private StationCommandResponseDTO dispatchStationCommand(
-            StationCommandRequest command,
-            String companyId
-    ) throws IOException {
-        if (command.getEventType() == null) {
-            throw new InvalidStationCommandException("event_type is required");
-        }
-
-        return switch (command.getEventType()) {
-            case CREATE -> {
-                StationCreationDTO newStation = command.getNewStation();
-                if (newStation == null) {
-                    throw new InvalidStationCommandException("new_station is required for CREATE");
-                }
-                if (newStation.getId() == null || newStation.getId().isBlank()) {
-                    throw new InvalidStationCommandException("new_station.id is required for CREATE");
-                }
-                boolean created = businessService.addNewStation(
-                        newStation, Collections.emptyList(), companyId
-                );
-                StationCommandResponseDTO response = new StationCommandResponseDTO();
-                response.setEventType(StationCommandType.CREATE);
-                response.setSuccess(created);
-                response.setCreatedStation(newStation);
-                yield response;
-            }
-            case UPDATE -> {
-                StationUpdateRequestDTO station = command.getStation();
-                if (station == null) {
-                    throw new InvalidStationCommandException("station is required for UPDATE");
-                }
-                if (station.getId() == null || station.getId().isBlank()) {
-                    throw new InvalidStationCommandException("station.id is required for UPDATE");
-                }
-                StationUpdateRequestDTO updated = businessService.modifyStation(station, companyId);
-                StationCommandResponseDTO response = new StationCommandResponseDTO();
-                response.setEventType(StationCommandType.UPDATE);
-                response.setSuccess(updated != null);
-                response.setStation(updated);
-                yield response;
-            }
-            case DELETE -> {
-                String id = command.getId();
-                if (id == null || id.isBlank()) {
-                    throw new InvalidStationCommandException("id is required for DELETE");
-                }
-                boolean deleted = businessService.deleteStation(id, companyId);
-                StationCommandResponseDTO response = new StationCommandResponseDTO();
-                response.setEventType(StationCommandType.DELETE);
-                response.setSuccess(deleted);
-                response.setId(id);
-                yield response;
-            }
-        };
-    }
-
-    private ResponseEntity<ResponseObject<StationCommandResponseDTO>> buildStationCommandResponse(
-            StationCommandRequest command,
-            StationCommandResponseDTO response
+    private ResponseEntity<ResponseObject<BusinessCommandResponseDTO>> buildBusinessCommandResponse(
+            BusinessEventType eventType,
+            BusinessCommandResponseDTO response
     ) {
-        if (command.getEventType() == StationCommandType.UPDATE && !Boolean.TRUE.equals(response.getSuccess())) {
+        if (eventType == BusinessEventType.STATION_UPDATED && !Boolean.TRUE.equals(response.getSuccess())) {
             return new ResponseEntity<>(new ResponseObject<>(
                     HttpStatus.NOT_FOUND, "No such station with that id to update", response
             ), HttpStatus.NOT_FOUND);
         }
 
         if (!Boolean.TRUE.equals(response.getSuccess())) {
-            String message = switch (command.getEventType()) {
-                case CREATE -> "Failed to create station";
-                case DELETE -> "Something went wrong when deleting station";
-                default -> "Station command failed";
+            String message = switch (eventType) {
+                case STATION_CREATED -> "Failed to create station";
+                case STATION_DELETED -> "Something went wrong when deleting station";
+                case CONNECTOR_CREATE -> "Failed to create connector";
+                case CONNECTOR_UPDATED -> "Failed to update connector";
+                case CONNECTOR_DELETE -> "Failed to delete connector";
+                default -> "Command failed";
             };
             return new ResponseEntity<>(new ResponseObject<>(
                     HttpStatus.BAD_REQUEST, message, response
             ), HttpStatus.BAD_REQUEST);
         }
 
-        String message = switch (command.getEventType()) {
-            case CREATE -> "Created station successfully";
-            case UPDATE -> "Updated station successfully";
-            case DELETE -> "Deleted station successfully";
+        String message = switch (eventType) {
+            case STATION_CREATED -> "Created station successfully";
+            case STATION_UPDATED -> "Updated station successfully";
+            case STATION_DELETED -> "Deleted station successfully";
+            case CONNECTOR_CREATE -> "Created connector successfully";
+            case CONNECTOR_UPDATED -> "Updated connector successfully";
+            case CONNECTOR_DELETE -> "Deleted connector successfully";
         };
         return new ResponseEntity<>(new ResponseObject<>(
                 HttpStatus.OK, message, response

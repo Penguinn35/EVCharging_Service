@@ -15,4 +15,7 @@ public class StationCreationDTO {
 
     private List<PointCreationDTO> chargingPoints;
 
+    /** Maps to charging_station.status (int). Optional; defaults to AVAILABLE. */
+    private Integer status;
+
 }

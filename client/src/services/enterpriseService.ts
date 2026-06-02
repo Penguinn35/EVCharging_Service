@@ -1,4 +1,4 @@
-import { ApiResponse, Coordinate } from "@/type/share";
+import { ApiResponse } from "@/type/share";
 import { apiClient } from "@/lib/apiClient";
 
 export type BusinessProfile = {
@@ -102,51 +102,91 @@ export type GetBusinessStationsParams = {
   size?: number;
 };
 
-export type StationCommandType = "CREATE" | "UPDATE" | "DELETE";
+export type BusinessEventType =
+  | "STATION_CREATED"
+  | "STATION_UPDATED"
+  | "STATION_DELETED"
+  | "CONNECTOR_CREATE"
+  | "CONNECTOR_UPDATED"
+  | "CONNECTOR_DELETE";
 
-export type ConnectorCreationPayload = {
+export type StationStatusName = "AVAILABLE" | "BUSY" | "UNAVAILABLE" | "FULL";
+
+export type ConnectorTypeName = "CCS2" | "TYPE_2" | "CHAdeMO" | "TESLA";
+
+export type ConnectorPayloadItem = {
   id: string;
-  type: number;
-  isAvailable: boolean;
+  type: ConnectorTypeName;
+  powerKw?: number;
   price?: number;
   voltage?: number;
-  maxPower?: number;
+  isAvailable?: boolean;
 };
 
-export type PointCreationPayload = {
-  id: string;
-  status: number;
-  connectors?: ConnectorCreationPayload[];
-};
-
-export type StationCreationPayload = {
-  id: string;
+export type StationCreatedPayload = {
+  externalId: string;
   name: string;
-  position: Coordinate;
-  address: string;
-  district: string;
-  chargingPoints?: PointCreationPayload[];
+  latitude: number;
+  longitude: number;
+  address?: string;
+  district?: string;
+  status?: StationStatusName;
+  connectors?: ConnectorPayloadItem[];
 };
 
-export type StationUpdatePayload = {
+export type StationUpdatedPayload = {
+  externalId: string;
+  name?: string;
+  latitude?: number;
+  longitude?: number;
+  address?: string;
+  district?: string;
+  status?: StationStatusName;
+};
+
+export type StationDeletedPayload = {
+  externalId: string;
+};
+
+export type ConnectorCreatePayload = {
   id: string;
-  name: string;
-  position: Coordinate;
-  address: string;
-  district: string;
+  type: ConnectorTypeName;
+  powerKw?: number;
+  price?: number;
+  voltage?: number;
+  isAvailable?: boolean;
+  chargingPointId?: string;
+  stationExternalId?: string;
 };
 
-export type StationCommandRequest =
-  | { event_type: "CREATE"; new_station: StationCreationPayload }
-  | { event_type: "UPDATE"; station: StationUpdatePayload }
-  | { event_type: "DELETE"; id: string };
+export type ConnectorUpdatePayload = {
+  id: string;
+  type?: ConnectorTypeName;
+  powerKw?: number;
+  price?: number;
+  voltage?: number;
+  isAvailable?: boolean;
+};
 
-export type StationCommandResponse = {
-  event_type: StationCommandType;
+export type ConnectorDeletePayload = {
+  id: string;
+};
+
+export type BusinessCommandRequest = {
+  eventType: BusinessEventType;
+  payload:
+    | StationCreatedPayload
+    | StationUpdatedPayload
+    | StationDeletedPayload
+    | ConnectorCreatePayload
+    | ConnectorUpdatePayload
+    | ConnectorDeletePayload;
+};
+
+export type BusinessCommandResponse = {
+  eventType: BusinessEventType;
   success: boolean;
-  new_station?: StationCreationPayload;
-  station?: StationUpdatePayload;
-  id?: string;
+  result?: unknown;
 };
 
 export const getBusinessProfile = async (): Promise<BusinessProfile> => {
@@ -170,16 +210,19 @@ export const getBusinessStations = async (
   return response.data.responseData;
 };
 
-export const executeBusinessStationCommand = async (
-  command: StationCommandRequest,
-): Promise<StationCommandResponse> => {
-  const response = await apiClient.put<ApiResponse<StationCommandResponse>>(
+export const executeBusinessCommand = async (
+  command: BusinessCommandRequest,
+): Promise<BusinessCommandResponse> => {
+  const response = await apiClient.put<ApiResponse<BusinessCommandResponse>>(
     "/api/business/stations/command",
     command,
   );
 
   return response.data.responseData;
 };
+
+/** @deprecated Use executeBusinessCommand */
+export const executeBusinessStationCommand = executeBusinessCommand;
 
 export const toggleBusinessStationStatus = async (
   stationId: string,
