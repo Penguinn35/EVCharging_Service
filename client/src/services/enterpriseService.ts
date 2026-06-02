@@ -1,4 +1,4 @@
-import { ApiResponse } from "@/type/share";
+import { ApiResponse, Coordinate } from "@/type/share";
 import { apiClient } from "@/lib/apiClient";
 
 export type BusinessProfile = {
@@ -102,6 +102,53 @@ export type GetBusinessStationsParams = {
   size?: number;
 };
 
+export type StationCommandType = "CREATE" | "UPDATE" | "DELETE";
+
+export type ConnectorCreationPayload = {
+  id: string;
+  type: number;
+  isAvailable: boolean;
+  price?: number;
+  voltage?: number;
+  maxPower?: number;
+};
+
+export type PointCreationPayload = {
+  id: string;
+  status: number;
+  connectors?: ConnectorCreationPayload[];
+};
+
+export type StationCreationPayload = {
+  id: string;
+  name: string;
+  position: Coordinate;
+  address: string;
+  district: string;
+  chargingPoints?: PointCreationPayload[];
+};
+
+export type StationUpdatePayload = {
+  id: string;
+  name: string;
+  position: Coordinate;
+  address: string;
+  district: string;
+};
+
+export type StationCommandRequest =
+  | { event_type: "CREATE"; new_station: StationCreationPayload }
+  | { event_type: "UPDATE"; station: StationUpdatePayload }
+  | { event_type: "DELETE"; id: string };
+
+export type StationCommandResponse = {
+  event_type: StationCommandType;
+  success: boolean;
+  new_station?: StationCreationPayload;
+  station?: StationUpdatePayload;
+  id?: string;
+};
+
 export const getBusinessProfile = async (): Promise<BusinessProfile> => {
   const response = await apiClient.get<ApiResponse<BusinessProfile>>(
     "/api/business/profile",
@@ -118,6 +165,17 @@ export const getBusinessStations = async (
     {
       params,
     },
+  );
+
+  return response.data.responseData;
+};
+
+export const executeBusinessStationCommand = async (
+  command: StationCommandRequest,
+): Promise<StationCommandResponse> => {
+  const response = await apiClient.put<ApiResponse<StationCommandResponse>>(
+    "/api/business/stations/command",
+    command,
   );
 
   return response.data.responseData;
