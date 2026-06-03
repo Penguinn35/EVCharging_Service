@@ -2,11 +2,16 @@
 
 import { useUserStore } from "@/store/useUserStore";
 import { useMapStore } from "@/store/useMapStore";
+import { CSSProperties } from "react";
 import { useEffect, useState } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { FaLocationCrosshairs } from "react-icons/fa6";
 
-export default function LocateMe() {
+type LocateMeProps = {
+  style?: CSSProperties;
+};
+
+export default function LocateMe({ style }: LocateMeProps) {
   const updateUser = useUserStore((s) => s.updateUser);
   const userLocation = useUserStore((state) => state.user.coordinate);
   const setFlyTo = useMapStore((s) => s.setFlyTo);
@@ -55,6 +60,7 @@ export default function LocateMe() {
   return (
     <button
       className="absolute  bottom-16 right-8 z-1000 w-12 h-12 rounded-xl cursor-pointer hover:border-green-500 hover:border-2 bg-white border-0"
+      style={style}
       onClick={handleLocate}
     >
       {loading ? (
