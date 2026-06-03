@@ -4,6 +4,7 @@ import { FaSearch } from "react-icons/fa";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { getStationNearBy } from "@/services/stationService";
 import { useMapStore } from "@/store/useMapStore";
+import { useRoutingStore } from "@/store/useRoutingStore";
 import { useStationStore } from "@/store/useStationStore";
 import { StationMarkerData } from "@/type/station";
 import { toast } from "react-toastify";
@@ -11,11 +12,14 @@ import { toast } from "react-toastify";
 const QuickSearch = () => {
   const center = useMapStore((s) => s.center);
   const setStationMarkers = useStationStore((s) => s.setStationMarkers);
+  const isRoutingLoading = useRoutingStore((state) => state.isLoading);
 
   const [loading, setLoading] = useState(false);
+  const isQuickSearchLoading = loading;
+  const isLoadingState = isQuickSearchLoading || isRoutingLoading;
 
   const quickSearch = async () => {
-    if (loading) return; // prevent spam click
+    if (isQuickSearchLoading || isRoutingLoading) return; // prevent spam click
 
     setLoading(true);
     try {
@@ -62,12 +66,12 @@ const QuickSearch = () => {
       onClick={quickSearch}
       className="bg-white py-1 px-3 rounded-xl flex flex-row items-center shadow-md/30 cursor-pointer hover:bg-stone-100"
     >
-      {loading ? (
-  <AiOutlineLoading3Quarters className="mr-2 text-green-600 animate-spin" />
-) : (
-  <FaSearch className="mr-2 text-green-600" />
-)}
-      <p>Tìm nhanh khu vực này</p>{" "}
+      {isLoadingState ? (
+        <AiOutlineLoading3Quarters className="mr-2 text-green-600 animate-spin" />
+      ) : (
+        <FaSearch className="mr-2 text-green-600" />
+      )}
+      <p>{isRoutingLoading ? "đang tìm đường" : "Tìm nhanh khu vực này"}</p>
     </div>
   );
 };

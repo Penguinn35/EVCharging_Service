@@ -10,7 +10,7 @@ import { useAuthModalStore } from "@/store/useAuthModalStore";
 import { useMapStore } from "@/store/useMapStore";
 import { useUserStore } from "@/store/useUserStore";
 import { Coordinate } from "@/type/share";
-import { useEffect, useState } from "react";
+import { CSSProperties, useEffect, useState } from "react";
 import {
   IoCheckmarkCircleOutline,
   IoCloseOutline,
@@ -21,7 +21,13 @@ import { toast } from "react-toastify";
 
 type SuggestionStep = "idle" | "pick-location" | "write-description";
 
-export default function StationSuggestionButton() {
+type StationSuggestionButtonProps = {
+  style?: CSSProperties;
+};
+
+export default function StationSuggestionButton({
+  style,
+}: StationSuggestionButtonProps) {
   const isLoggedIn = useUserStore((state) => state.user.isLogedin);
   const openLogin = useAuthModalStore((state) => state.openLogin);
   const mapCenter = useMapStore((state) => state.center);
@@ -171,6 +177,7 @@ export default function StationSuggestionButton() {
       <button
         onClick={handleStartSuggestion}
         className="absolute bottom-44 right-8 z-[1000] flex h-12 w-12 cursor-pointer items-center justify-center rounded-xl bg-white text-green-600 shadow-lg transition-all hover:border-2 hover:border-green-500 hover:bg-green-50"
+        style={style}
         title="Gợi ý vị trí trạm sạc mới"
       >
         <MdAddLocationAlt size={22} />

@@ -16,7 +16,6 @@ import FlyTo from "@/components/mapPage/FlyTo";
 import { MapCenterTracker } from "./MapCenterTracker";
 import { StationMarkerData } from "@/type/station";
 import { getStationById } from "@/services/stationService";
-import { FiLoader } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { useMapStore } from "@/store/useMapStore";
 import "maplibre-gl";
@@ -137,21 +136,6 @@ const SuggestionCenterMarker = () => {
   );
 };
 
-const RoutingLoadingOverlay = () => {
-  const isRoutingLoading = useRoutingStore((state) => state.isLoading);
-
-  if (!isRoutingLoading) return null;
-
-  return (
-    <div className="pointer-events-none absolute inset-x-0 top-4 z-[900] flex justify-center px-4">
-      <div className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-green-700 shadow-lg ring-1 ring-green-100">
-        <FiLoader className="h-4 w-4 animate-spin" />
-        <span>Đang tải...</span>
-      </div>
-    </div>
-  );
-};
-
 export default function Map() {
   const stationMarkerDatas = useStationStore((state) => state.stationMarkers);
   const updateUser = useUserStore((state) => state.updateUser);
@@ -190,8 +174,6 @@ export default function Map() {
 
   return (
     <div className="relative h-screen w-full">
-      <RoutingLoadingOverlay />
-
       <MapContainer
         center={[10.814889, 106.697906]}
         zoom={16}

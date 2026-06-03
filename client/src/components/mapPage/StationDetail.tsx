@@ -3,6 +3,7 @@
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { Connector } from "@/type/station";
@@ -19,6 +20,8 @@ import {
   FiLoader,
   FiMessageSquare,
 } from "react-icons/fi";
+import { IoClose } from "react-icons/io5";
+
 import { useRoutingStore } from "@/store/useRoutingStore";
 import { useUserStore } from "@/store/useUserStore";
 import {
@@ -41,6 +44,7 @@ type StationDetailProps = {
   station: StationDetailType;
   onClose: () => void;
   distance?: number;
+  onSheetModeChange?: (mode: "expanded" | "collapsed") => void;
 };
 
 type GroupedConnector = {
@@ -53,6 +57,9 @@ type GroupedConnector = {
 const DEFAULT_RATING_PAGE_SIZE = 5;
 const FALLBACK_IMAGE =
   "https://images.unsplash.com/photo-1593941707882-a5bac6861d75?w=1200&h=600&fit=crop";
+const MOBILE_BREAKPOINT = 768;
+const MOBILE_TOP_OFFSET = 88;
+const MIN_COLLAPSED_HEIGHT = 150;
 
 const statusColor = {
   active: "bg-green-100 text-green-700",
@@ -77,6 +84,9 @@ const formatRatingDate = (value: string) =>
 const renderStars = (count: number) =>
   Array.from({ length: Math.max(0, count) }, () => "★").join("");
 
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(Math.max(value, min), max);
+
 const handleImageError = (event: SyntheticEvent<HTMLImageElement, Event>) => {
   if (event.currentTarget.src === FALLBACK_IMAGE) {
     event.currentTarget.onerror = null;
@@ -88,7 +98,12 @@ const handleImageError = (event: SyntheticEvent<HTMLImageElement, Event>) => {
   event.currentTarget.src = FALLBACK_IMAGE;
 };
 
-const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
+const StationDetail = ({
+  station,
+  onClose,
+  distance,
+  onSheetModeChange,
+}: StationDetailProps) => {
   const routingDistanceInKilometers = useRoutingStore(
     (state) => state.distanceInKilometers,
   );
@@ -118,6 +133,27 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
   const [editingRatingComment, setEditingRatingComment] = useState("");
   const [isSavingUserRating, setIsSavingUserRating] = useState(false);
   const [isDeletingUserRating, setIsDeletingUserRating] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [viewportHeight, setViewportHeight] = useState(0);
+  const [sheetMode, setSheetMode] = useState<"expanded" | "collapsed">(
+    "expanded",
+  );
+  const [dragTranslateY, setDragTranslateY] = useState(0);
+  const [isDraggingSheet, setIsDraggingSheet] = useState(false);
+  const dragStartYRef = useRef<number | null>(null);
+  const dragStartTranslateRef = useRef(0);
+
+  const expandedHeight = Math.max(
+    320,
+    (viewportHeight || 0) - MOBILE_TOP_OFFSET,
+  );
+  const collapsedHeight = Math.max(
+    MIN_COLLAPSED_HEIGHT,
+    Math.floor((viewportHeight || 0) * 0.25),
+  );
+  const maxTranslate = Math.max(0, expandedHeight - collapsedHeight);
+  const settledTranslate = sheetMode === "collapsed" ? maxTranslate : 0;
+  const translateY = isDraggingSheet ? dragTranslateY : settledTranslate;
 
   const toggleSave = () => {
     const newStation: StationSaved = {
@@ -232,6 +268,42 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
   useEffect(() => {
     setCurrentImageIndex(0);
   }, [station.id]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const media = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
+
+    const syncViewport = () => {
+      setIsMobile(media.matches);
+      setViewportHeight(window.innerHeight);
+    };
+
+    syncViewport();
+    media.addEventListener("change", syncViewport);
+    window.addEventListener("resize", syncViewport);
+
+    return () => {
+      media.removeEventListener("change", syncViewport);
+      window.removeEventListener("resize", syncViewport);
+    };
+  }, []);
+
+  useEffect(() => {
+    setSheetMode("expanded");
+    setDragTranslateY(0);
+    setIsDraggingSheet(false);
+  }, [station.id, isMobile]);
+
+  useEffect(() => {
+    if (!onSheetModeChange) {
+      return;
+    }
+
+    onSheetModeChange(isMobile ? sheetMode : "expanded");
+  }, [isMobile, onSheetModeChange, sheetMode]);
 
   useEffect(() => {
     void loadRatings();
@@ -375,28 +447,133 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
     }
   };
 
-  return (
-    <div className="fixed bottom-0 left-0 z-[1000] flex h-[86%] w-sm flex-col rounded-tr-xl bg-white shadow-xl">
-      <div className="flex items-start justify-between border-b border-gray-400 px-4 py-3">
-        <div>
-          <h2 className="text-lg font-semibold">{station.name}</h2>
-          <p className="text-sm text-gray-500">{station.address}</p>
-          {(routingDistanceInKilometers ?? distance) != null && (
-            <p className="text-sm text-gray-500">
-              Khoảng cách: {(routingDistanceInKilometers ?? distance)?.toFixed(2)} km
-            </p>
-          )}
-        </div>
+  const handleHeaderPointerDown = (
+    event: React.PointerEvent<HTMLDivElement>,
+  ) => {
+    if (!isMobile) {
+      return;
+    }
 
-        <button
-          onClick={onClose}
-          className="cursor-pointer text-gray-500 hover:text-black"
-        >
-          ×
-        </button>
+    event.preventDefault();
+    event.stopPropagation();
+    dragStartYRef.current = event.clientY;
+    dragStartTranslateRef.current = settledTranslate;
+    setIsDraggingSheet(true);
+    setDragTranslateY(settledTranslate);
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handleHeaderPointerMove = (
+    event: React.PointerEvent<HTMLDivElement>,
+  ) => {
+    if (!isMobile || dragStartYRef.current === null || !isDraggingSheet) {
+      return;
+    }
+
+    event.preventDefault();
+    const deltaY = event.clientY - dragStartYRef.current;
+    const nextTranslate = clamp(
+      dragStartTranslateRef.current + deltaY,
+      0,
+      maxTranslate,
+    );
+    setDragTranslateY(nextTranslate);
+  };
+
+  const finishSheetDrag = () => {
+    if (!isMobile) {
+      return;
+    }
+
+    const targetMode =
+      dragTranslateY >= maxTranslate / 2 ? "collapsed" : "expanded";
+    setSheetMode(targetMode);
+    setIsDraggingSheet(false);
+    setDragTranslateY(0);
+    dragStartYRef.current = null;
+  };
+
+  const handleHeaderPointerUp = (
+    event: React.PointerEvent<HTMLDivElement>,
+  ) => {
+    if (!isMobile || !isDraggingSheet) {
+      return;
+    }
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+
+    finishSheetDrag();
+  };
+
+  const handleHeaderPointerCancel = (
+    event: React.PointerEvent<HTMLDivElement>,
+  ) => {
+    if (!isMobile || !isDraggingSheet) {
+      return;
+    }
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+
+    finishSheetDrag();
+  };
+
+  return (
+    <div
+      className={`fixed bottom-0 z-[1000] flex flex-col bg-white shadow-xl ${
+        isMobile
+          ? "left-0 right-0 h-[calc(100dvh-88px)] rounded-t-2xl"
+          : "left-0 h-[86%] w-sm rounded-tr-xl"
+      }`}
+      style={
+        isMobile
+          ? {
+              height: expandedHeight,
+              transform: `translateY(${translateY}px)`,
+              transition: isDraggingSheet ? "none" : "transform 0.2s ease-out",
+            }
+          : undefined
+      }
+    >
+      <div
+        className={`border-b border-gray-400 px-4 py-3 ${
+          isMobile ? "touch-none select-none" : ""
+        }`}
+        onPointerDown={handleHeaderPointerDown}
+        onPointerMove={handleHeaderPointerMove}
+        onPointerUp={handleHeaderPointerUp}
+        onPointerCancel={handleHeaderPointerCancel}
+      >
+        {isMobile ? (
+          <div className="mb-3 flex justify-center">
+            <div className="h-1.5 w-10 rounded-full bg-gray-300" />
+          </div>
+        ) : null}
+        <div className="flex items-start justify-between">
+          <div>
+            <h2 className="text-lg font-semibold">{station.name}</h2>
+            <p className="text-sm text-gray-500">{station.address}</p>
+            {(routingDistanceInKilometers ?? distance) != null && (
+              <p className="text-sm text-gray-500">
+                Khoảng cách: {(routingDistanceInKilometers ?? distance)?.toFixed(2)} km
+              </p>
+            )}
+          </div>
+
+          <button
+            onClick={onClose}
+            onPointerDown={(event) => event.stopPropagation()}
+            className="cursor-pointer text-gray-500 hover:text-black text-2xl "
+          >
+            <IoClose />
+          </button>
+        </div>
       </div>
 
-      <div className="overflow-y-auto pr-1 [scrollbar-color:#22c55e_transparent] [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-green-500">
+      <div className="min-h-0 flex-1 overflow-y-auto pr-1 [scrollbar-color:#22c55e_transparent] [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-green-500">
         <div className="relative h-56 bg-gray-100">
           {images.length === 0 ? (
             <div className="flex h-full w-full items-center justify-center text-base font-medium text-gray-500">
@@ -494,25 +671,27 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
           </div>
         </div>
 
-        {busyGroups.map((group, index: number) => (
-          <div
-            key={index}
-            className="flex flex-row items-center rounded-2xl p-3 shadow-md/30 shadow-gray-400"
-          >
-            <BsFillLightningChargeFill className="mr-[8px] text-gray-500" />
+        <div className="space-y-3 px-4">
+          {busyGroups.map((group, index: number) => (
+            <div
+              key={index}
+              className="flex flex-row items-center rounded-2xl p-3 shadow-md/30 shadow-gray-400"
+            >
+              <BsFillLightningChargeFill className="mr-[8px] text-gray-500" />
 
-            <div className="w-full space-y-2">
-              <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 text-sm">
-                <div>
-                  <p className="text-sm font-medium text-gray-800">
-                    {typeMap[group.type] || group.type} · {group.maxPower} kW ×{" "}
-                    {group.count}
-                  </p>
+              <div className="w-full space-y-2">
+                <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 text-sm">
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">
+                      {typeMap[group.type] || group.type} · {group.maxPower} kW ×{" "}
+                      {group.count}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
 
         <div className="px-4 py-3">
           <h3 className="text-md font-semibold">Tổng quan sử dụng</h3>
@@ -737,7 +916,7 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
         />
       )}
 
-      <div className="flex place-content-around border-t border-green-400 px-4 py-3">
+      <div className="flex place-content-around border-t border-green-400 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
         <div
           onClick={() => {
             if (!isUserLoggedIn) {
@@ -768,13 +947,17 @@ const StationDetail = ({ station, onClose, distance }: StationDetailProps) => {
           )}
         </div>
         <div
-          onClick={() =>
+          onClick={() => {
             setRouting({
               stationId: station.id,
               latitude: station.position.latitude,
               longitude: station.position.longitude,
-            })
-          }
+            });
+
+            if (isMobile) {
+              setSheetMode("collapsed");
+            }
+          }}
           className="flex cursor-pointer flex-col items-center gap-2 text-green-600 hover:text-green-700"
         >
           <FaRoute className="text-xl" />

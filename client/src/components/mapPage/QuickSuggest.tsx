@@ -7,6 +7,7 @@ import { useStationStore } from "@/store/useStationStore";
 import { useMapStore } from "@/store/useMapStore";
 import { Coordinate } from "@/type/share";
 import { StationMarkerData } from "@/type/station";
+import { CSSProperties } from "react";
 import { toast } from "react-toastify";
 
 const cableTypeMap = {
@@ -15,7 +16,11 @@ const cableTypeMap = {
   Both: 2,
 } as const;
 
-export default function QuickSuggest() {
+type QuickSuggestProps = {
+  style?: CSSProperties;
+};
+
+export default function QuickSuggest({ style }: QuickSuggestProps) {
   const user = useUserStore((state) => state.user);
   const updateUser = useUserStore((state) => state.updateUser);
   const selectStation = useStationStore((state) => state.selectStation);
@@ -94,6 +99,7 @@ export default function QuickSuggest() {
   return (
     <button
       className="absolute bottom-30 right-8 z-1000 w-12 h-12 rounded-xl cursor-pointer hover:border-green-500 hover:border-2 bg-white border-0"
+      style={style}
       onClick={handleSuggest}
     >
       {loading ? (
