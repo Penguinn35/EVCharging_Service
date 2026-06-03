@@ -1,17 +1,30 @@
 ﻿"use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type * as Leaflet from "leaflet";
 import { heatmapData, type HeatmapCoordinatePoint, type HeatmapDateKey, type HeatmapLayerKey } from "@/lib/data/heatmap";
 import { FiCalendar, FiInfo, FiLayers } from "react-icons/fi";
+import { PiTargetBold } from "react-icons/pi";
+import { HeatmapDateRangeModal, type HeatmapDateRange } from "@/components/dashboard/heatmap/HeatmapDateRangeModal";
 
 type LayerFilter = "all" | "recommendation" | "location" | "full";
 type DateFilter = "day" | "week" | "month" | "custom";
+type DataLayer = Exclude<LayerFilter, "all">;
 
 type DisplayPoint = HeatmapCoordinatePoint & {
-  layer: Exclude<LayerFilter, "all">;
+  layer: DataLayer;
   date: HeatmapDateKey;
 };
+
+type AreaSelection = {
+  center: { lat: number; lng: number };
+  radiusMeters: number;
+};
+
+const MOCK_MIN_DATE = "2026-05-19";
+const MOCK_MAX_DATE = "2026-05-21";
+const MIN_RADIUS_METERS = 30;
+const MIN_DRAG_PX = 5;
 
 const DATE_FILTER_MAP: Record<Exclude<DateFilter, "custom">, HeatmapDateKey[]> = {
   day: ["2026-05-21"],
@@ -19,32 +32,113 @@ const DATE_FILTER_MAP: Record<Exclude<DateFilter, "custom">, HeatmapDateKey[]> =
   month: ["2026-05-19", "2026-05-20", "2026-05-21"],
 };
 
-const LAYER_LABELS: Record<Exclude<LayerFilter, "all">, string> = {
+const LAYER_LABELS: Record<DataLayer, string> = {
   recommendation: "Gợi ý từ người dùng",
   location: "Vị trí khi cần sạc",
   full: "Khu vực quá tải",
 };
 
-const LAYER_DATA_KEYS: Record<Exclude<LayerFilter, "all">, HeatmapLayerKey> = {
+const LAYER_DATA_KEYS: Record<DataLayer, HeatmapLayerKey> = {
   recommendation: "recommendation",
   location: "location",
   full: "full",
 };
 
-const LAYER_COLORS: Record<Exclude<LayerFilter, "all">, string> = {
-  recommendation: "#22c55e",
-  location: "#3b82f6",
-  full: "#ef4444",
+const DEFAULT_HEAT_GRADIENT: Record<number, string> = {
+  0.25: "#7e22ce",
+  0.4: "blue",
+  0.6: "cyan",
+  0.65: "lime",
+  0.8: "yellow",
+  1: "red",
 };
+
+const HEAT_INTENSITY: Record<DataLayer, number> = {
+  recommendation: 0.35,
+  location: 0.55,
+  full: 0.85,
+};
+
+const HEAT_OPTIONS = {
+  radius: 45,
+  blur: 32,
+  max: 1,
+  minOpacity: 0.15,
+  gradient: DEFAULT_HEAT_GRADIENT,
+} as const;
+
+const SELECTION_CIRCLE_STYLE = {
+  color: "#16a34a",
+  fillColor: "#22c55e",
+  fillOpacity: 0.15,
+  weight: 2,
+  opacity: 0.8,
+} as const;
+
+const CLICK_NEAREST_PX = 28;
+
+type LeafletWithHeat = typeof import("leaflet");
+
+async function loadLeafletWithHeat(): Promise<LeafletWithHeat> {
+  const leafletModule = await import("leaflet");
+  const L = (leafletModule as { default: LeafletWithHeat }).default ?? (leafletModule as LeafletWithHeat);
+
+  if (typeof window !== "undefined") {
+    (window as Window & { L?: LeafletWithHeat }).L = L;
+  }
+
+  await import("leaflet.heat");
+
+  return L;
+}
+
+function toHeatPoints(points: DisplayPoint[]): [number, number, number][] {
+  return points.map((p) => [p.lat, p.long, HEAT_INTENSITY[p.layer]]);
+}
+
+function findNearestPoint(
+  map: Leaflet.Map,
+  latlng: Leaflet.LatLng,
+  points: DisplayPoint[]
+): DisplayPoint | null {
+  const clickPoint = map.latLngToContainerPoint(latlng);
+  let nearest: DisplayPoint | null = null;
+  let minDistance = CLICK_NEAREST_PX;
+
+  for (const point of points) {
+    const pointPx = map.latLngToContainerPoint([point.lat, point.long]);
+    const distance = clickPoint.distanceTo(pointPx);
+    if (distance < minDistance) {
+      minDistance = distance;
+      nearest = point;
+    }
+  }
+
+  return nearest;
+}
 
 export function HighDemandHeatmap() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<Leaflet.Map | null>(null);
-  const markerLayerRef = useRef<Leaflet.LayerGroup | null>(null);
-  const leafletRef = useRef<typeof Leaflet | null>(null);
+  const heatLayerRef = useRef<Leaflet.HeatLayer | null>(null);
+  const selectionLayerRef = useRef<Leaflet.LayerGroup | null>(null);
+  const previewCircleRef = useRef<Leaflet.Circle | null>(null);
+  const leafletRef = useRef<LeafletWithHeat | null>(null);
+  const filteredPointsRef = useRef<DisplayPoint[]>([]);
+  const isTargetModeActiveRef = useRef(false);
+  const drawStateRef = useRef<{ isDrawing: boolean; startLatLng: Leaflet.LatLng | null }>({
+    isDrawing: false,
+    startLatLng: null,
+  });
+
+  const [mapReady, setMapReady] = useState(false);
+  const [isTargetModeActive, setIsTargetModeActive] = useState(false);
+  const [isDateModalOpen, setIsDateModalOpen] = useState(false);
+  const [pendingSelection, setPendingSelection] = useState<AreaSelection | null>(null);
 
   const layersButtonRef = useRef<HTMLButtonElement>(null);
   const timeButtonRef = useRef<HTMLButtonElement>(null);
+  const targetButtonRef = useRef<HTMLButtonElement>(null);
   const layersPanelRef = useRef<HTMLDivElement>(null);
   const timePanelRef = useRef<HTMLDivElement>(null);
 
@@ -52,15 +146,17 @@ export function HighDemandHeatmap() {
   const [activeLayer, setActiveLayer] = useState<LayerFilter>("all");
   const [dateFilter, setDateFilter] = useState<DateFilter>("week");
   const [showApplyButton, setShowApplyButton] = useState(false);
-  const [customStartDate, setCustomStartDate] = useState("2026-05-19");
-  const [customEndDate, setCustomEndDate] = useState("2026-05-21");
+  const [customStartDate, setCustomStartDate] = useState(MOCK_MIN_DATE);
+  const [customEndDate, setCustomEndDate] = useState(MOCK_MAX_DATE);
   const [appliedCustomRange, setAppliedCustomRange] = useState<{ start: string; end: string }>({
-    start: "2026-05-19",
-    end: "2026-05-21",
+    start: MOCK_MIN_DATE,
+    end: MOCK_MAX_DATE,
   });
 
   const [showLayerFilters, setShowLayerFilters] = useState(true);
   const [showTimeFilters, setShowTimeFilters] = useState(false);
+
+  isTargetModeActiveRef.current = isTargetModeActive;
 
   const availableDates = useMemo(() => ["2026-05-19", "2026-05-20", "2026-05-21"] as HeatmapDateKey[], []);
 
@@ -70,7 +166,7 @@ export function HighDemandHeatmap() {
         ? availableDates.filter((date) => date >= appliedCustomRange.start && date <= appliedCustomRange.end)
         : DATE_FILTER_MAP[dateFilter];
 
-    const layersToShow: Exclude<LayerFilter, "all">[] =
+    const layersToShow: DataLayer[] =
       activeLayer === "all" ? ["recommendation", "location", "full"] : [activeLayer];
 
     return layersToShow.flatMap((layer) => {
@@ -86,14 +182,65 @@ export function HighDemandHeatmap() {
     });
   }, [activeLayer, appliedCustomRange.end, appliedCustomRange.start, availableDates, dateFilter]);
 
+  filteredPointsRef.current = filteredPoints;
+
+  const clearSelectionCircle = useCallback(() => {
+    previewCircleRef.current = null;
+    selectionLayerRef.current?.clearLayers();
+  }, []);
+
+  const resetAreaSelection = useCallback(() => {
+    clearSelectionCircle();
+    setPendingSelection(null);
+    setIsDateModalOpen(false);
+    drawStateRef.current = { isDrawing: false, startLatLng: null };
+    mapRef.current?.dragging.enable();
+  }, [clearSelectionCircle]);
+
+  const handleToggleTargetMode = () => {
+    setIsTargetModeActive((prev) => {
+      if (prev) {
+        resetAreaSelection();
+      } else {
+        setSelectedPoint(null);
+        setShowLayerFilters(false);
+        setShowTimeFilters(false);
+      }
+      return !prev;
+    });
+  };
+
+  const handleCancelDateModal = () => {
+    resetAreaSelection();
+  };
+
+  const handleApplyAreaQuery = (range: HeatmapDateRange) => {
+    if (!pendingSelection) return;
+
+    console.log({
+      center: pendingSelection.center,
+      radiusMeters: pendingSelection.radiusMeters,
+      dateRange: range,
+    });
+
+    resetAreaSelection();
+    setIsTargetModeActive(false);
+  };
+
   useEffect(() => {
     let isMounted = true;
 
     const initMap = async () => {
       if (!mapContainer.current || mapRef.current) return;
 
-      const L = await import("leaflet");
+      const L = await loadLeafletWithHeat();
+
       if (!isMounted || !mapContainer.current || mapRef.current) return;
+
+      if (typeof L.heatLayer !== "function") {
+        console.error("leaflet.heat failed to register L.heatLayer");
+        return;
+      }
 
       leafletRef.current = L;
       mapRef.current = L.map(mapContainer.current, {
@@ -112,50 +259,120 @@ export function HighDemandHeatmap() {
         })
         .addTo(mapRef.current);
 
-      markerLayerRef.current = L.layerGroup().addTo(mapRef.current);
+      heatLayerRef.current = L.heatLayer([], HEAT_OPTIONS).addTo(mapRef.current);
+      selectionLayerRef.current = L.layerGroup().addTo(mapRef.current);
+
+      mapRef.current.on("click", (event) => {
+        if (isTargetModeActiveRef.current || drawStateRef.current.isDrawing) return;
+        const nearest = findNearestPoint(mapRef.current!, event.latlng, filteredPointsRef.current);
+        setSelectedPoint(nearest);
+      });
+
+      setMapReady(true);
     };
 
     void initMap();
 
     return () => {
       isMounted = false;
+      setMapReady(false);
       mapRef.current?.remove();
       mapRef.current = null;
-      markerLayerRef.current = null;
+      heatLayerRef.current = null;
+      selectionLayerRef.current = null;
+      previewCircleRef.current = null;
       leafletRef.current = null;
     };
   }, []);
 
   useEffect(() => {
-    if (!markerLayerRef.current || !leafletRef.current) return;
+    if (!mapReady || !heatLayerRef.current) return;
+    heatLayerRef.current.setLatLngs(toHeatPoints(filteredPoints));
+  }, [filteredPoints, mapReady]);
 
+  useEffect(() => {
+    setSelectedPoint(null);
+  }, [filteredPoints, activeLayer, dateFilter]);
+
+  useEffect(() => {
+    const map = mapRef.current;
     const L = leafletRef.current;
-    const markerLayer = markerLayerRef.current;
-    markerLayer.clearLayers();
+    const selectionLayer = selectionLayerRef.current;
 
-    filteredPoints.forEach((point, index) => {
-      const color = LAYER_COLORS[point.layer];
-      const baseRadius = point.layer === "full" ? 950 : point.layer === "location" ? 800 : 700;
-      const pulseRadius = baseRadius + (index % 5) * 120;
-      const fillOpacity = point.layer === "full" ? 0.28 : point.layer === "location" ? 0.22 : 0.18;
+    if (!map || !L || !selectionLayer || !mapReady) return;
 
-      const circle = L.circle([point.lat, point.long], {
-        color,
-        fillColor: color,
-        fillOpacity,
-        opacity: 0.35,
-        weight: 1,
-        radius: pulseRadius,
-      }).addTo(markerLayer);
+    if (!isTargetModeActive) {
+      map.getContainer().style.cursor = "";
+      return;
+    }
 
-      circle.bindPopup(
-        `<div class="text-sm font-semibold">${LAYER_LABELS[point.layer]}</div><div class="text-xs text-gray-600">Ngày: ${point.date}</div><div class="text-xs text-gray-600">Tọa độ: ${point.lat}, ${point.long}</div>`
-      );
+    map.getContainer().style.cursor = "crosshair";
 
-      circle.on("mouseover", () => setSelectedPoint(point));
-      circle.on("mouseout", () => setSelectedPoint(null));
-    });
-  }, [filteredPoints]);
+    const onMouseDown = (event: Leaflet.LeafletMouseEvent) => {
+      if (!isTargetModeActiveRef.current || isDateModalOpen) return;
+
+      if (event.originalEvent) {
+        L.DomEvent.stopPropagation(event.originalEvent);
+        L.DomEvent.preventDefault(event.originalEvent);
+      }
+
+      clearSelectionCircle();
+      drawStateRef.current = { isDrawing: true, startLatLng: event.latlng };
+      map.dragging.disable();
+
+      previewCircleRef.current = L.circle(event.latlng, {
+        radius: 1,
+        ...SELECTION_CIRCLE_STYLE,
+      }).addTo(selectionLayer);
+    };
+
+    const onMouseMove = (event: Leaflet.LeafletMouseEvent) => {
+      const { isDrawing, startLatLng } = drawStateRef.current;
+      if (!isDrawing || !startLatLng || !previewCircleRef.current) return;
+
+      const radiusMeters = startLatLng.distanceTo(event.latlng);
+      previewCircleRef.current.setRadius(radiusMeters);
+    };
+
+    const onMouseUp = (event: Leaflet.LeafletMouseEvent) => {
+      const { isDrawing, startLatLng } = drawStateRef.current;
+      if (!isDrawing || !startLatLng) return;
+
+      map.dragging.enable();
+      drawStateRef.current = { isDrawing: false, startLatLng: null };
+
+      const radiusMeters = startLatLng.distanceTo(event.latlng);
+      const startPx = map.latLngToContainerPoint(startLatLng);
+      const endPx = map.latLngToContainerPoint(event.latlng);
+      const dragPx = startPx.distanceTo(endPx);
+
+      if (dragPx < MIN_DRAG_PX || radiusMeters < MIN_RADIUS_METERS) {
+        clearSelectionCircle();
+        return;
+      }
+
+      setPendingSelection({
+        center: { lat: startLatLng.lat, lng: startLatLng.lng },
+        radiusMeters,
+      });
+      setIsDateModalOpen(true);
+    };
+
+    map.on("mousedown", onMouseDown);
+    map.on("mousemove", onMouseMove);
+    map.on("mouseup", onMouseUp);
+
+    return () => {
+      map.off("mousedown", onMouseDown);
+      map.off("mousemove", onMouseMove);
+      map.off("mouseup", onMouseUp);
+      map.getContainer().style.cursor = "";
+      if (drawStateRef.current.isDrawing) {
+        map.dragging.enable();
+        drawStateRef.current = { isDrawing: false, startLatLng: null };
+      }
+    };
+  }, [mapReady, isTargetModeActive, isDateModalOpen, clearSelectionCircle]);
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
@@ -163,9 +380,9 @@ export function HighDemandHeatmap() {
 
       const clickedLayersButton = layersButtonRef.current?.contains(target);
       const clickedLayersPanel = layersPanelRef.current?.contains(target);
-
       const clickedTimeButton = timeButtonRef.current?.contains(target);
       const clickedTimePanel = timePanelRef.current?.contains(target);
+      const clickedTargetButton = targetButtonRef.current?.contains(target);
 
       if (!clickedLayersButton && !clickedLayersPanel) {
         setShowLayerFilters(false);
@@ -174,6 +391,8 @@ export function HighDemandHeatmap() {
       if (!clickedTimeButton && !clickedTimePanel) {
         setShowTimeFilters(false);
       }
+
+      if (clickedTargetButton) return;
     };
 
     document.addEventListener("mousedown", handleOutsideClick);
@@ -187,7 +406,22 @@ export function HighDemandHeatmap() {
 
         <div className="absolute top-4 left-4 z-[1000] flex flex-col gap-3">
           <button
+            ref={targetButtonRef}
+            type="button"
+            onClick={handleToggleTargetMode}
+            className={`h-11 w-11 rounded-xl border shadow-md flex items-center justify-center transition-colors ${
+              isTargetModeActive
+                ? "bg-green-50 border-green-500 ring-2 ring-green-500 text-green-700"
+                : "bg-white/95 border-gray-200 text-gray-700 hover:bg-white"
+            }`}
+            title="Chọn vùng trên bản đồ"
+          >
+            <PiTargetBold className="h-5 w-5" />
+          </button>
+
+          <button
             ref={layersButtonRef}
+            type="button"
             onClick={() => setShowLayerFilters((prev) => !prev)}
             className="h-11 w-11 rounded-xl bg-white/95 border border-gray-200 shadow-md flex items-center justify-center text-gray-700 hover:bg-white"
             title="Bộ lọc lớp hiển thị"
@@ -197,6 +431,7 @@ export function HighDemandHeatmap() {
 
           <button
             ref={timeButtonRef}
+            type="button"
             onClick={() => setShowTimeFilters((prev) => !prev)}
             className="h-11 w-11 rounded-xl bg-white/95 border border-gray-200 shadow-md flex items-center justify-center text-gray-700 hover:bg-white"
             title="Bộ lọc thời gian"
@@ -277,16 +512,16 @@ export function HighDemandHeatmap() {
                   <input
                     type="date"
                     value={customStartDate}
-                    min="2026-05-19"
-                    max="2026-05-21"
+                    min={MOCK_MIN_DATE}
+                    max={MOCK_MAX_DATE}
                     onChange={(e) => setCustomStartDate(e.target.value)}
                     className="px-2 py-2 rounded border border-gray-300 text-xs focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                   <input
                     type="date"
                     value={customEndDate}
-                    min="2026-05-19"
-                    max="2026-05-21"
+                    min={MOCK_MIN_DATE}
+                    max={MOCK_MAX_DATE}
                     onChange={(e) => setCustomEndDate(e.target.value)}
                     className="px-2 py-2 rounded border border-gray-300 text-xs focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
@@ -308,12 +543,25 @@ export function HighDemandHeatmap() {
           </div>
         )}
 
-        <div className="absolute bottom-4 left-4 z-[1000] rounded-xl bg-white/90 backdrop-blur border border-gray-200 shadow-md px-3 py-2">
-          <div className="text-[11px] font-semibold text-gray-700 mb-1">Chú thích lớp dữ liệu</div>
-          <div className="flex items-center gap-3 text-[11px] text-gray-700">
-            <span className="flex items-center gap-1"><i className="inline-block h-2.5 w-2.5 rounded-full bg-green-600" /> Gợi ý</span>
-            <span className="flex items-center gap-1"><i className="inline-block h-2.5 w-2.5 rounded-full bg-blue-600" /> Vị trí</span>
-            <span className="flex items-center gap-1"><i className="inline-block h-2.5 w-2.5 rounded-full bg-red-600" /> Quá tải</span>
+        <div className="absolute bottom-4 left-4 z-[1000] rounded-xl bg-white/90 backdrop-blur border border-gray-200 shadow-md px-3 py-2 min-w-[200px]">
+          <div className="text-[11px] font-semibold text-gray-700 mb-1.5">Mật độ (leaflet.heat)</div>
+          <div
+            className="h-2.5 w-full rounded-full"
+            style={{
+              background: "linear-gradient(to right, #7e22ce, blue, cyan, lime, yellow, red)",
+            }}
+          />
+          <div className="flex justify-between text-[10px] text-gray-500 mt-0.5">
+            <span>Thấp</span>
+            <span>Cao</span>
+          </div>
+          <div className="mt-2 pt-2 border-t border-gray-200 text-[10px] text-gray-600 space-y-0.5">
+            <p>Cường độ điểm: Gợi ý 0.35 · Vị trí 0.55 · Quá tải 0.85</p>
+            <p className="text-gray-500">
+              {isTargetModeActive
+                ? "Giữ chuột trái và kéo để chọn vùng tròn"
+                : "Nhấp vùng nhiệt để xem chi tiết điểm"}
+            </p>
           </div>
         </div>
 
@@ -321,7 +569,7 @@ export function HighDemandHeatmap() {
           Đang hiển thị: <span className="font-semibold text-gray-900">{filteredPoints.length}</span> điểm
         </div>
 
-        {selectedPoint && (
+        {selectedPoint && !isTargetModeActive && (
           <div className="absolute bottom-4 right-4 z-[1000] max-w-xs bg-white/95 backdrop-blur border border-blue-100 rounded-xl shadow-md p-3 flex items-start gap-2">
             <FiInfo className="w-4 h-4 text-blue-600 mt-0.5" />
             <div>
@@ -334,6 +582,16 @@ export function HighDemandHeatmap() {
           </div>
         )}
       </div>
+
+      <HeatmapDateRangeModal
+        open={isDateModalOpen}
+        onClose={handleCancelDateModal}
+        onApply={handleApplyAreaQuery}
+        defaultFrom={MOCK_MIN_DATE}
+        defaultTo={MOCK_MAX_DATE}
+        minDate={MOCK_MIN_DATE}
+        maxDate={MOCK_MAX_DATE}
+      />
     </div>
   );
 }

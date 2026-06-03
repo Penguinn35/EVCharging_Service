@@ -102,6 +102,7 @@ export type GetBusinessStationsParams = {
   size?: number;
 };
 
+
 export const getBusinessProfile = async (): Promise<BusinessProfile> => {
   const response = await apiClient.get<ApiResponse<BusinessProfile>>(
     "/api/business/profile",
