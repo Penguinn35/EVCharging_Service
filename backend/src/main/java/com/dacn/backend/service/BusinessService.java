@@ -44,6 +44,8 @@ public class BusinessService {
     @Autowired
     private ChargingPointRepo pointRepo;
     @Autowired
+    private ConnectorRepo connectorRepo;
+    @Autowired
     private S3Client s3Client;
 
     @Value("${aws.bucket.name}")
@@ -261,6 +263,17 @@ public class BusinessService {
         pointRepo.delete(targetPoint);
 
         return true; // Xóa thành công
+    }
+
+    @Transactional
+    public boolean deleteConnector(String connectorId, String companyId) {
+        Connector deletingConnector = connectorRepo.findById(connectorId).orElse(null);
+        if (deletingConnector == null
+                || !Objects.equals(deletingConnector.getChargingPoint().getChargingStation().getCpo().getEnterpriseId(), companyId)) {
+            return false;
+        }
+        connectorRepo.delete(deletingConnector);
+        return true;
     }
 
     @Transactional
