@@ -127,7 +127,7 @@ const UserProfile = () => {
   };
 
   return (
-    <div className="absolute top-4 right-4 z-[1000]" ref={dropdownRef}>
+    <div className="mr-2 z-[1000]" ref={dropdownRef}>
       <button
         onClick={() => {
           if (!isLoggedIn) {
@@ -156,7 +156,7 @@ const UserProfile = () => {
       </button>
 
       {isLoggedIn && isProfileOpen && (
-        <div className="absolute top-14 right-0 w-80 bg-white shadow-2xl rounded-2xl border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="absolute top-14 right-2 w-80 bg-white shadow-2xl rounded-2xl border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="p-5 border-b border-gray-50 bg-gradient-to-r from-blue-50 to-transparent">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-100 rounded-lg text-green-600">

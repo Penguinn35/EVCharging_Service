@@ -22,9 +22,9 @@ export default function Page() {
   const [distance, setDistance] = useState<number | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [viewportHeight, setViewportHeight] = useState(0);
-  const [mobileSheetMode, setMobileSheetMode] = useState<"expanded" | "collapsed">(
-    "expanded",
-  );
+  const [mobileSheetMode, setMobileSheetMode] = useState<
+    "expanded" | "collapsed"
+  >("expanded");
   const selectedStation = useStationStore((state) => state.selectedStation);
   const selectStation = useStationStore((state) => state.selectStation);
   const clearRouting = useRoutingStore((state) => state.clearRouting);
@@ -36,7 +36,9 @@ export default function Page() {
       ? collapsedSheetHeight + 15
       : null;
   const collapsedLocateStyle =
-    floatingBaseBottom == null ? undefined : { bottom: `${floatingBaseBottom}px` };
+    floatingBaseBottom == null
+      ? undefined
+      : { bottom: `${floatingBaseBottom}px` };
   const collapsedQuickSuggestStyle =
     floatingBaseBottom == null
       ? undefined
@@ -79,11 +81,11 @@ export default function Page() {
             </div>
             <SearchBar />
             <Filter />
+            <UserProfile />
           </div>
           <div className="mt-4">
             <QuickSearch />
           </div>
-          <UserProfile />
         </div>
         {selectedStation && (
           <StationDetail
