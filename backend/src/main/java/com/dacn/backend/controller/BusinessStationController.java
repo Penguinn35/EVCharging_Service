@@ -75,15 +75,15 @@ public class BusinessStationController {
                 HttpStatus.OK);
     }
 
-    @PostMapping(value = "stations", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(value = "stations", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @RequestBody(content = @Content(
             encoding = @Encoding(name = "newStation", contentType = "application/json")
     ))
-    @Operation(summary = "API doanh nghiệp thêm một trạm sạc mới")
+    @Operation(summary = "API doanh nghiệp thêm hoặc sửa một trạm sạc")
     public ResponseEntity<ResponseObject<Boolean>> addNewStation(@RequestPart("newStation") StationCreationDTO newStation,
-                                                                         @RequestPart("imageFiles") List<MultipartFile> newImage,
-                                                                         @AuthenticationPrincipal UserPrincipal principal) throws IOException {
-        boolean isStationAdded = businessService.addNewStation(newStation, newImage, principal.getCompanyId());
+                                                                 @RequestPart(value = "imageFiles", required = false) List<MultipartFile> newImage,
+                                                                 @AuthenticationPrincipal UserPrincipal principal) throws IOException {
+        boolean isStationAdded = businessService.saveOrUpdateStation(newStation, newImage, principal.getCompanyId());
         if (isStationAdded) {
             return new ResponseEntity<>(
                     new ResponseObject<>(
@@ -100,22 +100,22 @@ public class BusinessStationController {
         );
     }
 
-    @PutMapping("stations")
-    @Operation(summary = "API chỉnh sửa thông tin trạm sạc cho doanh nghiệp")
-    public ResponseEntity<ResponseObject<StationUpdateRequestDTO>> modifyStationInfo(
-            @org.springframework.web.bind.annotation.RequestBody StationUpdateRequestDTO modifiedStation,
-            @AuthenticationPrincipal UserPrincipal principal
-    ) {
-        StationUpdateRequestDTO response = businessService.modifyStation(modifiedStation, principal.getCompanyId());
-        if (response == null) {
-            return new ResponseEntity<>(new ResponseObject<>(
-                    HttpStatus.NOT_FOUND, "No such station with that id to update", null
-            ), HttpStatus.NOT_FOUND);
-        }
-        return new ResponseEntity<>(new ResponseObject<>(
-                HttpStatus.OK, "Updated station successfully", response
-        ), HttpStatus.OK);
-    }
+//    @PutMapping("stations")
+//    @Operation(summary = "API chỉnh sửa thông tin trạm sạc cho doanh nghiệp")
+//    public ResponseEntity<ResponseObject<StationUpdateRequestDTO>> modifyStationInfo(
+//            @org.springframework.web.bind.annotation.RequestBody StationUpdateRequestDTO modifiedStation,
+//            @AuthenticationPrincipal UserPrincipal principal
+//    ) {
+//        StationUpdateRequestDTO response = businessService.modifyStation(modifiedStation, principal.getCompanyId());
+//        if (response == null) {
+//            return new ResponseEntity<>(new ResponseObject<>(
+//                    HttpStatus.NOT_FOUND, "No such station with that id to update", null
+//            ), HttpStatus.NOT_FOUND);
+//        }
+//        return new ResponseEntity<>(new ResponseObject<>(
+//                HttpStatus.OK, "Updated station successfully", response
+//        ), HttpStatus.OK);
+//    }
 
     @DeleteMapping("stations/{id}")
     @Operation(summary = "API xóa trạm sạc bằng id")
