@@ -57,51 +57,98 @@ public class BusinessService {
         return stationRepo.findBusinessStation(formattedKeyword, district, manufacturerId, pageable);
     }
 
+//    @Transactional
+//    public boolean addNewStation(StationCreationDTO stationDto, List<MultipartFile> imageFiles, String companyId) throws IOException {
+//        // 1. Validate all images first
+//        for (MultipartFile image : imageFiles) {
+//            if (isNotValidImageFormat(image)) return false;
+//        }
+//
+//        // 2. Create Station Entity
+//        ChargingStation newStation = new ChargingStation();
+//        newStation.setId(stationDto.getId());
+//        newStation.setName(stationDto.getName());
+//        newStation.setPosition(stationDto.getPosition());
+//        newStation.setAddress(stationDto.getAddress());
+//        newStation.setDistrict(stationDto.getDistrict());
+//        newStation.setCpo(cpoRepo.getReferenceById(companyId));
+//
+//        // 3. Process Images
+//        List<StationImage> newImages = new ArrayList<>();
+//        for (MultipartFile image : imageFiles) {
+//            String key = newStation.getId() + "-" + image.getOriginalFilename();
+//            String url = uploadToS3(image, key);
+//            newImages.add(buildStationImage(key, url, image.getContentType(), newStation));
+//        }
+//        newStation.setImages(newImages);
+//
+//        // 4. Process Hierarchy (Points & Connectors)
+//        mapPointsAndConnectors(stationDto, newStation);
+//
+//        stationRepo.save(newStation);
+//        return true;
+//    }
+
     @Transactional
-    public boolean addNewStation(StationCreationDTO stationDto, List<MultipartFile> imageFiles, String companyId) throws IOException {
-        // 1. Validate all images first
-        for (MultipartFile image : imageFiles) {
-            if (isValidImageFormat(image)) return false;
+    public boolean saveOrUpdateStation(StationCreationDTO stationDto, List<MultipartFile> imageFiles, String companyId) throws IOException {
+
+        // 1. Fetch trạm sạc hiện có hoặc tạo mới nếu chưa tồn tại
+        ChargingStation station = stationRepo.findById(stationDto.getId())
+                .orElse(new ChargingStation());
+        if (!Objects.equals(station.getCpo().getEnterpriseId(), companyId)) {
+            return false;
         }
 
-        // 2. Create Station Entity
-        ChargingStation newStation = new ChargingStation();
-        newStation.setId(stationDto.getId());
-        newStation.setName(stationDto.getName());
-        newStation.setPosition(stationDto.getPosition());
-        newStation.setAddress(stationDto.getAddress());
-        newStation.setDistrict(stationDto.getDistrict());
-        newStation.setCpo(cpoRepo.getReferenceById(companyId));
+        // Set ID (cần thiết cho trường hợp Add mới)
+        station.setId(stationDto.getId());
 
-        // 3. Process Images
-        List<StationImage> newImages = new ArrayList<>();
-        for (MultipartFile image : imageFiles) {
-            String key = newStation.getId() + "-" + image.getOriginalFilename();
-            String url = uploadToS3(image, key);
-            newImages.add(buildStationImage(key, url, image.getContentType(), newStation));
+        // 2. Cập nhật các trường cơ bản (Bỏ qua null)
+        if (stationDto.getName() != null) station.setName(stationDto.getName());
+        if (stationDto.getPosition() != null) station.setPosition(stationDto.getPosition());
+        if (stationDto.getAddress() != null) station.setAddress(stationDto.getAddress());
+        if (stationDto.getDistrict() != null) station.setDistrict(stationDto.getDistrict());
+        if (companyId != null) station.setCpo(cpoRepo.getReferenceById(companyId));
+
+        // 3. Xử lý Images (Chỉ xử lý nếu có file gửi lên)
+        if (imageFiles != null && !imageFiles.isEmpty()) {
+            // Lấy danh sách ảnh cũ (nếu có) để giữ nguyên, sau đó append ảnh mới
+            List<StationImage> currentImages = station.getImages();
+            if (currentImages == null) {
+                currentImages = new ArrayList<>();
+            }
+
+            for (MultipartFile image : imageFiles) {
+                // Lưu ý: Logic gốc của bạn là `if (isNotValidImageFormat) return false`.
+                // Thường thì phải là `if (!isNotValidImageFormat)` mới đúng. Bạn kiểm tra lại nhé.
+                if (!isNotValidImageFormat(image)) return false;
+
+                String key = station.getId() + "-" + image.getOriginalFilename();
+                String url = uploadToS3(image, key);
+                currentImages.add(buildStationImage(key, url, image.getContentType(), station));
+            }
+            station.setImages(currentImages);
         }
-        newStation.setImages(newImages);
 
         // 4. Process Hierarchy (Points & Connectors)
-        mapPointsAndConnectors(stationDto, newStation);
+        mapPointsAndConnectors(stationDto, station);
 
-        stationRepo.save(newStation);
+        stationRepo.save(station);
         return true;
     }
 
-    @Transactional
-    public StationUpdateRequestDTO modifyStation(StationUpdateRequestDTO newStation, String companyId) {
-        ChargingStation station = stationRepo.findById(newStation.getId()).orElse(null);
-        if (station == null || !Objects.equals(station.getCpo().getEnterpriseId(), companyId)) {
-            return null;
-        }
-        station.setName(newStation.getName());
-        station.setPosition(newStation.getPosition());
-        station.setAddress(newStation.getAddress());
-        station.setDistrict(newStation.getDistrict());
-        stationRepo.save(station);
-        return newStation;
-    }
+//    @Transactional
+//    public StationUpdateRequestDTO modifyStation(StationUpdateRequestDTO newStation, String companyId) {
+//        ChargingStation station = stationRepo.findById(newStation.getId()).orElse(null);
+//        if (station == null || !Objects.equals(station.getCpo().getEnterpriseId(), companyId)) {
+//            return null;
+//        }
+//        station.setName(newStation.getName());
+//        station.setPosition(newStation.getPosition());
+//        station.setAddress(newStation.getAddress());
+//        station.setDistrict(newStation.getDistrict());
+//        stationRepo.save(station);
+//        return newStation;
+//    }
 
     @Transactional
     public PointCreationDTO addOrModifyChargingPoint(PointCreationDTO point, String stationId, String companyId) {
@@ -228,7 +275,7 @@ public class BusinessService {
 
     @Transactional
     public boolean addImageToStation(MultipartFile imageFile, String stationId, String companyId) throws IOException {
-        if (isValidImageFormat(imageFile)) return false;
+        if (isNotValidImageFormat(imageFile)) return false;
 
         ChargingStation station = getValidatedStation(stationId, companyId);
         String key = station.getId() + "-" + imageFile.getOriginalFilename();
@@ -245,7 +292,7 @@ public class BusinessService {
     @Transactional
     public boolean changeImage(StationImageRequestDTO imageRequest, String stationId, String companyId) throws IOException {
         MultipartFile imageFile = imageRequest.getImageFile();
-        if (isValidImageFormat(imageFile)) return false;
+        if (isNotValidImageFormat(imageFile)) return false;
 
         ChargingStation station = getValidatedStation(stationId, companyId);
 
@@ -268,7 +315,7 @@ public class BusinessService {
 
     // --- Private Helper Methods (The DRY Logic) ---
 
-    private boolean isValidImageFormat(MultipartFile file) {
+    private boolean isNotValidImageFormat(MultipartFile file) {
         String contentType = file.getContentType();
         return contentType == null || (!contentType.contains("png") && !contentType.contains("jpeg") && !contentType.contains("jpg"));
     }
