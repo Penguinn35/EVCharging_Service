@@ -168,6 +168,21 @@ public class BusinessStationController {
         ), HttpStatus.BAD_REQUEST);
     }
 
+    @DeleteMapping("stations/charging_points/connectors/{id}")
+    public ResponseEntity<ResponseObject<Boolean>> deleteConnector(
+            @PathVariable("id") String connectorId,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        if (businessService.deleteConnector(connectorId, principal.getCompanyId())) {
+            return new ResponseEntity<>(new ResponseObject<>(
+                    HttpStatus.OK, "Deleted station successfully", true
+            ), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(new ResponseObject<>(
+                HttpStatus.BAD_REQUEST, "Something went wrong when deleting charging point", false
+        ), HttpStatus.BAD_REQUEST);
+    }
+
     @PostMapping(value = "stations/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "API doanh nghiệp thêm ảnh mới vào trạm sạc")
     public ResponseEntity<ResponseObject<Boolean>> addNewImageToStation(@RequestPart("imageFile") MultipartFile newImage, @PathVariable String id, @AuthenticationPrincipal UserPrincipal userPrincipal) throws IOException {
