@@ -127,7 +127,7 @@ const UserProfile = () => {
   };
 
   return (
-    <div className="mr-2 z-[1000]" ref={dropdownRef}>
+    <div className="mr-2 ml-auto z-[1000]" ref={dropdownRef}>
       <button
         onClick={() => {
           if (!isLoggedIn) {
