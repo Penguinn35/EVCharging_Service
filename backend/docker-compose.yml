@@ -30,8 +30,12 @@ services:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik-proxy"
       - "traefik.http.routers.${COMPOSE_PROJECT_NAME}.rule=Host(`${COMPOSE_PROJECT_NAME}.${TRAEFIK_HOST}`)"
-      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}.entrypoints=websecure"
-      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}.tls.certresolver=letsencrypt"
+      # COMMENT THIS FOR LOCAL / UNCOMMENT FOR PRODUCTION
+#      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}.entrypoints=websecure"
+#      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}.tls.certresolver=letsencrypt"
+      # UNCOMMENT THIS FOR LOCAL / COMMENT FOR PRODUCTION
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}.entrypoints=web"
+      # -------------------------------------------------------------------------------------------
       - "traefik.http.services.${COMPOSE_PROJECT_NAME}.loadbalancer.server.port=8080"
 
   postgres:
@@ -40,7 +44,11 @@ services:
     image: pgrouting/pgrouting:16-3.5-4.0
     #    container_name: evcharging-database
     ports:
-      - "5432"
+      # COMMENT THIS FOR LOCAL / UNCOMMENT FOR PRODUCTION
+#      - "5432"
+      # UNCOMMENT THIS FOR LOCAL / COMMENT FOR PRODUCTION
+      - "5433:5432"
+      # ------------------------------------------------------------
     restart: always
     environment:
       POSTGRES_DB: ${DB_NAME}
