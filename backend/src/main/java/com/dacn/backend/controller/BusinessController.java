@@ -2,6 +2,7 @@ package com.dacn.backend.controller;
 
 import com.dacn.backend.annotation.RequiresVerifiedCpo;
 import com.dacn.backend.dto.BusinessProfileDTO;
+import com.dacn.backend.dto.BusinessUpdateProfileDTO;
 import com.dacn.backend.model.UserPrincipal;
 import com.dacn.backend.object.ResponseObject;
 import com.dacn.backend.service.BusinessAccountService;
@@ -33,6 +34,25 @@ public class BusinessController {
         BusinessProfileDTO response = businessAccountService.getBusinessProfile(principal.getCompanyId());
         return new ResponseEntity<>(new ResponseObject<>(
                 HttpStatus.OK, "Returned business detail", response
+        ), HttpStatus.OK);
+    }
+
+    @PatchMapping("profile")
+    @Operation(summary = "API chỉnh sửa profile doanh nghiệp")
+    public ResponseEntity<ResponseObject<BusinessUpdateProfileDTO>> updateBusinessProfile(
+            @RequestBody BusinessUpdateProfileDTO updateProfileDTO,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        BusinessUpdateProfileDTO updatedProfile = businessAccountService.updateBusinessProfile(
+                updateProfileDTO, principal.getCompanyId()
+        );
+        if (updatedProfile == null) {
+            return new ResponseEntity<>(new ResponseObject<>(
+                    HttpStatus.BAD_REQUEST, "Update CPO profile failed, please recheck the input", null
+            ), HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(new ResponseObject<>(
+                HttpStatus.OK, "Updated CPO", updatedProfile
         ), HttpStatus.OK);
     }
 
