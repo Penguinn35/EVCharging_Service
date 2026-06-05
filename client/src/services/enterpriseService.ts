@@ -50,7 +50,7 @@ export type BusinessStationListResponse = {
 };
 
 export type BusinessStationRating = {
-  id: string;
+  stationName: string;
   comment: string;
   point: number;
   timePosted: string;

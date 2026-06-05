@@ -56,10 +56,11 @@ const getDateRangeByFilter = (
   }
 
   if (filter === "day") {
-    const date = formatDateForInput(yesterday);
+    const fromDate = formatDateForInput(yesterday);
+    const toDate = formatDateForInput(today);
     return {
-      fromDate: date,
-      toDate: date,
+      fromDate: fromDate,
+      toDate: toDate,
     };
   }
 
