@@ -1,5 +1,6 @@
 package com.dacn.backend.repository;
 
+import com.dacn.backend.dto.BusinessRatingDTO;
 import com.dacn.backend.dto.BusinessRatingTotalStatistics;
 import com.dacn.backend.dto.RatingResponseDTO;
 import com.dacn.backend.dto.RatingStatisticDTO;
@@ -35,7 +36,7 @@ public interface RatingRepo extends JpaRepository<Rating, String> {
     List<RatingStatisticDTO> getStatistic(@Param("stationId") String stationId);
 
     @Query(nativeQuery = true, value = """
-SELECT r.id, r.comment, r.point, r.date_posted
+SELECT cs.name, r.comment, r.point, r.date_posted
 FROM rating r JOIN charging_station cs ON r.station_id = cs.id
 WHERE cs.manufacturer_id = :companyId
 """, countQuery = """
@@ -43,7 +44,7 @@ WHERE cs.manufacturer_id = :companyId
             FROM rating r JOIN charging_station cs ON r.station_id = cs.id
             WHERE cs.manufacturer_id = :companyId
             """)
-    Page<RatingResponseDTO> getRatingOfBusiness(String companyId, Pageable pageable);
+    Page<BusinessRatingDTO> getRatingOfBusiness(String companyId, Pageable pageable);
 
     @Query(nativeQuery = true, value = """
 SELECT count(*), sum(r.point) / count(*)
@@ -61,7 +62,7 @@ GROUP BY r.point
     List<RatingStatisticDTO> getBusinessRatingStatistics(String companyId); // to get total ratings group by point
 
     @Query(nativeQuery = true, value = """
-SELECT r.id, r.comment, r.point, r.date_posted
+SELECT cs.name, r.comment, r.point, r.date_posted
 FROM rating r JOIN charging_station cs ON r.station_id = cs.id
 WHERE cs.manufacturer_id = :companyId AND r.point >= :lowestPoint AND r.point <= :highestPoint
     AND r.date_posted >= :fromDate AND r.date_posted <= :toDate
@@ -71,7 +72,7 @@ WHERE cs.manufacturer_id = :companyId AND r.point >= :lowestPoint AND r.point <=
             WHERE cs.manufacturer_id = :companyId AND r.point = :ratingPoint AND r.date_posted >= :fromDate
                 AND r.date_posted <= :toDate
             """)
-    Page<RatingResponseDTO> getRatingOfBusinessWithFilters(LocalDateTime fromDate, LocalDateTime toDate,
+    Page<BusinessRatingDTO> getRatingOfBusinessWithFilters(LocalDateTime fromDate, LocalDateTime toDate,
                                                            int lowestPoint, int highestPoint,
                                                            String companyId, Pageable pageable);
 

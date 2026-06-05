@@ -290,7 +290,7 @@ export function RatingsViewer() {
         )}
 
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">Rating Summary</h2>
+          <h2 className="text-xl font-semibold text-gray-900">Tổng hợp đánh giá</h2>
           <p className="mt-1 text-sm text-gray-600">
             Tổng hợp số lượng, điểm trung bình và phân bố đánh giá theo từng mục sao.
           </p>
@@ -327,11 +327,11 @@ export function RatingsViewer() {
         <div className="space-y-3">
           {loading ? (
             <div className="rounded-lg border border-gray-200 px-4 py-8 text-center text-sm text-gray-500">
-              Dang tai du lieu...
+              Đang tải dữ liệu...
             </div>
           ) : ratings?.length === 0 ? (
             <div className="rounded-lg border border-dashed border-gray-300 px-4 py-8 text-center text-sm text-gray-500">
-              Khong co danh gia trong khoang thoi gian da chon.
+              Không thấy đánh giá trong khoảng thời gian và mức điểm đã chọn. Hãy thử điều chỉnh bộ lọc của bạn.
             </div>
           ) : (
             <div className="overflow-hidden rounded-lg border border-gray-200">
@@ -340,28 +340,28 @@ export function RatingsViewer() {
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
-                        ID
+                        Tên trạm sạc
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
-                        Comment
+                        Bình luận
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
-                        Point
+                        Điểm
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
-                        Time
+                        Thời gian đánh giá
                       </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
                     {ratings.map((rating) => (
-                      <tr key={rating.id} className="hover:bg-gray-50">
+                      <tr key={rating.stationName} className="hover:bg-gray-50">
                         <td className="px-4 py-4 text-sm font-medium text-gray-900">
-                          {rating.id.slice(0, 8)}
+                          {rating.stationName}
                         </td>
                         <td className="px-4 py-4 text-sm text-gray-700">
                           <p className="whitespace-pre-wrap">
-                            {rating.comment?.trim() ? rating.comment : "Khong co noi dung danh gia."}
+                            {rating.comment?.trim() ? rating.comment : "Không có nội dung đánh giá."}
                           </p>
                         </td>
                         <td className="px-4 py-4 text-sm text-gray-700">
@@ -386,7 +386,9 @@ export function RatingsViewer() {
 
         <div className="flex flex-col gap-3 border-t border-gray-200 pt-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="text-sm text-gray-600">
-            Showing {startItem} to {endItem} of {totalElements} ratings
+            Hiển thị <span className="font-medium text-gray-900">{startItem}</span> đến{" "}
+            <span className="font-medium text-gray-900">{endItem}</span> trong tổng số{" "}
+            <span className="font-medium text-gray-900">{totalElements}</span> đánh giá
           </div>
           <div className="flex gap-2">
             <button
@@ -394,7 +396,7 @@ export function RatingsViewer() {
               disabled={currentPage === 1 || loading}
               className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Previous
+              Trang trước
             </button>
             <div className="flex items-center gap-2">
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
@@ -417,7 +419,7 @@ export function RatingsViewer() {
               disabled={currentPage === totalPages || totalPages === 0 || loading}
               className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Next
+              Trang sau
             </button>
           </div>
         </div>
