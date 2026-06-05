@@ -56,8 +56,8 @@ export type SavedStationCountStatistic = {
 
 export type TotalDetailCountStatistic = {
   stationId: string;
-  address: string;
   stationName: string;
+  address: string;
   sumOfViewDetailCount: number;
 };
 
