@@ -43,9 +43,11 @@ public class AdminAccountService {
             cpoResponse.setIsVerified(cpo.getIsVerified());
 
             EVUser manager = cpo.getManager();
-            cpoResponse.setManagerEmail(manager.getEmail());
-            cpoResponse.setManagerFullName(manager.getFullName());
-            cpoResponse.setManagerAddress(manager.getAddress());
+            if (manager != null) {
+                cpoResponse.setManagerEmail(manager.getEmail());
+                cpoResponse.setManagerFullName(manager.getFullName());
+                cpoResponse.setManagerAddress(manager.getAddress());
+            }
             return cpoResponse;
         }).toList();
     }
