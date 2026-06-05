@@ -1,6 +1,7 @@
 package com.dacn.backend.service;
 
 import com.dacn.backend.dto.BusinessProfileDTO;
+import com.dacn.backend.dto.BusinessUpdateProfileDTO;
 import com.dacn.backend.dto.CPORegisterDTO;
 import com.dacn.backend.model.CPO;
 import com.dacn.backend.model.EVUser;
@@ -70,6 +71,25 @@ public class BusinessAccountService {
         response.setManagerAddress(manager.getAddress());
         response.setManagerEmail(manager.getEmail());
         return response;
+    }
+
+    public BusinessUpdateProfileDTO updateBusinessProfile(BusinessUpdateProfileDTO businessProfileDTO, String companyId) {
+        CPO company = cpoRepo.findById(companyId).orElse(null);
+        if (company == null) {
+            return null;
+        }
+        if (businessProfileDTO.getCompanyName() != null) company.setCompanyName(businessProfileDTO.getCompanyName());
+        if (businessProfileDTO.getCompanyAddress() != null) company.setAddress(businessProfileDTO.getCompanyAddress());
+        if (businessProfileDTO.getTaxCode() != null) company.setTaxCode(businessProfileDTO.getTaxCode());
+        EVUser manager = company.getManager();
+        if (businessProfileDTO.getManagerFullName() != null) manager.setFullName(businessProfileDTO.getManagerFullName());
+        if (businessProfileDTO.getManagerEmail() != null) manager.setEmail(businessProfileDTO.getManagerEmail());
+        if (businessProfileDTO.getManagerAddress() != null) manager.setAddress(businessProfileDTO.getManagerAddress());
+
+        company.setManager(manager);
+        cpoRepo.save(company);
+
+        return businessProfileDTO;
     }
 
     public boolean saveLogo(MultipartFile newImage, String companyId) throws IOException {

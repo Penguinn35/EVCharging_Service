@@ -22,6 +22,7 @@ public class CPO {
     private String logoUrl;
     private String taxCode;
     private String address;
+    private Boolean isVerified;
 
     @OneToMany(mappedBy = "cpo")
     private List<ChargingStation> managingStations;

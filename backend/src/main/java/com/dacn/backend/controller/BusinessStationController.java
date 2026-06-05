@@ -1,5 +1,6 @@
 package com.dacn.backend.controller;
 
+import com.dacn.backend.annotation.RequiresVerifiedCpo;
 import com.dacn.backend.dto.*;
 import com.dacn.backend.model.UserPrincipal;
 import com.dacn.backend.object.ResponseObject;
@@ -28,6 +29,7 @@ import java.util.List;
 @RestController
 @RequestMapping("api/business")
 @Tag(name = "API dành cho doanh nghiệp", description = "Các API cho doanh nghiệp quản lý các trạm sạc của mình")
+@RequiresVerifiedCpo
 public class BusinessStationController {
 
     @Autowired
@@ -154,6 +156,7 @@ public class BusinessStationController {
     }
 
     @DeleteMapping("stations/charging_points/{id}")
+    @Operation(summary = "API xóa điểm sạc (charging points) bằng id")
     public ResponseEntity<ResponseObject<Boolean>> deleteChargingPoint(
             @PathVariable("id") String pointId,
             @AuthenticationPrincipal UserPrincipal principal
@@ -169,6 +172,7 @@ public class BusinessStationController {
     }
 
     @DeleteMapping("stations/charging_points/connectors/{id}")
+    @Operation(summary = "API xóa connector bằng id")
     public ResponseEntity<ResponseObject<Boolean>> deleteConnector(
             @PathVariable("id") String connectorId,
             @AuthenticationPrincipal UserPrincipal principal

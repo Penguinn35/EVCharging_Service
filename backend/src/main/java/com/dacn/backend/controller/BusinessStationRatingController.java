@@ -1,5 +1,6 @@
 package com.dacn.backend.controller;
 
+import com.dacn.backend.annotation.RequiresVerifiedCpo;
 import com.dacn.backend.dto.BusinessRatingResponseDTO;
 import com.dacn.backend.model.UserPrincipal;
 import com.dacn.backend.object.ResponseObject;
@@ -22,6 +23,7 @@ import java.time.LocalDate;
 @RequestMapping("api/business")
 @Tag(name = "API dành cho doanh nghiệp quản lý đánh giá trạm sạc",
         description = "Các API cho doanh nghiệp quản lý các đánh giá của các trạm sạc của mình")
+@RequiresVerifiedCpo
 public class BusinessStationRatingController {
     @Autowired
     private BusinessStationRatingService ratingService;
