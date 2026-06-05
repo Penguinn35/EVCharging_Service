@@ -39,4 +39,17 @@ public class AdminController {
                 HttpStatus.BAD_REQUEST, "Verified failed, please recheck input", false
         ), HttpStatus.BAD_REQUEST);
     }
+
+    @PutMapping("cpo/{id}/disable")
+    @Operation(summary = "API khóa tài khoản doanh nghiệp")
+    public ResponseEntity<ResponseObject<Boolean>> disableCPOProfile(@PathVariable("id") String enterpriseId) {
+        if (adminAccountService.disableCPOProfile(enterpriseId)) {
+            return new ResponseEntity<>(new ResponseObject<>(
+                    HttpStatus.OK, "Disabled cpo", true
+            ), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(new ResponseObject<>(
+                HttpStatus.BAD_REQUEST, "Disable failed, please recheck input", false
+        ), HttpStatus.BAD_REQUEST);
+    }
 }

@@ -33,4 +33,12 @@ WHERE enterprise_id = :enterpriseId
 """)
     @Modifying
     int verifyCPO(String enterpriseId);
+
+    @Query(nativeQuery = true, value = """
+UPDATE cpo
+SET is_verified = FALSE
+WHERE enterprise_id = :enterpriseId
+""")
+    @Modifying
+    int disableCPO(String enterpriseId);
 }

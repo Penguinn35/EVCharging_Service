@@ -57,4 +57,9 @@ public class AdminAccountService {
     public boolean verifyCPOProfile(String enterpriseId) {
         return cpoRepo.verifyCPO(enterpriseId) > 0;
     }
+
+    @Transactional
+    public boolean disableCPOProfile(String enterpriseId) {
+        return cpoRepo.disableCPO(enterpriseId) > 0;
+    }
 }
