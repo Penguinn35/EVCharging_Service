@@ -1,5 +1,6 @@
 package com.dacn.backend.controller;
 
+import com.dacn.backend.annotation.RequiresVerifiedCpo;
 import com.dacn.backend.dto.CoordinateDTO;
 import com.dacn.backend.dto.HitfullResponseDTO;
 import com.dacn.backend.dto.UserLocationHistoryDTO;
@@ -21,6 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping("api/business")
 @Tag(name = "API doanh nghiệp quản lý hotspots")
+@RequiresVerifiedCpo
 public class BusinessHotspotController {
     @Autowired
     private BusinessHotspotService hotspotService;

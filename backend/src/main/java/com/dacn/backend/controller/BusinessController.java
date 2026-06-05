@@ -1,5 +1,6 @@
 package com.dacn.backend.controller;
 
+import com.dacn.backend.annotation.RequiresVerifiedCpo;
 import com.dacn.backend.dto.BusinessProfileDTO;
 import com.dacn.backend.model.UserPrincipal;
 import com.dacn.backend.object.ResponseObject;
@@ -19,6 +20,7 @@ import java.io.IOException;
 @RestController
 @RequestMapping("/api/business")
 @Tag(name = "API tài khoản doanh nghiệp")
+@RequiresVerifiedCpo
 public class BusinessController {
     @Autowired
     private BusinessAccountService businessAccountService;
