@@ -3,6 +3,8 @@ package com.dacn.backend.controller;
 import com.dacn.backend.dto.CPOResponseDTO;
 import com.dacn.backend.object.ResponseObject;
 import com.dacn.backend.service.AdminAccountService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,11 +16,13 @@ import java.util.List;
 
 @RestController
 @RequestMapping("api/admin")
+@Tag(name = "API dành cho admin quản lý doanh nghiệp")
 public class AdminController {
     @Autowired
     private AdminAccountService adminAccountService;
 
     @GetMapping("cpos")
+    @Operation(summary = "API trả về tất cả các doanh nghiệp hiện có, bao gồm cả verified và chưa verified")
     public ResponseEntity<ResponseObject<List<CPOResponseDTO>>> getAllCPOs() {
         return new ResponseEntity<>(new ResponseObject<>(
                 HttpStatus.OK, "Returned a list of cpos", adminAccountService.getAllCpoList()

@@ -156,6 +156,7 @@ public class BusinessStationController {
     }
 
     @DeleteMapping("stations/charging_points/{id}")
+    @Operation(summary = "API xóa điểm sạc (charging points) bằng id")
     public ResponseEntity<ResponseObject<Boolean>> deleteChargingPoint(
             @PathVariable("id") String pointId,
             @AuthenticationPrincipal UserPrincipal principal
@@ -171,6 +172,7 @@ public class BusinessStationController {
     }
 
     @DeleteMapping("stations/charging_points/connectors/{id}")
+    @Operation(summary = "API xóa connector bằng id")
     public ResponseEntity<ResponseObject<Boolean>> deleteConnector(
             @PathVariable("id") String connectorId,
             @AuthenticationPrincipal UserPrincipal principal
