@@ -52,6 +52,7 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/error"
                         ).permitAll()
+                        .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
                         .requestMatchers("/api/users/**").hasAuthority("CLIENT")
                         .requestMatchers("/api/business/**").hasAuthority("BUSINESS")
                         .requestMatchers("/ocpi/cpo/**").hasAuthority("BUSINESS")
