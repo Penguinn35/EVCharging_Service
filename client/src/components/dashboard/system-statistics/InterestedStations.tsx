@@ -69,7 +69,7 @@ const getDateRangeByFilter = (
 
   return {
     fromDate: formatDateForInput(fromDate),
-    toDate: formatDateForInput(yesterday),
+    toDate: formatDateForInput(today),
   };
 };
 
@@ -254,8 +254,8 @@ export function InterestedStations() {
                   return (
                     <tr key={station.stationId} className="hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-3 text-sm font-bold text-green-600">#{rank}</td>
-                      <td className="px-4 py-3 text-sm font-medium text-gray-900">{station.address}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{station.stationName}</td>
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900">{station.stationName}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{station.address}</td>
                       {/* <td className="px-4 py-3 text-sm text-gray-600"></td> */}
                       <td className="px-4 py-3 text-sm font-bold text-gray-900 text-right">
                         <span className="inline-flex items-center gap-2">
