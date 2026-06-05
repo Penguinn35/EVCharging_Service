@@ -2,7 +2,6 @@ package com.dacn.backend.service;
 
 import com.dacn.backend.dto.AdminRegisterDTO;
 import com.dacn.backend.dto.CPOResponseDTO;
-import com.dacn.backend.dto.UserRegisterDTO;
 import com.dacn.backend.model.CPO;
 import com.dacn.backend.model.EVUser;
 import com.dacn.backend.repository.CPORepo;
