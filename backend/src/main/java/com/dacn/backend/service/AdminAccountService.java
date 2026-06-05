@@ -7,6 +7,7 @@ import com.dacn.backend.model.CPO;
 import com.dacn.backend.model.EVUser;
 import com.dacn.backend.repository.CPORepo;
 import com.dacn.backend.repository.EVUserRepo;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
@@ -50,5 +51,10 @@ public class AdminAccountService {
             }
             return cpoResponse;
         }).toList();
+    }
+
+    @Transactional
+    public boolean verifyCPOProfile(String enterpriseId) {
+        return cpoRepo.verifyCPO(enterpriseId) > 0;
     }
 }
