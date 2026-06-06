@@ -97,7 +97,7 @@ public class BusinessService {
         // 1. Fetch trạm sạc hiện có hoặc tạo mới nếu chưa tồn tại
         ChargingStation station = stationRepo.findById(stationDto.getId())
                 .orElse(new ChargingStation());
-        if (!Objects.equals(station.getCpo().getEnterpriseId(), companyId)) {
+        if (station.getCpo() != null && !Objects.equals(station.getCpo().getEnterpriseId(), companyId)) {
             return false;
         }
 
