@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -34,6 +35,35 @@ public class BusinessStationController {
 
     @Autowired
     private BusinessService businessService;
+
+    private enum StationEventType {
+        STATION_ADD,
+        STATION_CHANGE,
+        STATION_DELETE,
+        CHARGEPOINT_ADD,
+        CHARGEPOINT_DELETE,
+        CONNECTOR_ADD,
+        CONNECTOR_EDIT,
+        CONNECTOR_DELETE
+    }
+
+    @lombok.Data
+    private static class ConnectorEventPayload {
+        private String stationId;
+        private String chargePointId;
+        private ConnectorCreationDTO connector;
+    }
+
+    @lombok.Data
+    private static class StationEventRequest {
+        private StationEventType eventType;
+        private StationCreationDTO station;
+        private String stationId;
+        private PointCreationDTO chargePoint;
+        private String chargePointId;
+        private ConnectorEventPayload connectorEvent;
+        private String connectorId;
+    }
 
     @GetMapping("stations")
     @Operation(
@@ -102,6 +132,43 @@ public class BusinessStationController {
         );
     }
 
+    @PostMapping("stations/events")
+    @Operation(summary = "API event chung cho CRUD trạm sạc/điểm sạc/connector")
+    public ResponseEntity<ResponseObject<Object>> handleStationEvent(
+            @org.springframework.web.bind.annotation.RequestBody StationEventRequest eventRequest,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        if (eventRequest == null || eventRequest.getEventType() == null) {
+            return new ResponseEntity<>(new ResponseObject<>(
+                    HttpStatus.BAD_REQUEST, "Event type is required", null
+            ), HttpStatus.BAD_REQUEST);
+        }
+
+        String companyId = principal.getCompanyId();
+        StationEventType eventType = eventRequest.getEventType();
+
+        switch (eventType) {
+            case STATION_ADD:
+            case STATION_CHANGE:
+                return handleStationSaveEvent(eventRequest.getStation(), companyId);
+            case STATION_DELETE:
+                return handleStationDeleteEvent(eventRequest.getStationId(), companyId);
+            case CHARGEPOINT_ADD:
+                return handleChargePointSaveEvent(eventRequest.getStationId(), eventRequest.getChargePoint(), companyId);
+            case CHARGEPOINT_DELETE:
+                return handleChargePointDeleteEvent(eventRequest.getChargePointId(), companyId);
+            case CONNECTOR_ADD:
+            case CONNECTOR_EDIT:
+                return handleConnectorUpsertEvent(eventRequest.getConnectorEvent(), companyId);
+            case CONNECTOR_DELETE:
+                return handleConnectorDeleteEvent(eventRequest.getConnectorId(), companyId);
+            default:
+                return new ResponseEntity<>(new ResponseObject<>(
+                        HttpStatus.BAD_REQUEST, "Unsupported event type", null
+                ), HttpStatus.BAD_REQUEST);
+        }
+    }
+
 //    @PutMapping("stations")
 //    @Operation(summary = "API chỉnh sửa thông tin trạm sạc cho doanh nghiệp")
 //    public ResponseEntity<ResponseObject<StationUpdateRequestDTO>> modifyStationInfo(
@@ -132,6 +199,131 @@ public class BusinessStationController {
         }
         return new ResponseEntity<>(new ResponseObject<>(
                 HttpStatus.BAD_REQUEST, "Something went wrong when deleting station", false
+        ), HttpStatus.BAD_REQUEST);
+    }
+
+    private ResponseEntity<ResponseObject<Object>> handleStationSaveEvent(StationCreationDTO station, String companyId) {
+        if (station == null || station.getId() == null) {
+            return new ResponseEntity<>(new ResponseObject<>(
+                    HttpStatus.BAD_REQUEST, "Station payload or station id is invalid", null
+            ), HttpStatus.BAD_REQUEST);
+        }
+        try {
+            boolean isSaved = businessService.saveOrUpdateStation(station, null, companyId);
+            if (isSaved) {
+                return new ResponseEntity<>(new ResponseObject<>(
+                        HttpStatus.OK, "saved successfully", true
+                ), HttpStatus.OK);
+            }
+            return new ResponseEntity<>(new ResponseObject<>(
+                    HttpStatus.BAD_REQUEST, "Something went wrong when saving station", false
+            ), HttpStatus.BAD_REQUEST);
+        } catch (IOException e) {
+            return new ResponseEntity<>(new ResponseObject<>(
+                    HttpStatus.BAD_REQUEST, "Something went wrong when saving station", false
+            ), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    private ResponseEntity<ResponseObject<Object>> handleStationDeleteEvent(String stationId, String companyId) {
+        if (stationId == null) {
+            return new ResponseEntity<>(new ResponseObject<>(
+                    HttpStatus.BAD_REQUEST, "Station id is required", null
+            ), HttpStatus.BAD_REQUEST);
+        }
+        if (businessService.deleteStation(stationId, companyId)) {
+            return new ResponseEntity<>(new ResponseObject<>(
+                    HttpStatus.OK, "Deleted station successfully", true
+            ), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(new ResponseObject<>(
+                HttpStatus.BAD_REQUEST, "Something went wrong when deleting station", false
+        ), HttpStatus.BAD_REQUEST);
+    }
+
+    private ResponseEntity<ResponseObject<Object>> handleChargePointSaveEvent(
+            String stationId,
+            PointCreationDTO chargePoint,
+            String companyId
+    ) {
+        if (stationId == null || chargePoint == null) {
+            return new ResponseEntity<>(new ResponseObject<>(
+                    HttpStatus.BAD_REQUEST, "Station id or charge point payload is invalid", null
+            ), HttpStatus.BAD_REQUEST);
+        }
+        PointCreationDTO savedPoint = businessService.addOrModifyChargingPoint(chargePoint, stationId, companyId);
+        if (savedPoint == null) {
+            return new ResponseEntity<>(new ResponseObject<>(
+                    HttpStatus.BAD_REQUEST, "Something went wrong when saving charge point", null
+            ), HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(new ResponseObject<>(
+                HttpStatus.OK, "Saved charge point successfully", savedPoint
+        ), HttpStatus.OK);
+    }
+
+    private ResponseEntity<ResponseObject<Object>> handleChargePointDeleteEvent(String chargePointId, String companyId) {
+        if (chargePointId == null) {
+            return new ResponseEntity<>(new ResponseObject<>(
+                    HttpStatus.BAD_REQUEST, "Charge point id is required", null
+            ), HttpStatus.BAD_REQUEST);
+        }
+        if (businessService.deleteChargingPoint(chargePointId, companyId)) {
+            return new ResponseEntity<>(new ResponseObject<>(
+                    HttpStatus.OK, "Deleted charging point successfully", true
+            ), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(new ResponseObject<>(
+                HttpStatus.BAD_REQUEST, "Something went wrong when deleting charging point", false
+        ), HttpStatus.BAD_REQUEST);
+    }
+
+    private ResponseEntity<ResponseObject<Object>> handleConnectorUpsertEvent(
+            ConnectorEventPayload connectorEvent,
+            String companyId
+    ) {
+        if (connectorEvent == null
+                || connectorEvent.getStationId() == null
+                || connectorEvent.getChargePointId() == null
+                || connectorEvent.getConnector() == null) {
+            return new ResponseEntity<>(new ResponseObject<>(
+                    HttpStatus.BAD_REQUEST, "Connector event payload is invalid", null
+            ), HttpStatus.BAD_REQUEST);
+        }
+
+        PointCreationDTO pointRequest = new PointCreationDTO();
+        pointRequest.setId(connectorEvent.getChargePointId());
+        pointRequest.setConnectors(Collections.singletonList(connectorEvent.getConnector()));
+
+        PointCreationDTO savedPoint = businessService.addOrModifyChargingPoint(
+                pointRequest,
+                connectorEvent.getStationId(),
+                companyId
+        );
+
+        if (savedPoint == null) {
+            return new ResponseEntity<>(new ResponseObject<>(
+                    HttpStatus.BAD_REQUEST, "Something went wrong when saving connector", null
+            ), HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(new ResponseObject<>(
+                HttpStatus.OK, "Saved connector successfully", savedPoint
+        ), HttpStatus.OK);
+    }
+
+    private ResponseEntity<ResponseObject<Object>> handleConnectorDeleteEvent(String connectorId, String companyId) {
+        if (connectorId == null) {
+            return new ResponseEntity<>(new ResponseObject<>(
+                    HttpStatus.BAD_REQUEST, "Connector id is required", null
+            ), HttpStatus.BAD_REQUEST);
+        }
+        if (businessService.deleteConnector(connectorId, companyId)) {
+            return new ResponseEntity<>(new ResponseObject<>(
+                    HttpStatus.OK, "Deleted connector successfully", true
+            ), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(new ResponseObject<>(
+                HttpStatus.BAD_REQUEST, "Something went wrong when deleting connector", false
         ), HttpStatus.BAD_REQUEST);
     }
 
