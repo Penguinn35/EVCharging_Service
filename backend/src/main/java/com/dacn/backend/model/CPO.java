@@ -24,6 +24,7 @@ public class CPO {
     private String address;
     private Boolean isVerified;
     private String serverUrl;
+    private String token;
 
     @OneToMany(mappedBy = "cpo")
     private List<ChargingStation> managingStations;

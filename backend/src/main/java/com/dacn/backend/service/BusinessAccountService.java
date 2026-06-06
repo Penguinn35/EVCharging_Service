@@ -67,6 +67,7 @@ public class BusinessAccountService {
         response.setLogoUrl(company.getLogoUrl());
         response.setTaxCode(company.getTaxCode());
         response.setServerUrl(company.getServerUrl());
+        response.setToken(company.getToken());
         response.setIsVerified(company.getIsVerified());
 
         EVUser manager = company.getManager();
@@ -85,6 +86,7 @@ public class BusinessAccountService {
         if (businessProfileDTO.getCompanyAddress() != null) company.setAddress(businessProfileDTO.getCompanyAddress());
         if (businessProfileDTO.getTaxCode() != null) company.setTaxCode(businessProfileDTO.getTaxCode());
         if (businessProfileDTO.getServerUrl() != null) company.setServerUrl(businessProfileDTO.getServerUrl());
+        if (businessProfileDTO.getToken() != null) company.setToken(businessProfileDTO.getToken());
         EVUser manager = company.getManager();
         if (businessProfileDTO.getManagerFullName() != null) manager.setFullName(businessProfileDTO.getManagerFullName());
         if (businessProfileDTO.getManagerEmail() != null) manager.setEmail(businessProfileDTO.getManagerEmail());
