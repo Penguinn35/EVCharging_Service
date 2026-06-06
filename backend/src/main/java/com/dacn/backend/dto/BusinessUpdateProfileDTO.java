@@ -11,4 +11,5 @@ public class BusinessUpdateProfileDTO {
     private String managerEmail;
     private String managerAddress;
     private String serverUrl;
+    private String token;
 }
