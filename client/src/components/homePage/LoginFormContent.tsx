@@ -50,7 +50,7 @@ export default function LoginFormContent({
       useUserStore.getState().updateUser({
         accessToken: result.token,
         isLogedin: true,
-        name: result.user.fullName,
+        fullName: result.user.fullName,
         email: result.user.email,
         address: result.user.address ?? "",
         role: result.user.role,
@@ -69,7 +69,7 @@ export default function LoginFormContent({
       const userDetail = await getUserDetails();
 
       useUserStore.getState().updateUser({
-        name: userDetail.fullName,
+        fullName: userDetail.fullName,
         email: userDetail.email,
         address: userDetail.address ?? "",
         savedStation: userDetail.savedStationList ?? [],

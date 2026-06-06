@@ -50,7 +50,7 @@ const UserProfile = () => {
 
   useEffect(() => {
     const shouldFetchUserDetails =
-      isLoggedIn && (!user.name?.trim() || !user.email?.trim());
+      isLoggedIn && (!user.userName?.trim() || !user.email?.trim());
 
     if (!shouldFetchUserDetails) return;
 
@@ -63,7 +63,7 @@ const UserProfile = () => {
         if (!isMounted) return;
 
         updateUser({
-          name: userDetail.fullName,
+          fullName: userDetail.fullName,
           email: userDetail.email,
           address: userDetail.address ?? "",
           savedStation: userDetail.savedStationList ?? [],
@@ -82,7 +82,7 @@ const UserProfile = () => {
     return () => {
       isMounted = false;
     };
-  }, [isLoggedIn, user.name, user.email, updateUser, clearUser]);
+  }, [isLoggedIn, user.fullName, user.email, updateUser, clearUser]);
 
   const handleLogout = () => {
     setIsProfileOpen(false);
@@ -171,7 +171,7 @@ const UserProfile = () => {
                 <IoPersonCircleOutline size={24} />
               </div>
               <div>
-                <h3 className="font-bold text-gray-800 leading-tight">{user.name}</h3>
+                <h3 className="font-bold text-gray-800 leading-tight">{user.fullName}</h3>
                 <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
                   <IoMailOutline /> {user.email}
                 </div>
