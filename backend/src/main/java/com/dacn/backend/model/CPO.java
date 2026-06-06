@@ -23,6 +23,7 @@ public class CPO {
     private String taxCode;
     private String address;
     private Boolean isVerified;
+    private String serverUrl;
 
     @OneToMany(mappedBy = "cpo")
     private List<ChargingStation> managingStations;

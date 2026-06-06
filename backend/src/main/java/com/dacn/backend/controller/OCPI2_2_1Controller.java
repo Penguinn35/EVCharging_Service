@@ -1,5 +1,6 @@
 package com.dacn.backend.controller;
 
+import com.dacn.backend.constants.ConnectorStatus;
 import com.dacn.backend.object.ResponseObject;
 import com.dacn.backend.service.StationService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -19,21 +20,21 @@ public class OCPI2_2_1Controller {
     @Autowired
     private StationService stationService;
 
-    @PatchMapping("/charging_point/status")
+    @PatchMapping("/connector/status")
     public ResponseEntity<ResponseObject<Boolean>> updateChargingPointStatus(
-            @RequestParam("chargingPointId") String pointId,
-            @RequestParam("status") int status
+            @RequestParam("connectorId") String connectorId,
+            @RequestParam("status") ConnectorStatus status
     ) {
-        if (stationService.updateChargingPointStatus(pointId, status)) {
+        if (stationService.updateConnectorStatus(connectorId, status)) {
             return new ResponseEntity<>(new ResponseObject<>(
                     HttpStatus.CREATED,
-                    "Updated status " + status + " to charging point with id " + pointId,
+                    "Updated status " + status + " to charging point with id " + connectorId,
                     true
             ), HttpStatus.CREATED);
         } else {
             return new ResponseEntity<>(new ResponseObject<>(
                     HttpStatus.BAD_REQUEST,
-                    "Unable to find the charging point with id " + pointId,
+                    "Unable to find the charging point with id " + connectorId,
                     false
             ), HttpStatus.BAD_REQUEST);
         }

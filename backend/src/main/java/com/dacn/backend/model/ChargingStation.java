@@ -32,6 +32,7 @@ public class ChargingStation {
     private Long hitFullCount;
     private Long capacity;
     private Long currentVehicleCount;
+    private Long availableConnectorsCount;
 
     @OneToMany(mappedBy = "chargingStation", cascade = CascadeType.ALL)
     private List<ChargingPoint> chargingPoints;
