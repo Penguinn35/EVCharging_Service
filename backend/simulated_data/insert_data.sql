@@ -939,23 +939,23 @@ SET
 CREATE OR REPLACE FUNCTION fn_station_auto_logic()
 RETURNS TRIGGER AS $$
 DECLARE
-    usage_ratio DOUBLE PRECISION;
+    available_ratio DOUBLE PRECISION;
 BEGIN
     -- Tránh chia cho 0 nếu capacity chưa có
     IF (NEW.capacity IS NULL OR NEW.capacity = 0) THEN
         RETURN NEW;
-END IF;
+    END IF;
 
     -- 1. Tính toán tỉ lệ lấp đầy
-    usage_ratio := NEW.current_vehicle_count::DOUBLE PRECISION / NEW.capacity::DOUBLE PRECISION;
+    available_ratio := NEW.available_connectors_count::DOUBLE PRECISION / NEW.capacity::DOUBLE PRECISION;
 
     -- 2. Cập nhật Status dựa trên Ratio (3: FULL, 1: AVAILABLE)
-    IF (usage_ratio >= 0.8 AND usage_ratio < 1) THEN
-        NEW.status := 2; -- BUSY
-	ELSIF (usage_ratio >= 1) THEN
-		NEW.status := 3; -- FULL
+    IF (available_ratio > 0.25 AND available_ratio < 1) THEN
+        NEW.status := 1; -- AVAILABLE
+	ELSIF (available_ratio <= 0.25 AND available_ratio > 0) THEN
+		NEW.status := 2; -- BUSY
     ELSE
-        NEW.status := 1;
+        NEW.status := 3;
     END IF;
 
     -- 3. Logic Trigger HitFullCount (Chỉ tăng khi trạng thái THỰC SỰ chuyển sang FULL)
@@ -969,7 +969,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Gán trigger vào bảng (Sẽ chạy TRƯỚC khi dữ liệu được ghi xuống)
-CREATE TRIGGER trg_station_auto_logic
+CREATE OR REPLACE TRIGGER trg_station_auto_logic
 BEFORE UPDATE ON charging_station
 FOR EACH ROW
 EXECUTE FUNCTION fn_station_auto_logic();
