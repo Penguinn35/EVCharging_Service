@@ -64,6 +64,7 @@ public class BusinessAccountService {
         BusinessProfileDTO response = new BusinessProfileDTO();
         response.setCompanyName(company.getCompanyName());
         response.setCompanyAddress(company.getAddress());
+        response.setLogoUrl(company.getLogoUrl());
         response.setTaxCode(company.getTaxCode());
         response.setServerUrl(company.getServerUrl());
         response.setIsVerified(company.getIsVerified());
