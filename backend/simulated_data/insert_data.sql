@@ -944,14 +944,16 @@ BEGIN
     -- Tránh chia cho 0 nếu capacity chưa có
     IF (NEW.capacity IS NULL OR NEW.capacity = 0) THEN
         RETURN NEW;
-    END IF;
+END IF;
 
     -- 1. Tính toán tỉ lệ lấp đầy
     usage_ratio := NEW.current_vehicle_count::DOUBLE PRECISION / NEW.capacity::DOUBLE PRECISION;
 
     -- 2. Cập nhật Status dựa trên Ratio (3: FULL, 1: AVAILABLE)
-    IF (usage_ratio >= 0.9) THEN
-        NEW.status := 3;
+    IF (usage_ratio >= 0.8 AND usage_ratio < 1) THEN
+        NEW.status := 2; -- BUSY
+	ELSIF (usage_ratio >= 1) THEN
+		NEW.status := 3; -- FULL
     ELSE
         NEW.status := 1;
     END IF;
@@ -971,3 +973,27 @@ CREATE TRIGGER trg_station_auto_logic
 BEFORE UPDATE ON charging_station
 FOR EACH ROW
 EXECUTE FUNCTION fn_station_auto_logic();
+
+-- TẠO TRIGGER status cho connector
+
+CREATE OR REPLACE FUNCTION check_connector_status()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Kiểm tra nếu status = 1 thì is_available là TRUE, ngược lại là FALSE
+    IF NEW.status = 1 THEN
+        NEW.is_available := TRUE;
+    ELSE
+        NEW.is_available := FALSE;
+    END IF;
+
+    -- NEW.is_available := (NEW.status = 1);
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_update_connector_availability
+    BEFORE INSERT OR UPDATE
+                         ON connector
+                         FOR EACH ROW
+                         EXECUTE FUNCTION check_connector_status();

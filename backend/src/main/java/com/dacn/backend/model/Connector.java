@@ -1,5 +1,6 @@
 package com.dacn.backend.model;
 
+import com.dacn.backend.constants.ConnectorStatus;
 import org.springframework.stereotype.Component;
 
 import jakarta.persistence.Entity;
@@ -23,6 +24,7 @@ public class Connector {
     private Double voltage;
     private Double maxPower;
     private boolean isAvailable;
+    private ConnectorStatus status;
 
     @ManyToOne
     @JoinColumn(name = "charging_point_id")

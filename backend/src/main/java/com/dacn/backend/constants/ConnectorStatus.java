@@ -1,6 +1,6 @@
 package com.dacn.backend.constants;
 
-public enum ChargingPointStatus {
+public enum ConnectorStatus {
     OFFLINE(0),
     AVAILABLE(1),
     MAINTENANCE(2),
@@ -8,7 +8,7 @@ public enum ChargingPointStatus {
 
     private final int code;
 
-    ChargingPointStatus(int code) {
+    ConnectorStatus(int code) {
         this.code = code;
     }
 }

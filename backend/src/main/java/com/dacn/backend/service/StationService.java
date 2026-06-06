@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+import com.dacn.backend.constants.ConnectorStatus;
 import com.dacn.backend.dto.*;
 import com.dacn.backend.dto.search_by_keyword.StationSearchResponseDTO;
 import com.dacn.backend.model.*;
@@ -41,6 +42,8 @@ public class StationService {
     private StationStatisticRepo stationStatisticRepo;
     @Autowired
     private UserLocationHistoryRepo userLocationHistoryRepo;
+    @Autowired
+    private ConnectorRepo connectorRepo;
 //    @Autowired
 //    private ChargingPointRepo chargingPointRepo;
 
@@ -239,6 +242,16 @@ public class StationService {
         }
         chargingPoint.setStatus(status);
         chargingPointRepo.save(chargingPoint);
+        return true;
+    }
+
+    public boolean updateConnectorStatus(String connectorId, ConnectorStatus status) {
+        Connector connector = connectorRepo.findById(connectorId).orElse(null);
+        if (connector == null) {
+            return false;
+        }
+        connector.setStatus(status);
+        connectorRepo.save(connector);
         return true;
     }
 
