@@ -1,9 +1,9 @@
 package com.dacn.backend.controller;
 
 import com.dacn.backend.annotation.RequiresVerifiedCpo;
-import com.dacn.backend.dto.CoordinateDTO;
 import com.dacn.backend.dto.HitfullResponseDTO;
 import com.dacn.backend.dto.UserLocationHistoryDTO;
+import com.dacn.backend.dto.UserSuggestedStationDTO;
 import com.dacn.backend.model.UserPrincipal;
 import com.dacn.backend.object.ResponseObject;
 import com.dacn.backend.service.BusinessHotspotService;
@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -29,8 +30,10 @@ public class BusinessHotspotController {
 
     @GetMapping("suggestion")
     @Operation(summary = "API trả về tất cả các dữ liệu gợi ý từ người dùng")
-    public ResponseEntity<ResponseObject<List<CoordinateDTO>>> getSuggestionData() {
-        List<CoordinateDTO> response = hotspotService.getSuggestions();
+    public ResponseEntity<ResponseObject<List<UserSuggestedStationDTO>>> getSuggestionData(
+            @RequestParam Double longitude, @RequestParam Double latitude, @RequestParam Double radius
+    ) {
+        List<UserSuggestedStationDTO> response = hotspotService.getSuggestions(longitude, latitude, radius);
         return new ResponseEntity<>(new ResponseObject<>(
                 HttpStatus.OK,
                 "Suggestion list returned",
