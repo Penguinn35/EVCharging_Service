@@ -7,6 +7,8 @@ import com.dacn.backend.repository.UserSuggestionRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 public class UserService {
     @Autowired
@@ -19,6 +21,7 @@ public class UserService {
         suggestion.setLocation(suggestionDTO.getLocation());
         suggestion.setDescription(suggestionDTO.getDescription());
         suggestion.setUser(userRepo.getReferenceById(userId));
+        suggestion.setTimestamp(LocalDateTime.now());
         userSuggestionRepo.save(suggestion);
         return true;
     }

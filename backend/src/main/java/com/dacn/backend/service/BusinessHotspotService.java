@@ -1,8 +1,8 @@
 package com.dacn.backend.service;
 
-import com.dacn.backend.dto.CoordinateDTO;
 import com.dacn.backend.dto.HitfullResponseDTO;
 import com.dacn.backend.dto.UserLocationHistoryDTO;
+import com.dacn.backend.dto.UserSuggestedStationDTO;
 import com.dacn.backend.repository.ChargingStationRepo;
 import com.dacn.backend.repository.UserLocationHistoryRepo;
 import com.dacn.backend.repository.UserSuggestionRepo;
@@ -20,8 +20,8 @@ public class BusinessHotspotService {
     @Autowired
     private ChargingStationRepo stationRepo;
 
-    public List<CoordinateDTO> getSuggestions() {
-        return suggestionRepo.getSuggestions();
+    public List<UserSuggestedStationDTO> getSuggestions(Double longitude, Double latitude, Double radius) {
+        return suggestionRepo.getSuggestions(longitude, latitude, radius);
     }
 
     public List<UserLocationHistoryDTO> getLocationHistory() {
