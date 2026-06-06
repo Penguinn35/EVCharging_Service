@@ -18,6 +18,8 @@ public class ChargingPoint {
     @Id 
     private String id;
     private int status;
+    private Integer numberOfConnectors;
+    private Integer numberOfAvailableConnectors;
     @ManyToOne
     @JoinColumn(name = "charging_station_id")
     private ChargingStation chargingStation;

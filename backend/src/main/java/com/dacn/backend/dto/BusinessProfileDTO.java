@@ -11,4 +11,7 @@ public class BusinessProfileDTO {
     private String managerFullName;
     private String managerEmail;
     private String managerAddress;
+    private String serverUrl;
+    private String token;
+    private Boolean isVerified;
 }

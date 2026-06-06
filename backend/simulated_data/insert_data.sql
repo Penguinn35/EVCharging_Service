@@ -939,7 +939,7 @@ SET
 CREATE OR REPLACE FUNCTION fn_station_auto_logic()
 RETURNS TRIGGER AS $$
 DECLARE
-    usage_ratio DOUBLE PRECISION;
+    available_ratio DOUBLE PRECISION;
 BEGIN
     -- Tránh chia cho 0 nếu capacity chưa có
     IF (NEW.capacity IS NULL OR NEW.capacity = 0) THEN
@@ -947,13 +947,15 @@ BEGIN
     END IF;
 
     -- 1. Tính toán tỉ lệ lấp đầy
-    usage_ratio := NEW.current_vehicle_count::DOUBLE PRECISION / NEW.capacity::DOUBLE PRECISION;
+    available_ratio := NEW.available_connectors_count::DOUBLE PRECISION / NEW.capacity::DOUBLE PRECISION;
 
     -- 2. Cập nhật Status dựa trên Ratio (3: FULL, 1: AVAILABLE)
-    IF (usage_ratio >= 0.9) THEN
-        NEW.status := 3;
+    IF (available_ratio > 0.25 AND available_ratio < 1) THEN
+        NEW.status := 1; -- AVAILABLE
+	ELSIF (available_ratio <= 0.25 AND available_ratio > 0) THEN
+		NEW.status := 2; -- BUSY
     ELSE
-        NEW.status := 1;
+        NEW.status := 3;
     END IF;
 
     -- 3. Logic Trigger HitFullCount (Chỉ tăng khi trạng thái THỰC SỰ chuyển sang FULL)
@@ -967,7 +969,182 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Gán trigger vào bảng (Sẽ chạy TRƯỚC khi dữ liệu được ghi xuống)
-CREATE TRIGGER trg_station_auto_logic
+CREATE OR REPLACE TRIGGER trg_station_auto_logic
 BEFORE UPDATE ON charging_station
 FOR EACH ROW
 EXECUTE FUNCTION fn_station_auto_logic();
+
+-- TẠO TRIGGER status cho connector
+
+CREATE OR REPLACE FUNCTION check_connector_status()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Kiểm tra nếu status = 1 thì is_available là TRUE, ngược lại là FALSE
+    IF NEW.status = 1 THEN
+        NEW.is_available := TRUE;
+    ELSE
+        NEW.is_available := FALSE;
+    END IF;
+
+    -- NEW.is_available := (NEW.status = 1);
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_update_connector_availability
+    BEFORE INSERT OR UPDATE
+                         ON connector
+                         FOR EACH ROW
+                         EXECUTE FUNCTION check_connector_status();
+
+-- TRIGGER CHO VIỆC THÊM XÓA SỬA CONNECTOR
+-- 1. INSERT
+CREATE OR REPLACE FUNCTION trg_func_connector_insert()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.charging_point_id IS NOT NULL THEN
+        UPDATE charging_point
+        SET
+            -- Dùng COALESCE phòng trường hợp giá trị cũ đang là NULL
+            number_of_connectors = COALESCE(number_of_connectors, 0) + 1,
+            number_of_available_connectors = COALESCE(number_of_available_connectors, 0) +
+                                             CASE WHEN NEW.is_available THEN 1 ELSE 0 END
+        WHERE id = NEW.charging_point_id;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_connector_insert
+    AFTER INSERT ON connector
+    FOR EACH ROW
+    EXECUTE FUNCTION trg_func_connector_insert();
+
+-- 2. DELETE
+CREATE OR REPLACE FUNCTION trg_func_connector_delete()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.charging_point_id IS NOT NULL THEN
+        UPDATE charging_point
+        SET
+            number_of_connectors = GREATEST(0, COALESCE(number_of_connectors, 0) - 1),
+            number_of_available_connectors = GREATEST(0, COALESCE(number_of_available_connectors, 0) -
+                                                         CASE WHEN OLD.is_available THEN 1 ELSE 0 END)
+        WHERE id = OLD.charging_point_id;
+    END IF;
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_connector_delete
+    AFTER DELETE ON connector
+    FOR EACH ROW
+    EXECUTE FUNCTION trg_func_connector_delete();
+
+-- 3. UPDATE
+CREATE OR REPLACE FUNCTION trg_func_connector_update()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Kịch bản 1: Đầu sạc bị chuyển từ trụ này (OLD) sang trụ khác (NEW)
+    IF OLD.charging_point_id IS DISTINCT FROM NEW.charging_point_id THEN
+
+        -- Trừ số liệu ở trụ cũ
+        IF OLD.charging_point_id IS NOT NULL THEN
+            UPDATE charging_point
+            SET number_of_connectors = GREATEST(0, COALESCE(number_of_connectors, 0) - 1),
+                number_of_available_connectors = GREATEST(0, COALESCE(number_of_available_connectors, 0) - CASE WHEN OLD.is_available THEN 1 ELSE 0 END)
+            WHERE id = OLD.charging_point_id;
+        END IF;
+
+        -- Cộng số liệu vào trụ mới
+        IF NEW.charging_point_id IS NOT NULL THEN
+            UPDATE charging_point
+            SET number_of_connectors = COALESCE(number_of_connectors, 0) + 1,
+                number_of_available_connectors = COALESCE(number_of_available_connectors, 0) + CASE WHEN NEW.is_available THEN 1 ELSE 0 END
+            WHERE id = NEW.charging_point_id;
+        END IF;
+
+    -- Kịch bản 2: Vẫn giữ nguyên trụ sạc, CHỈ thay đổi trạng thái rảnh/bận
+    ELSIF OLD.is_available IS DISTINCT FROM NEW.is_available THEN
+        IF NEW.charging_point_id IS NOT NULL THEN
+            UPDATE charging_point
+            -- Nếu chuyển thành rảnh (TRUE) thì cộng 1, nếu chuyển thành bận (FALSE) thì trừ 1
+            SET number_of_available_connectors = COALESCE(number_of_available_connectors, 0) +
+                                                 CASE WHEN NEW.is_available THEN 1 ELSE -1 END
+            WHERE id = NEW.charging_point_id;
+        END IF;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_connector_update
+    AFTER UPDATE ON connector
+    FOR EACH ROW
+    EXECUTE FUNCTION trg_func_connector_update();
+
+-- TRIGGER cho UPDATE THÔNG SỐ VỀ SỐ LƯỢNG ĐẦU SẠC CÒN TRỐNG
+
+CREATE OR REPLACE FUNCTION trg_sync_station_from_point()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Hành động THÊM MỚI (Cộng dồn số lượng)
+    IF (TG_OP = 'INSERT') THEN
+        IF NEW.charging_station_id IS NOT NULL THEN
+            UPDATE charging_station
+            SET capacity = COALESCE(capacity, 0) + COALESCE(NEW.number_of_connectors, 0),
+                available_connectors_count = COALESCE(available_connectors_count, 0) + COALESCE(NEW.number_of_available_connectors, 0)
+            WHERE id = NEW.charging_station_id;
+        END IF;
+        RETURN NEW;
+
+-- Hành động XÓA (Trừ đi số lượng)
+    ELSIF (TG_OP = 'DELETE') THEN
+        IF OLD.charging_station_id IS NOT NULL THEN
+            UPDATE charging_station
+            SET capacity = GREATEST(0, COALESCE(capacity, 0) - COALESCE(OLD.number_of_connectors, 0)),
+                available_connectors_count = GREATEST(0, COALESCE(available_connectors_count, 0) - COALESCE(OLD.number_of_available_connectors, 0))
+            WHERE id = OLD.charging_station_id;
+        END IF;
+        RETURN OLD;
+
+-- Hành động CẬP NHẬT
+    ELSIF (TG_OP = 'UPDATE') THEN
+            -- Trường hợp 1: Trụ sạc bị đổi sang Trạm sạc khác
+        IF OLD.charging_station_id IS DISTINCT FROM NEW.charging_station_id THEN
+            -- Trừ sạch ở trạm cũ
+            IF OLD.charging_station_id IS NOT NULL THEN
+                UPDATE charging_station
+                SET capacity = GREATEST(0, COALESCE(capacity, 0) - COALESCE(OLD.number_of_connectors, 0)),
+                    available_connectors_count = GREATEST(0, COALESCE(available_connectors_count, 0) - COALESCE(OLD.number_of_available_connectors, 0))
+                WHERE id = OLD.charging_station_id;
+            END IF;
+            -- Cộng tất cả vào trạm mới
+            IF NEW.charging_station_id IS NOT NULL THEN
+                UPDATE charging_station
+                SET capacity = COALESCE(capacity, 0) + COALESCE(NEW.number_of_connectors, 0),
+                    available_connectors_count = COALESCE(available_connectors_count, 0) + COALESCE(NEW.number_of_available_connectors, 0)
+                WHERE id = NEW.charging_station_id;
+            END IF;
+
+        -- Trường hợp 2: Vẫn ở trạm sạc cũ, chỉ thay đổi số lượng connector
+        ELSE
+            IF NEW.charging_station_id IS NOT NULL THEN
+                UPDATE charging_station
+                -- Lấy số MỚI trừ đi số CŨ để ra độ lệch (delta) rồi cộng vào trạm sạc
+                SET capacity = GREATEST(0, COALESCE(capacity, 0) + (COALESCE(NEW.number_of_connectors, 0) - COALESCE(OLD.number_of_connectors, 0))),
+                    available_connectors_count = GREATEST(0, COALESCE(available_connectors_count, 0) + (COALESCE(NEW.number_of_available_connectors, 0) - COALESCE(OLD.number_of_available_connectors, 0)))
+                WHERE id = NEW.charging_station_id;
+            END IF;
+        END IF;
+    RETURN NEW;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Gắn Trigger vào bảng charging_point
+CREATE OR REPLACE TRIGGER trg_point_to_station
+AFTER INSERT OR UPDATE OR DELETE ON charging_point
+    FOR EACH ROW EXECUTE FUNCTION trg_sync_station_from_point();
