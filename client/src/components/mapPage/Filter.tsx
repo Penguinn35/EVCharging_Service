@@ -111,7 +111,7 @@ const Filter = () => {
       </div>
 
       {isOpen && (
-        <div className="absolute top-12 left-0 z-50 w-64 rounded-lg border border-gray-300 bg-white p-4 shadow-lg">
+        <div className="absolute top-12 right-2 z-50 w-64 rounded-lg border border-gray-300 bg-white p-4 shadow-lg">
           <div className="mb-4">
             <label className="mb-2 block text-sm font-medium text-gray-700">
               Trạng thái

@@ -9,7 +9,11 @@ export default function AuthModal() {
   const { modalType, closeModal, openLogin, openRegister } = useAuthModalStore();
 
   return (
-    <Modal open={modalType !== null} onClose={closeModal}>
+    <Modal
+      open={modalType !== null}
+      onClose={closeModal}
+      panelClassName={modalType === "register" ? "max-w-2xl" : ""}
+    >
       {modalType === "login" && (
         <LoginFormContent
           closeModal={closeModal}

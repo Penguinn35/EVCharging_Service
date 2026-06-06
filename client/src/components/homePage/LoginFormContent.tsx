@@ -3,12 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { FiUser, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
-import { FcGoogle } from "react-icons/fc";
 import { ApiError } from "@/lib/apiClient";
 import { useRouter } from "next/navigation";
 import { loginType } from "@/models/user";
 import { login, getUserDetails } from "@/services/userService";
-import { getBusinessProfile } from "@/services/enterpriseService";
+import { getEnterpriseProfile } from "@/services/enterpriseService";
 import { useEnterpriseStore } from "@/store/useEnterpriseStore";
 import { useUserStore } from "@/store/useUserStore";
 import { toast } from "react-toastify";
@@ -51,14 +50,14 @@ export default function LoginFormContent({
       useUserStore.getState().updateUser({
         accessToken: result.token,
         isLogedin: true,
-        name: result.user.fullName,
+        fullName: result.user.fullName,
         email: result.user.email,
         address: result.user.address ?? "",
         role: result.user.role,
       });
 
       if (result.user.role === "BUSINESS") {
-        const businessProfile = await getBusinessProfile();
+        const businessProfile = await getEnterpriseProfile();
         useEnterpriseStore.getState().updateEnterprise(businessProfile);
 
         toast.success("Đăng nhập thành công");
@@ -70,7 +69,7 @@ export default function LoginFormContent({
       const userDetail = await getUserDetails();
 
       useUserStore.getState().updateUser({
-        name: userDetail.fullName,
+        fullName: userDetail.fullName,
         email: userDetail.email,
         address: userDetail.address ?? "",
         savedStation: userDetail.savedStationList ?? [],
@@ -173,25 +172,6 @@ export default function LoginFormContent({
           {loading ? "Đang đăng nhập..." : "Đăng Nhập"}
         </button>
 
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300"></div>
-          </div>
-
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">
-              Hoặc tiếp tục với
-            </span>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          className="w-full flex items-center justify-center gap-3 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium"
-        >
-          <FcGoogle className="w-5 h-5" />
-          Đăng Nhập với Google
-        </button>
       </form>
 
       <div className="text-center w-full  text-gray-600 mt-6 flex flex-row mx-auto">

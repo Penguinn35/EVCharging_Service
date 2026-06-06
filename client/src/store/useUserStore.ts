@@ -10,7 +10,8 @@ import {
 interface User {
   isLogedin: boolean;
   email: string;
-  name: string;
+  userName: string;
+  fullName: string;
   address: string;
   role: UserRole | "";
   accessToken: string;
@@ -30,7 +31,8 @@ interface UserStore {
 const defaultUser: User = {
   isLogedin: false,
   email: "",
-  name: "",
+  userName: "",
+  fullName: "",
   address: "",
   role: "",
   accessToken: "",

@@ -354,8 +354,8 @@ export function RatingsViewer() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {ratings.map((rating) => (
-                      <tr key={rating.stationName} className="hover:bg-gray-50">
+                    {ratings.map((rating, index) => (
+                      <tr key={index} className="hover:bg-gray-50">
                         <td className="px-4 py-4 text-sm font-medium text-gray-900">
                           {rating.stationName}
                         </td>

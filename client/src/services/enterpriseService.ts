@@ -1,11 +1,29 @@
 import { ApiResponse } from "@/type/share";
-import { apiClient } from "@/lib/apiClient";
+import { apiClient, publicApiClient } from "@/lib/apiClient";
 
 export type BusinessProfile = {
   companyName: string;
   companyAddress: string;
   taxCode: string;
   logoUrl: string | null;
+  managerFullName: string;
+  managerEmail: string;
+  managerAddress: string;
+};
+
+export type UpdateBusinessProfileRequest = {
+  companyName: string;
+  companyAddress: string;
+  taxCode: string;
+  managerFullName: string;
+  managerEmail: string;
+  managerAddress: string;
+};
+
+export type UpdateBusinessProfileResponse = {
+  companyName: string;
+  companyAddress: string;
+  taxCode: string;
   managerFullName: string;
   managerEmail: string;
   managerAddress: string;
@@ -102,10 +120,97 @@ export type GetBusinessStationsParams = {
   size?: number;
 };
 
+export type BusinessRegistrationRequest = {
+  username: string;
+  password: string;
+  email: string;
+  fullName: string;
+  address: string;
+  companyId: string;
+  companyName: string;
+  taxCode: string;
+  companyAddress: string;
+};
 
-export const getBusinessProfile = async (): Promise<BusinessProfile> => {
+const businessRegistrationBearerToken =
+  "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ2aW5ncm91cC1vd25lciIsImlhdCI6MTc4MDc0MDEzNiwiZXhwIjoxNzgwODI2NTM2fQ.p2dAhD1tXIUrn75im3KKJoEH-GV1npPZu-Ni8wODkVI";
+
+
+export const getEnterpriseProfile = async (): Promise<BusinessProfile> => {
   const response = await apiClient.get<ApiResponse<BusinessProfile>>(
     "/api/business/profile",
+  );
+
+  return response.data.responseData;
+};
+
+export const registerBusinessAccount = async (
+  payload: BusinessRegistrationRequest,
+): Promise<ApiResponse<boolean>> => {
+  const response = await publicApiClient.post<ApiResponse<boolean>>(
+    "/auth/business/registration",
+    {
+      ...payload,
+      logoUrl: "",
+    },
+    {
+      headers: {
+        Accept: "*/*",
+        Authorization: businessRegistrationBearerToken,
+        "Content-Type": "application/json",
+      },
+    },
+  );
+
+  return response.data;
+};
+
+export const updateBusinessProfile = async (
+  payload: UpdateBusinessProfileRequest,
+): Promise<UpdateBusinessProfileResponse> => {
+  const response = await apiClient.patch<ApiResponse<UpdateBusinessProfileResponse>>(
+    "/api/business/profile",
+    payload
+    
+  );
+
+  return response.data.responseData;
+};
+
+export const updateBusinessImage = async (file: File): Promise<boolean> => {
+  const formData = new FormData();
+  formData.append("logoImage", file);
+
+  const response = await apiClient.put<ApiResponse<boolean>>(
+    "/api/business/image",
+    formData,
+    {
+      headers: {
+        Accept: "*/*",
+        "Content-Type": "multipart/form-data",
+      },
+    },
+  );
+
+  return response.data.responseData;
+};
+
+
+export const uploadBusinessStationImage = async (
+  stationId: string,
+  file: File,
+): Promise<boolean> => {
+  const formData = new FormData();
+  formData.append("imageFile", file);
+
+  const response = await apiClient.post<ApiResponse<boolean>>(
+    `/api/business/stations/${stationId}/image`,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    },
   );
 
   return response.data.responseData;
@@ -134,25 +239,7 @@ export const toggleBusinessStationStatus = async (
   return response.data.responseData;
 };
 
-export const uploadBusinessStationImage = async (
-  stationId: string,
-  file: File,
-): Promise<boolean> => {
-  const formData = new FormData();
-  formData.append("imageFile", file);
 
-  const response = await apiClient.post<ApiResponse<boolean>>(
-    `/api/business/stations/${stationId}/image`,
-    formData,
-    {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    },
-  );
-
-  return response.data.responseData;
-};
 
 export const updateBusinessStationImage = async (
   stationId: string,

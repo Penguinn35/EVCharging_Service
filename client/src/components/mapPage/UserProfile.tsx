@@ -8,7 +8,8 @@ import { getUserDetails } from "@/services/userService";
 import { ApiError } from "@/lib/apiClient";
 import { useMapStore } from "@/store/useMapStore";
 import { useAuthModalStore } from "@/store/useAuthModalStore";
-import { FiLogIn } from "react-icons/fi";
+import { FiLayout, FiLogIn } from "react-icons/fi";
+import { useRouter } from "next/navigation";
 import {
   IoMailOutline,
   IoFlash,
@@ -23,6 +24,8 @@ const UserProfile = () => {
   const { user, updateUser, deleteStation, clearUser } = useUserStore();
   const isLoggedIn = useUserStore((state) => state.user.isLogedin);
   const openLogin = useAuthModalStore((state) => state.openLogin);
+  const router = useRouter();
+  const isBusinessUser = user.role === "BUSINESS";
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
@@ -47,7 +50,7 @@ const UserProfile = () => {
 
   useEffect(() => {
     const shouldFetchUserDetails =
-      isLoggedIn && (!user.name?.trim() || !user.email?.trim());
+      isLoggedIn && (!user.userName?.trim() || !user.email?.trim());
 
     if (!shouldFetchUserDetails) return;
 
@@ -60,7 +63,7 @@ const UserProfile = () => {
         if (!isMounted) return;
 
         updateUser({
-          name: userDetail.fullName,
+          fullName: userDetail.fullName,
           email: userDetail.email,
           address: userDetail.address ?? "",
           savedStation: userDetail.savedStationList ?? [],
@@ -79,11 +82,16 @@ const UserProfile = () => {
     return () => {
       isMounted = false;
     };
-  }, [isLoggedIn, user.name, user.email, updateUser, clearUser]);
+  }, [isLoggedIn, user.fullName, user.email, updateUser, clearUser]);
 
   const handleLogout = () => {
     setIsProfileOpen(false);
     clearUser();
+  };
+
+  const handleGoToDashboard = () => {
+    setIsProfileOpen(false);
+    router.push("/dashboard");
   };
 
   const handlePlugChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -127,7 +135,7 @@ const UserProfile = () => {
   };
 
   return (
-    <div className="absolute top-4 right-4 z-[1000]" ref={dropdownRef}>
+    <div className="mr-2 ml-auto z-[1000]" ref={dropdownRef}>
       <button
         onClick={() => {
           if (!isLoggedIn) {
@@ -156,14 +164,14 @@ const UserProfile = () => {
       </button>
 
       {isLoggedIn && isProfileOpen && (
-        <div className="absolute top-14 right-0 w-80 bg-white shadow-2xl rounded-2xl border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="absolute top-14 right-2 w-80 bg-white shadow-2xl rounded-2xl border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="p-5 border-b border-gray-50 bg-gradient-to-r from-blue-50 to-transparent">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-100 rounded-lg text-green-600">
                 <IoPersonCircleOutline size={24} />
               </div>
               <div>
-                <h3 className="font-bold text-gray-800 leading-tight">{user.name}</h3>
+                <h3 className="font-bold text-gray-800 leading-tight">{user.fullName}</h3>
                 <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
                   <IoMailOutline /> {user.email}
                 </div>
@@ -230,13 +238,24 @@ const UserProfile = () => {
           </div>
 
           <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-center">
-            <button
-              onClick={handleLogout}
-              className="flex flex-row gap-2 justify-center text-xs font-semibold text-green-600 hover:text-green-800 uppercase tracking-tighter"
-            >
-              <MdLogout className="text-xl" />
-              <p className="my-auto">Đăng xuất</p>
-            </button>
+            <div className="w-full space-y-2">
+              {isBusinessUser && (
+                <button
+                  onClick={handleGoToDashboard}
+                  className="w-full flex items-center justify-center gap-2 rounded-xl border border-green-200 bg-white px-4 py-2 text-xs font-semibold text-green-700 uppercase tracking-tighter hover:bg-green-50 transition-colors"
+                >
+                  <FiLayout className="text-base" />
+                  <span>Dashboard</span>
+                </button>
+              )}
+              <button
+                onClick={handleLogout}
+                className="w-full flex flex-row gap-2 justify-center text-xs font-semibold text-green-600 hover:text-green-800 uppercase tracking-tighter"
+              >
+                <MdLogout className="text-xl" />
+                <p className="my-auto">Đăng xuất</p>
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -1,10 +1,13 @@
+import { FiX } from "react-icons/fi";
+
 type ModalProps = {
   open: boolean;
   onClose: () => void;
   children: React.ReactNode;
+  panelClassName?: string;
 };
 
-export function Modal({ open, onClose, children }: ModalProps) {
+export function Modal({ open, onClose, children, panelClassName = "" }: ModalProps) {
   if (!open) return null;
 
   return (
@@ -18,9 +21,18 @@ export function Modal({ open, onClose, children }: ModalProps) {
         onClick={onClose}
       >
         <div
-          className="max-h-[calc(100vh-3rem)] w-full max-w-md overflow-y-auto rounded-xl bg-white p-6 shadow-lg"
+          className={`relative max-h-[calc(100vh-3rem)] w-full max-w-md overflow-y-auto rounded-xl bg-white p-6 shadow-lg ${panelClassName}`}
           onClick={(event) => event.stopPropagation()}
         >
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close modal"
+            className="absolute right-4 top-4 rounded-md p-1 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 cursor-pointer"
+          >
+            <FiX className="h-5 w-5" />
+          </button>
+
           {children}
         </div>
       </div>
