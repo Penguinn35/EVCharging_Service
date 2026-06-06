@@ -11,7 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BusinessRatingResponseDTO {
-    private Page<RatingResponseDTO> ratingResponses;
+    private Page<BusinessRatingDTO> ratingResponses;
     private BusinessRatingTotalStatistics totalStatistics; // to get average points and total points
     private List<RatingStatisticDTO> ratingStatistics; // to get total count group by point
 }

@@ -1,5 +1,6 @@
 package com.dacn.backend.controller;
 
+import com.dacn.backend.annotation.RequiresVerifiedCpo;
 import com.dacn.backend.dto.*;
 import com.dacn.backend.model.UserPrincipal;
 import com.dacn.backend.object.ResponseObject;
@@ -28,6 +29,7 @@ import java.util.List;
 @RestController
 @RequestMapping("api/business")
 @Tag(name = "API dành cho doanh nghiệp", description = "Các API cho doanh nghiệp quản lý các trạm sạc của mình")
+@RequiresVerifiedCpo
 public class BusinessStationController {
 
     @Autowired
@@ -75,15 +77,15 @@ public class BusinessStationController {
                 HttpStatus.OK);
     }
 
-    @PostMapping(value = "stations", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(value = "stations", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @RequestBody(content = @Content(
             encoding = @Encoding(name = "newStation", contentType = "application/json")
     ))
-    @Operation(summary = "API doanh nghiệp thêm một trạm sạc mới")
+    @Operation(summary = "API doanh nghiệp thêm hoặc sửa một trạm sạc")
     public ResponseEntity<ResponseObject<Boolean>> addNewStation(@RequestPart("newStation") StationCreationDTO newStation,
-                                                                         @RequestPart("imageFiles") List<MultipartFile> newImage,
-                                                                         @AuthenticationPrincipal UserPrincipal principal) throws IOException {
-        boolean isStationAdded = businessService.addNewStation(newStation, newImage, principal.getCompanyId());
+                                                                 @RequestPart(value = "imageFiles", required = false) List<MultipartFile> newImage,
+                                                                 @AuthenticationPrincipal UserPrincipal principal) throws IOException {
+        boolean isStationAdded = businessService.saveOrUpdateStation(newStation, newImage, principal.getCompanyId());
         if (isStationAdded) {
             return new ResponseEntity<>(
                     new ResponseObject<>(
@@ -100,22 +102,22 @@ public class BusinessStationController {
         );
     }
 
-    @PutMapping("stations")
-    @Operation(summary = "API chỉnh sửa thông tin trạm sạc cho doanh nghiệp")
-    public ResponseEntity<ResponseObject<StationUpdateRequestDTO>> modifyStationInfo(
-            @org.springframework.web.bind.annotation.RequestBody StationUpdateRequestDTO modifiedStation,
-            @AuthenticationPrincipal UserPrincipal principal
-    ) {
-        StationUpdateRequestDTO response = businessService.modifyStation(modifiedStation, principal.getCompanyId());
-        if (response == null) {
-            return new ResponseEntity<>(new ResponseObject<>(
-                    HttpStatus.NOT_FOUND, "No such station with that id to update", null
-            ), HttpStatus.NOT_FOUND);
-        }
-        return new ResponseEntity<>(new ResponseObject<>(
-                HttpStatus.OK, "Updated station successfully", response
-        ), HttpStatus.OK);
-    }
+//    @PutMapping("stations")
+//    @Operation(summary = "API chỉnh sửa thông tin trạm sạc cho doanh nghiệp")
+//    public ResponseEntity<ResponseObject<StationUpdateRequestDTO>> modifyStationInfo(
+//            @org.springframework.web.bind.annotation.RequestBody StationUpdateRequestDTO modifiedStation,
+//            @AuthenticationPrincipal UserPrincipal principal
+//    ) {
+//        StationUpdateRequestDTO response = businessService.modifyStation(modifiedStation, principal.getCompanyId());
+//        if (response == null) {
+//            return new ResponseEntity<>(new ResponseObject<>(
+//                    HttpStatus.NOT_FOUND, "No such station with that id to update", null
+//            ), HttpStatus.NOT_FOUND);
+//        }
+//        return new ResponseEntity<>(new ResponseObject<>(
+//                HttpStatus.OK, "Updated station successfully", response
+//        ), HttpStatus.OK);
+//    }
 
     @DeleteMapping("stations/{id}")
     @Operation(summary = "API xóa trạm sạc bằng id")
@@ -154,11 +156,28 @@ public class BusinessStationController {
     }
 
     @DeleteMapping("stations/charging_points/{id}")
+    @Operation(summary = "API xóa điểm sạc (charging points) bằng id")
     public ResponseEntity<ResponseObject<Boolean>> deleteChargingPoint(
             @PathVariable("id") String pointId,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
         if (businessService.deleteChargingPoint(pointId, principal.getCompanyId())) {
+            return new ResponseEntity<>(new ResponseObject<>(
+                    HttpStatus.OK, "Deleted station successfully", true
+            ), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(new ResponseObject<>(
+                HttpStatus.BAD_REQUEST, "Something went wrong when deleting charging point", false
+        ), HttpStatus.BAD_REQUEST);
+    }
+
+    @DeleteMapping("stations/charging_points/connectors/{id}")
+    @Operation(summary = "API xóa connector bằng id")
+    public ResponseEntity<ResponseObject<Boolean>> deleteConnector(
+            @PathVariable("id") String connectorId,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        if (businessService.deleteConnector(connectorId, principal.getCompanyId())) {
             return new ResponseEntity<>(new ResponseObject<>(
                     HttpStatus.OK, "Deleted station successfully", true
             ), HttpStatus.OK);

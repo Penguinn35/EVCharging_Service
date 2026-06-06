@@ -1,5 +1,6 @@
 package com.dacn.backend.controller;
 
+import com.dacn.backend.annotation.RequiresVerifiedCpo;
 import com.dacn.backend.dto.SaveStatisticResponseDTO;
 import com.dacn.backend.dto.StatisticsByStationResponseDTO;
 import com.dacn.backend.dto.StatisticsResponseDTO;
@@ -21,6 +22,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("api/business/stations")
+@RequiresVerifiedCpo
 @Tag(name = "API dành cho thống kê trạm sạc của doanh nghiệp", description = "Các API cho doanh nghiệp thống kê số liệu các trạm sạc của mình")
 public class BusinessStationStatisticController {
     @Autowired

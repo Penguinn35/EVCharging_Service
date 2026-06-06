@@ -1,9 +1,6 @@
 package com.dacn.backend.service;
 
-import com.dacn.backend.dto.BusinessRatingResponseDTO;
-import com.dacn.backend.dto.BusinessRatingTotalStatistics;
-import com.dacn.backend.dto.RatingResponseDTO;
-import com.dacn.backend.dto.RatingStatisticDTO;
+import com.dacn.backend.dto.*;
 import com.dacn.backend.repository.RatingRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -23,7 +20,7 @@ public class BusinessStationRatingService {
 
     public BusinessRatingResponseDTO getRatingWithNoFilter(String companyId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<RatingResponseDTO> ratingResponses = ratingRepo.getRatingOfBusiness(companyId, pageable);
+        Page<BusinessRatingDTO> ratingResponses = ratingRepo.getRatingOfBusiness(companyId, pageable);
         // Get average point statistics
         BusinessRatingTotalStatistics totalRatingStatistics = ratingRepo.getTotalRatingStatistics(companyId);
         // Get total ratings group by point
@@ -45,7 +42,7 @@ public class BusinessStationRatingService {
         Pageable pageable = PageRequest.of(page, size);
         LocalDateTime startTime = fromDate.atStartOfDay();
         LocalDateTime endTime = toDate.atTime(LocalTime.MAX);
-        Page<RatingResponseDTO> ratingResponses = ratingRepo.getRatingOfBusinessWithFilters(
+        Page<BusinessRatingDTO> ratingResponses = ratingRepo.getRatingOfBusinessWithFilters(
                 startTime, endTime, lowestPoint, highestPoint, companyId, pageable
         );
         // Get average point statistics

@@ -1,14 +1,14 @@
 services:
-#  mqtt-broker:
-#    image: eclipse-mosquitto
-#    container_name: mqtt-broker
-#    ports:
-#      - "1883:1883"
-#      - "9001:9001"
-#    volumes:
-#      - ./mosquitto/config:/mosquitto/config
-#    networks:
-#      - ev-network
+  #  mqtt-broker:
+  #    image: eclipse-mosquitto
+  #    container_name: mqtt-broker
+  #    ports:
+  #      - "1883:1883"
+  #      - "9001:9001"
+  #    volumes:
+  #      - ./mosquitto/config:/mosquitto/config
+  #    networks:
+  #      - ev-network
 
   app:
     env_file:
@@ -23,9 +23,9 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-#      mqtt-broker:
-#        condition: service_started
-#This comment is for reuse
+    #      mqtt-broker:
+    #        condition: service_started
+    #This comment is for reuse
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik-proxy"
@@ -57,26 +57,26 @@ services:
       timeout: 5s
       retries: 5
 
-#  osm-importer:
-#    image: iboates/osm2pgrouting
-#    entrypoint: ["/bin/sh", "-c"]
-#    command: >
-#      "
-#      export PGPASSWORD=${DB_PASSWORD};
-#
-#      echo 'Đang import dữ liệu bản đồ...';
-#      osm2pgrouting -f /map_data/hcmc.osm -h postgres -p ${DB_PORT} -U ${DB_USERNAME} -d ${DB_NAME} -W ${DB_PASSWORD} --conf /usr/share/osm2pgrouting/mapconfig.xml --clean;
-#      "
-#    volumes:
-#      - ./map_data:/map_data
-#    networks:
-#      - ev-network
-#    depends_on:
-#      postgres:
-#        condition: service_healthy
-#    restart: "no"
-#    profiles:
-#      - setup
+  #  osm-importer:
+  #    image: iboates/osm2pgrouting
+  #    entrypoint: ["/bin/sh", "-c"]
+  #    command: >
+  #      "
+  #      export PGPASSWORD=${DB_PASSWORD};
+  #
+  #      echo 'Đang import dữ liệu bản đồ...';
+  #      osm2pgrouting -f /map_data/hcmc.osm -h postgres -p ${DB_PORT} -U ${DB_USERNAME} -d ${DB_NAME} -W ${DB_PASSWORD} --conf /usr/share/osm2pgrouting/mapconfig.xml --clean;
+  #      "
+  #    volumes:
+  #      - ./map_data:/map_data
+  #    networks:
+  #      - ev-network
+  #    depends_on:
+  #      postgres:
+  #        condition: service_healthy
+  #    restart: "no"
+  #    profiles:
+  #      - setup
 
   osm_importer:
     image: postgres:16-alpine
