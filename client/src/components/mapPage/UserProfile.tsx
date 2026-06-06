@@ -8,7 +8,8 @@ import { getUserDetails } from "@/services/userService";
 import { ApiError } from "@/lib/apiClient";
 import { useMapStore } from "@/store/useMapStore";
 import { useAuthModalStore } from "@/store/useAuthModalStore";
-import { FiLogIn } from "react-icons/fi";
+import { FiLayout, FiLogIn } from "react-icons/fi";
+import { useRouter } from "next/navigation";
 import {
   IoMailOutline,
   IoFlash,
@@ -23,6 +24,8 @@ const UserProfile = () => {
   const { user, updateUser, deleteStation, clearUser } = useUserStore();
   const isLoggedIn = useUserStore((state) => state.user.isLogedin);
   const openLogin = useAuthModalStore((state) => state.openLogin);
+  const router = useRouter();
+  const isBusinessUser = user.role === "BUSINESS";
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
@@ -84,6 +87,11 @@ const UserProfile = () => {
   const handleLogout = () => {
     setIsProfileOpen(false);
     clearUser();
+  };
+
+  const handleGoToDashboard = () => {
+    setIsProfileOpen(false);
+    router.push("/dashboard");
   };
 
   const handlePlugChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -230,13 +238,24 @@ const UserProfile = () => {
           </div>
 
           <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-center">
-            <button
-              onClick={handleLogout}
-              className="flex flex-row gap-2 justify-center text-xs font-semibold text-green-600 hover:text-green-800 uppercase tracking-tighter"
-            >
-              <MdLogout className="text-xl" />
-              <p className="my-auto">Đăng xuất</p>
-            </button>
+            <div className="w-full space-y-2">
+              {isBusinessUser && (
+                <button
+                  onClick={handleGoToDashboard}
+                  className="w-full flex items-center justify-center gap-2 rounded-xl border border-green-200 bg-white px-4 py-2 text-xs font-semibold text-green-700 uppercase tracking-tighter hover:bg-green-50 transition-colors"
+                >
+                  <FiLayout className="text-base" />
+                  <span>Dashboard</span>
+                </button>
+              )}
+              <button
+                onClick={handleLogout}
+                className="w-full flex flex-row gap-2 justify-center text-xs font-semibold text-green-600 hover:text-green-800 uppercase tracking-tighter"
+              >
+                <MdLogout className="text-xl" />
+                <p className="my-auto">Đăng xuất</p>
+              </button>
+            </div>
           </div>
         </div>
       )}
