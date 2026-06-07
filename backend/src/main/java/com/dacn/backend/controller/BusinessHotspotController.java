@@ -10,6 +10,7 @@ import com.dacn.backend.service.BusinessHotspotService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -57,9 +59,21 @@ public class BusinessHotspotController {
     @GetMapping("stations/hitfull-count")
     @Operation(summary = "API trả về hitfull count của tất cả các station thuộc doanh nghiệp")
     public ResponseEntity<ResponseObject<List<HitfullResponseDTO>>> getHitFullOfAllStations(
-            @AuthenticationPrincipal UserPrincipal principal
+            @AuthenticationPrincipal UserPrincipal principal,
+            @RequestParam Double longitude,
+            @RequestParam Double latitude,
+            @RequestParam Double radius,
+
+            @RequestParam(value = "fromDate")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate fromDate,
+
+            @RequestParam(value = "toDate")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate toDate
             ) {
-        List<HitfullResponseDTO> response = hotspotService.getHitfullCount(principal.getCompanyId());
+        List<HitfullResponseDTO> response = hotspotService.getHitfullCount(principal.getCompanyId(), longitude,
+                latitude, radius, fromDate, toDate);
         return new ResponseEntity<>(new ResponseObject<>(
                 HttpStatus.OK, "Hitfull count list is returned", response, response.size()
         ), HttpStatus.OK);
