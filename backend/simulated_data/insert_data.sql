@@ -962,6 +962,21 @@ BEGIN
     -- NEW.status = 3 (FULL) và trạng thái cũ khác 3
     IF (NEW.status = 3 AND (OLD.status IS NULL OR OLD.status != 3)) THEN
         NEW.hit_full_count := COALESCE(OLD.hit_full_count, 0) + 1;
+
+        UPDATE hitfull_statistic
+        SET hitfull_count = hitfull_count + 1
+        WHERE charging_station_id = NEW.id::varchar AND date = CURRENT_DATE;
+
+        -- Nếu chưa có bản ghi nào trong ngày hôm nay (UPDATE không tìm thấy dòng nào)
+        IF NOT FOUND THEN
+                    INSERT INTO hitfull_statistic (id, date, hitfull_count, charging_station_id)
+                    VALUES (
+                        gen_random_uuid()::varchar, -- Sinh ID tự động cho bảng statistic
+                        CURRENT_DATE,               -- Ngày hiện tại
+                        1,                          -- Khởi tạo count = 1
+                        NEW.id::varchar             -- ID của trạm sạc
+                    );
+        END IF;
     END IF;
 
     RETURN NEW;
