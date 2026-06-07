@@ -57,11 +57,16 @@ public class BusinessStationController {
     @lombok.Data
     private static class StationEventRequest {
         private StationEventType eventType;
+        private StationEventPayload payload;
+    }
+
+    @lombok.Data
+    private static class StationEventPayload {
         private StationCreationDTO station;
         private String stationId;
         private PointCreationDTO chargePoint;
         private String chargePointId;
-        private ConnectorEventPayload connectorEvent;
+        private ConnectorCreationDTO connector;
         private String connectorId;
     }
 
@@ -143,25 +148,31 @@ public class BusinessStationController {
                     HttpStatus.BAD_REQUEST, "Event type is required", null
             ), HttpStatus.BAD_REQUEST);
         }
+        if (eventRequest.getPayload() == null) {
+            return new ResponseEntity<>(new ResponseObject<>(
+                    HttpStatus.BAD_REQUEST, "Payload is required", null
+            ), HttpStatus.BAD_REQUEST);
+        }
 
         String companyId = principal.getCompanyId();
         StationEventType eventType = eventRequest.getEventType();
+        StationEventPayload payload = eventRequest.getPayload();
 
         switch (eventType) {
             case STATION_ADD:
             case STATION_CHANGE:
-                return handleStationSaveEvent(eventRequest.getStation(), companyId);
+                return handleStationSaveEvent(payload.getStation(), companyId);
             case STATION_DELETE:
-                return handleStationDeleteEvent(eventRequest.getStationId(), companyId);
+                return handleStationDeleteEvent(payload.getStationId(), companyId);
             case CHARGEPOINT_ADD:
-                return handleChargePointSaveEvent(eventRequest.getStationId(), eventRequest.getChargePoint(), companyId);
+                return handleChargePointSaveEvent(payload.getStationId(), payload.getChargePoint(), companyId);
             case CHARGEPOINT_DELETE:
-                return handleChargePointDeleteEvent(eventRequest.getChargePointId(), companyId);
+                return handleChargePointDeleteEvent(payload.getChargePointId(), companyId);
             case CONNECTOR_ADD:
             case CONNECTOR_EDIT:
-                return handleConnectorUpsertEvent(eventRequest.getConnectorEvent(), companyId);
+                return handleConnectorUpsertEvent(buildConnectorEventPayload(payload), companyId);
             case CONNECTOR_DELETE:
-                return handleConnectorDeleteEvent(eventRequest.getConnectorId(), companyId);
+                return handleConnectorDeleteEvent(payload.getConnectorId(), companyId);
             default:
                 return new ResponseEntity<>(new ResponseObject<>(
                         HttpStatus.BAD_REQUEST, "Unsupported event type", null
@@ -325,6 +336,17 @@ public class BusinessStationController {
         return new ResponseEntity<>(new ResponseObject<>(
                 HttpStatus.BAD_REQUEST, "Something went wrong when deleting connector", false
         ), HttpStatus.BAD_REQUEST);
+    }
+
+    private ConnectorEventPayload buildConnectorEventPayload(StationEventPayload payload) {
+        if (payload == null) {
+            return null;
+        }
+        ConnectorEventPayload connectorEventPayload = new ConnectorEventPayload();
+        connectorEventPayload.setStationId(payload.getStationId());
+        connectorEventPayload.setChargePointId(payload.getChargePointId());
+        connectorEventPayload.setConnector(payload.getConnector());
+        return connectorEventPayload;
     }
 
     @PutMapping("stations/{id}/charging_points")
