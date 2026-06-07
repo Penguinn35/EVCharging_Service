@@ -112,7 +112,7 @@ public class BusinessHotspotController {
         ), HttpStatus.OK);
     }
 
-    @GetMapping("stations/hit-full-count/general")
+    @GetMapping("stations/hitfull-count/general")
     public ResponseEntity<ResponseObject<List<HitfullGeneralDTO>>> getHitfullOfStations(
             @RequestParam(value = "fromDate")
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
