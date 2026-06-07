@@ -14,18 +14,14 @@ type HeatmapDateRangeModalProps = {
   onApply: (range: HeatmapDateRange) => void;
   defaultFrom?: string;
   defaultTo?: string;
-  minDate?: string;
-  maxDate?: string;
 };
 
 export function HeatmapDateRangeModal({
   open,
   onClose,
   onApply,
-  defaultFrom = "2026-05-19",
-  defaultTo = "2026-05-21",
-  minDate = "2026-05-19",
-  maxDate = "2026-05-21",
+  defaultFrom = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+  defaultTo = new Date().toISOString().slice(0, 10),
 }: HeatmapDateRangeModalProps) {
   const [fromDate, setFromDate] = useState(defaultFrom);
   const [toDate, setToDate] = useState(defaultTo);
@@ -57,8 +53,6 @@ export function HeatmapDateRangeModal({
               <input
                 type="date"
                 value={fromDate}
-                min={minDate}
-                max={maxDate}
                 onChange={(e) => setFromDate(e.target.value)}
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
@@ -69,8 +63,6 @@ export function HeatmapDateRangeModal({
               <input
                 type="date"
                 value={toDate}
-                min={minDate}
-                max={maxDate}
                 onChange={(e) => setToDate(e.target.value)}
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500"
               />

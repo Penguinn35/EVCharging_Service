@@ -61,6 +61,56 @@ export type TotalDetailCountStatistic = {
   sumOfViewDetailCount: number;
 };
 
+export type HotspotRadiusParams = {
+  longitude: number;
+  latitude: number;
+  radius: number;
+};
+
+export type HotspotDateRangeParams = {
+  fromDate: string;
+  toDate: string;
+};
+
+export type BusinessHitfullHotspotItem = {
+  stationId: string;
+  stationName: string;
+  address: string;
+  hitfullCount: number;
+  date?: string;
+  longitude?: number;
+  latitude?: number;
+  location?: {
+    longitude: number;
+    latitude: number;
+  };
+  position?: {
+    longitude: number;
+    latitude: number;
+  };
+};
+
+export type BusinessSuggestionHotspotItem = {
+  location?: {
+    longitude: number;
+    latitude: number;
+  };
+  longitude?: number;
+  latitude?: number;
+  timestamp?: string;
+  description?: string;
+};
+
+export type BusinessUserLocationHotspotItem = {
+  location?: {
+    longitude: number;
+    latitude: number;
+  };
+  longitude?: number;
+  latitude?: number;
+  timestamp?: string;
+};
+
 export const getStationDetailCountStatistics = async (
   stationId: string,
   params: StatisticsDateRangeParams,
@@ -105,6 +155,77 @@ export const getTotalDetailCountStatistics = async (
       size: params.size ?? 10,
     },
   });
+
+  return response.data.responseData;
+};
+
+export const getBusinessStationHitfullCount = async (
+  params: HotspotRadiusParams & HotspotDateRangeParams,
+): Promise<BusinessHitfullHotspotItem[]> => {
+  const response = await apiClient.get<ApiResponse<BusinessHitfullHotspotItem[]>>(
+    "/api/business/stations/hitfull-count",
+    {
+      params,
+    },
+  );
+
+  return response.data.responseData;
+};
+
+export const getBusinessStationHitfullCountGeneral = async (
+  params?: HotspotDateRangeParams,
+): Promise<
+  BusinessHitfullHotspotItem[]
+> => {
+  const response = await apiClient.get<ApiResponse<BusinessHitfullHotspotItem[]>>(
+    "/api/business/stations/hitfull-count/general",
+    {
+      params,
+    },
+  );
+
+  return response.data.responseData;
+};
+
+export const getBusinessSuggestionHotspots = async (
+  params: HotspotRadiusParams & HotspotDateRangeParams,
+): Promise<BusinessSuggestionHotspotItem[]> => {
+  const response = await apiClient.get<ApiResponse<BusinessSuggestionHotspotItem[]>>(
+    "/api/business/suggestion",
+    {
+      params,
+    },
+  );
+
+  return response.data.responseData;
+};
+
+export const getBusinessSuggestionHotspotsGeneral = async (
+  params?: HotspotDateRangeParams,
+): Promise<
+  BusinessSuggestionHotspotItem[]
+> => {
+  const response = await apiClient.get<ApiResponse<BusinessSuggestionHotspotItem[]>>(
+    "/api/business/suggestion/general",
+    {
+      params,
+    },
+  );
+
+  return response.data.responseData;
+};
+
+export const getBusinessUsersLocationsHotspots = async (
+  params?: HotspotDateRangeParams,
+): Promise<
+  BusinessUserLocationHotspotItem[]
+> => {
+  const response = await apiClient.get<ApiResponse<BusinessUserLocationHotspotItem[]>>(
+    "/api/business/users/locations",
+    {
+      params,
+    },
+  );
 
   return response.data.responseData;
 };
