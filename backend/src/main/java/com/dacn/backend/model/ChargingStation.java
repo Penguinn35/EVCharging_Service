@@ -50,6 +50,9 @@ public class ChargingStation {
     @OneToMany(mappedBy = "station", cascade = CascadeType.ALL)
     private List<StationStatistic> statistics;
 
+    @OneToMany(mappedBy = "station", cascade = CascadeType.ALL)
+    private List<HitfullStatistic> hitfullStatistics;
+
     @PreUpdate
     public void incrementHitFullCount() {
         if (this.status == StationStatus.FULL.getCode()) {
