@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FiBarChart, FiLayers, FiMap, FiUser } from "react-icons/fi";
+import { FiBarChart, FiBriefcase, FiLayers, FiMap, FiUser } from "react-icons/fi";
 import { useUserStore } from "@/store/useUserStore";
 import { IoMdArrowRoundBack } from "react-icons/io";
 
-const tabs = [
+const businessTabs = [
   {
     href: "/dashboard/manage-stations",
     label: "Quản lý trạm",
@@ -24,10 +24,19 @@ const tabs = [
   },
 ];
 
+const adminTabs = [
+  {
+    href: "/dashboard/admin-enterprises",
+    label: "Quản lý doanh nghiệp",
+    icon: FiBriefcase,
+  },
+];
+
 export function DashboardNav() {
   const pathname = usePathname();
   const user = useUserStore((state) => state.user);
   const isEnterpriseProfileActive = pathname === "/dashboard/enterpriseProfile";
+  const tabs = user.role === "ADMIN" ? adminTabs : businessTabs;
 
   return (
     <header className="shrink-0 border-b border-gray-200 bg-white">
@@ -62,17 +71,19 @@ export function DashboardNav() {
           </div>
         </div>
 
-        <Link
-          href="/dashboard/enterpriseProfile"
-          className={`inline-flex shrink-0 cursor-pointer items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition-colors ${
-            isEnterpriseProfileActive
-              ? "bg-green-600 text-white"
-              : "border border-gray-200 text-gray-700 hover:border-green-200 hover:bg-green-50 hover:text-green-700"
-          }`}
-        >
-          <FiUser className="h-4 w-4" />
-          <span className="max-w-32 truncate">{user.userName || "Profile"}</span>
-        </Link>
+        {user.role !== "ADMIN" && (
+          <Link
+            href="/dashboard/enterpriseProfile"
+            className={`inline-flex shrink-0 cursor-pointer items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition-colors ${
+              isEnterpriseProfileActive
+                ? "bg-green-600 text-white"
+                : "border border-gray-200 text-gray-700 hover:border-green-200 hover:bg-green-50 hover:text-green-700"
+            }`}
+          >
+            <FiUser className="h-4 w-4" />
+            <span className="max-w-32 truncate">{user.userName || "Profile"}</span>
+          </Link>
+        )}
       </div>
     </header>
   );

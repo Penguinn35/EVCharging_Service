@@ -84,6 +84,11 @@ export type StationRouteGeoJson = {
   coordinates: number[][][];
 };
 
+export type EnterpriseLogo = {
+  companyName: string;
+  logoUrl: string | null;
+};
+
 export async function getStationById(
   stationId: string,
 ): Promise<StationDetail> {
@@ -107,6 +112,14 @@ export async function getStationNearBy(
   );
   return response.data.responseData;
 }
+
+export const getEnterpriseLogos = async (): Promise<EnterpriseLogo[]> => {
+  const response = await publicApiClient.get<ApiResponse<EnterpriseLogo[]>>(
+    "/api/stations/logos",
+  );
+
+  return response.data.responseData;
+};
 
 export const searchStation = async (
   keyword: string,

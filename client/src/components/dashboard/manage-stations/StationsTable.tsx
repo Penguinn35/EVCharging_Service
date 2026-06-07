@@ -34,13 +34,28 @@ interface StationsTableProps {
 }
 
 const DISTRICTS = [
-  "Quan 1",
-  "Quan 2",
-  "Quan 3",
-  "Quan 4",
-  "Quan 5",
-  "Quan 6",
-  "Quan 7",
+  "Quận 1",
+  "Quận 3",
+  "Quận 7",
+  "Quận 10",
+  "Quận 5",
+  "Quận 11",
+  "Quận 4",
+  "Quận 6",
+  "Quận 8",
+  "Quận 12",
+  "Bình Thạnh",
+  "Thủ Đức",
+  "Tân Bình",
+  "Phú Nhuận",
+  "Gò Vấp",
+  "Tân Phú",
+  "Bình Tân",
+  "Bình Chánh",
+  "Hóc Môn",
+  "Củ Chi",
+  "Nhà Bè",
+  "Cần Giờ",
 ];
 
 const statusColors: Record<StationStatus, { bg: string; text: string; icon: string }> = {

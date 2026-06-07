@@ -18,7 +18,9 @@ export function Header() {
   const user = useUserStore((state) => state.user);
   const clearUser = useUserStore((state) => state.clearUser);
   const clearEnterprise = useEnterpriseStore((state) => state.clearEnterprise);
-  const isBusinessUser = user.role === "BUSINESS";
+  const canAccessDashboard = user.role === "BUSINESS" || user.role === "ADMIN";
+  const dashboardHref =
+    user.role === "ADMIN" ? "/dashboard/admin-enterprises" : "/dashboard";
   const isLoggedIn = user.isLogedin;
 
   useEffect(() => {
@@ -57,9 +59,9 @@ export function Header() {
         <div className="hidden items-center gap-4 md:flex">
           {isLoggedIn ? (
             <>
-              {isBusinessUser && (
+              {canAccessDashboard && (
                 <Link
-                  href="/dashboard"
+                  href={dashboardHref}
                   className="inline-flex items-center gap-2 rounded-full border border-green-200 px-4 py-2 text-sm font-semibold text-green-700 transition hover:border-green-300 hover:bg-green-50"
                 >
                   <FiLayout className="h-4 w-4" />
@@ -113,9 +115,9 @@ export function Header() {
         <div className="flex flex-col gap-3 px-4 pb-4 md:hidden">
           {isLoggedIn ? (
             <>
-              {isBusinessUser && (
+              {canAccessDashboard && (
                 <Link
-                  href="/dashboard"
+                  href={dashboardHref}
                   onClick={() => setOpen(false)}
                   className="inline-flex items-center gap-2 rounded-xl border border-green-200 px-4 py-3 text-sm font-semibold text-green-700 transition hover:bg-green-50"
                 >
