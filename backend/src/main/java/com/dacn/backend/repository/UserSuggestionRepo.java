@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Repository
@@ -19,9 +20,19 @@ WHERE ST_DWithin(
     ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography,
     ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326)::geography,
     :radius
-)
+) AND timestamp >= :fromDate AND timestamp <= :toDate
 """, nativeQuery = true)
     List<UserSuggestedStationDTO> getSuggestions(@Param("longitude") Double longitude,
                                                  @Param("latitude") Double latitude,
-                                                 @Param("radius") Double radius);
+                                                 @Param("radius") Double radius,
+                                                 @Param("fromDate") LocalDate fromDate,
+                                                 @Param("toDate") LocalDate toDate);
+
+    @Query(nativeQuery = true, value = """
+SELECT longitude, latitude
+FROM user_suggested_station
+WHERE timestamp >= :fromDate AND timestamp <= :toDate
+""")
+    List<CoordinateDTO> getGeneralSuggestions(@Param("fromDate") LocalDate fromDate,
+                                              @Param("toDate") LocalDate toDate);
 }
