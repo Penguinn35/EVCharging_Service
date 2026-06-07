@@ -29,8 +29,8 @@ public class BusinessHotspotService {
         return suggestionRepo.getSuggestions(longitude, latitude, radius, fromDate, toDate);
     }
 
-    public List<UserLocationHistoryDTO> getLocationHistory() {
-        return locationHistoryRepo.getLocations();
+    public List<UserLocationHistoryDTO> getLocationHistory(LocalDate fromDate, LocalDate toDate) {
+        return locationHistoryRepo.getLocations(fromDate, toDate);
     }
 
     public List<HitfullResponseDTO> getHitfullCount(String companyId, Double longitude,

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Repository
@@ -14,6 +15,7 @@ public interface UserLocationHistoryRepo extends JpaRepository<UserLocationHisto
     @Query(nativeQuery = true, value = """
 SELECT u.longitude, u.latitude, u.timestamp
 FROM user_location_history u
+WHERE u.timestamp >= fromDate AND u.timestamp <= toDate
 """)
-    List<UserLocationHistoryDTO> getLocations();
+    List<UserLocationHistoryDTO> getLocations(LocalDate fromDate, LocalDate toDate);
 }

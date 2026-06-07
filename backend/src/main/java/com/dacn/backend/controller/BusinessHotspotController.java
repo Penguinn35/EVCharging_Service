@@ -54,8 +54,16 @@ public class BusinessHotspotController {
 
     @GetMapping("users/locations")
     @Operation(summary = "API trả về các dữ liệu vị trí khi người dùng gọi gợi ý trạm sạc")
-    public ResponseEntity<ResponseObject<List<UserLocationHistoryDTO>>> getUserLocationHistory() {
-        List<UserLocationHistoryDTO> response = hotspotService.getLocationHistory();
+    public ResponseEntity<ResponseObject<List<UserLocationHistoryDTO>>> getUserLocationHistory(
+            @RequestParam(value = "fromDate")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate fromDate,
+
+            @RequestParam(value = "toDate")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate toDate
+    ) {
+        List<UserLocationHistoryDTO> response = hotspotService.getLocationHistory(fromDate, toDate);
         return new ResponseEntity<>(new ResponseObject<>(
                 HttpStatus.OK,
                 "Location history list returned",
