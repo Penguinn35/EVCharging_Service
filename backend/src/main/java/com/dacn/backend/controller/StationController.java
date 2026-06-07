@@ -4,6 +4,7 @@ import com.dacn.backend.dto.*;
 import com.dacn.backend.dto.search_by_keyword.StationSearchResponseDTO;
 import com.dacn.backend.model.type.Coordinate;
 import com.dacn.backend.object.ResponseObject;
+import com.dacn.backend.service.SseService;
 import com.dacn.backend.service.StationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -11,8 +12,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 
@@ -28,6 +31,8 @@ public class StationController {
 
     @Autowired
     private StationService stationService;
+    @Autowired
+    private SseService sseService;
 
     @GetMapping("")
     @Operation(
@@ -93,6 +98,17 @@ public class StationController {
             return new ResponseEntity<>(new ResponseObject<>(HttpStatus.NOT_FOUND, "Cannot find the station with that id"), HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>(new ResponseObject<>(HttpStatus.OK, "Successfully returned the station detail", stationDetail), HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/{id}/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @Operation(summary = "Subscribe SSE để nhận cập nhật realtime của trạm sạc")
+    public ResponseEntity<SseEmitter> streamStationUpdates(@PathVariable String id) {
+        SseEmitter emitter = sseService.subscribeToStation(id);
+
+        return ResponseEntity.ok()
+                .header("Cache-Control", "no-cache")
+                .header("X-Accel-Buffering", "no") // Yêu cầu Traefix không buffer luồng này
+                .body(emitter);
     }
 
     @GetMapping("logos")
