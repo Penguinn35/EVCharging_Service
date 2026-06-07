@@ -44,6 +44,8 @@ public class StationService {
     private UserLocationHistoryRepo userLocationHistoryRepo;
     @Autowired
     private ConnectorRepo connectorRepo;
+    @Autowired
+    private SseService sseService;
 //    @Autowired
 //    private ChargingPointRepo chargingPointRepo;
 
@@ -88,6 +90,9 @@ public class StationService {
             return null;
         }
 
+        // These lines of code is to update station view count
+        // begin
+
         String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
         int updatedRows = stationStatisticRepo.incrementViewCount(today, id);
@@ -100,6 +105,8 @@ public class StationService {
             stationStatisticRepo.save(newStat);
         }
 
+        // end
+
         StationDetailResponseDTO response = new StationDetailResponseDTO();
         response.setId(id);
         response.setName(station.getName());
@@ -108,7 +115,6 @@ public class StationService {
         response.setDistrict(station.getDistrict());
         response.setStatus(station.getStatus());
         response.setPosition(station.getPosition());
-//        response.setImageUrl(station.getImageUrl());
 
         List<StationImage> returnedImages = station.getImages();
         List<StationImageDTO> stationImages = new ArrayList<>(returnedImages.size());
@@ -251,7 +257,26 @@ public class StationService {
             return false;
         }
         connector.setStatus(status);
-        connectorRepo.save(connector);
+        connectorRepo.saveAndFlush(connector);
+
+        // --- BẮT ĐẦU PHẦN CODE SSE THÊM VÀO ---
+        try {
+            // 1. Lấy stationId thông qua các quan hệ của Entity
+            // (Tên các getter như getChargingPoint(), getStation() sẽ phụ thuộc vào cách bạn đặt tên trong Entity classes)
+            String stationId = connector.getChargingPoint().getChargingStation().getId();
+
+            // 2. Fetch lại dữ liệu mới nhất (đã được trigger tính toán)
+            StationDetailResponseDTO updatedStationData = getStationDetail(stationId);
+
+            // 3. Bắn tín hiệu qua SSE
+            sseService.broadcastStationUpdate(stationId, updatedStationData);
+
+        } catch (Exception e) {
+            // Đặt trong try-catch để lỡ SSE có lỗi thì luồng update DB chính vẫn trả về true bình thường
+            System.err.println("Lỗi khi gửi SSE cập nhật trạm: " + e.getMessage());
+        }
+        // --- KẾT THÚC PHẦN CODE SSE ---
+
         return true;
     }
 

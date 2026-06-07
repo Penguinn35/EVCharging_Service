@@ -1,5 +1,6 @@
 package com.dacn.backend.dto;
 
+import com.dacn.backend.constants.ConnectorStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,4 +15,5 @@ public class ConnectorDTO {
     private Double voltage;
     private Double maxPower;
     private boolean isAvailable;
+    private ConnectorStatus status;
 }
