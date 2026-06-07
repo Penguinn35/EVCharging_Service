@@ -15,7 +15,7 @@ public interface UserLocationHistoryRepo extends JpaRepository<UserLocationHisto
     @Query(nativeQuery = true, value = """
 SELECT u.longitude, u.latitude, u.timestamp
 FROM user_location_history u
-WHERE u.timestamp >= fromDate AND u.timestamp <= toDate
+WHERE u.timestamp >= :fromDate AND u.timestamp <= :toDate
 """)
     List<UserLocationHistoryDTO> getLocations(LocalDate fromDate, LocalDate toDate);
 }

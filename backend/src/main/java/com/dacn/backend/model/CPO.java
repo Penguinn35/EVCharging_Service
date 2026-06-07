@@ -26,7 +26,7 @@ public class CPO {
     private String serverUrl;
     private String token;
 
-    @OneToMany(mappedBy = "cpo")
+    @OneToMany(mappedBy = "cpo", cascade = CascadeType.ALL)
     private List<ChargingStation> managingStations;
 
     @OneToOne
