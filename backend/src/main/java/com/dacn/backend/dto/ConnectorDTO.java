@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
+//@AllArgsConstructor
 @NoArgsConstructor
 public class ConnectorDTO {
     private String id;
@@ -16,4 +16,15 @@ public class ConnectorDTO {
     private Double maxPower;
     private boolean isAvailable;
     private ConnectorStatus status;
+
+    public ConnectorDTO(String id, int type, Double price, Double voltage, Double maxPower,
+                        boolean isAvailable, int status) {
+        this.id = id;
+        this.type = type;
+        this.price = price;
+        this.voltage = voltage;
+        this.maxPower = maxPower;
+        this.isAvailable = isAvailable;
+        this.status = ConnectorStatus.fromCode(status);
+    }
 }

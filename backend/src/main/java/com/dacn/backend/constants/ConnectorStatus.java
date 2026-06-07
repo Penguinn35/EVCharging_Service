@@ -11,4 +11,17 @@ public enum ConnectorStatus {
     ConnectorStatus(int code) {
         this.code = code;
     }
+
+    public int getCode() {
+        return code;
+    }
+
+    public static ConnectorStatus fromCode(int code) {
+        for (ConnectorStatus status : values()) {
+            if (status.code == code) {
+                return status;
+            }
+        }
+        return OFFLINE; // Giá trị mặc định nếu có lỗi
+    }
 }
