@@ -61,4 +61,11 @@ public class AdminAccountService {
     public boolean disableCPOProfile(String enterpriseId) {
         return cpoRepo.disableCPO(enterpriseId) > 0;
     }
+
+    @Transactional
+    public boolean deleteCPOAccount(String enterpriseId) {
+        if (!cpoRepo.existsById(enterpriseId)) return false;
+        cpoRepo.deleteById(enterpriseId);
+        return true;
+    }
 }
