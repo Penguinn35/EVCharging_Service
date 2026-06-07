@@ -56,6 +56,13 @@ export default function LoginFormContent({
         role: result.user.role,
       });
 
+      if (result.user.role === "ADMIN") {
+        toast.success("Đăng nhập thành công");
+        closeModal();
+        router.push("/dashboard/admin-enterprises");
+        return;
+      }
+
       if (result.user.role === "BUSINESS") {
         const businessProfile = await getEnterpriseProfile();
         useEnterpriseStore.getState().updateEnterprise(businessProfile);

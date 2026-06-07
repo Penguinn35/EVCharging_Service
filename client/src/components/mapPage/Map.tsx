@@ -15,7 +15,11 @@ import StationRouteLayer from "./StationRouteLayer";
 import FlyTo from "@/components/mapPage/FlyTo";
 import { MapCenterTracker } from "./MapCenterTracker";
 import { StationMarkerData } from "@/type/station";
-import { getStationById } from "@/services/stationService";
+import {
+  getEnterpriseLogos,
+  getStationById,
+  type EnterpriseLogo,
+} from "@/services/stationService";
 import { toast } from "react-toastify";
 import { useMapStore } from "@/store/useMapStore";
 import "maplibre-gl";
@@ -54,11 +58,31 @@ const LOGO_VARIANTS = {
 
 const DEFAULT_MARKER_LOGO = LOGO_VARIANTS["V-Green"];
 
-const getMarkerLogoByManufacturer = (manufacturer: string) =>
-  LOGO_VARIANTS[manufacturer as keyof typeof LOGO_VARIANTS] ??
-  DEFAULT_MARKER_LOGO;
+const getMarkerLogoByManufacturer = (
+  manufacturer: string,
+  logoUrlMap: Record<string, string>,
+) => {
+  const dynamicLogoUrl = logoUrlMap[manufacturer];
+  if (dynamicLogoUrl) {
+    return {
+      src: dynamicLogoUrl,
+      alt: manufacturer,
+    };
+  }
 
-const CustomMarker = ({ station }: { station: StationMarkerData }) => {
+  return (
+    LOGO_VARIANTS[manufacturer as keyof typeof LOGO_VARIANTS] ??
+    DEFAULT_MARKER_LOGO
+  );
+};
+
+const CustomMarker = ({
+  station,
+  logoUrlMap,
+}: {
+  station: StationMarkerData;
+  logoUrlMap: Record<string, string>;
+}) => {
   const [leaflet, setLeaflet] = useState<LeafletModule | null>(null);
   const selectStation = useStationStore((state) => state.selectStation);
   const clearRouting = useRoutingStore((state) => state.clearRouting);
@@ -82,7 +106,7 @@ const CustomMarker = ({ station }: { station: StationMarkerData }) => {
     });
   }, []);
 
-  const markerLogo = getMarkerLogoByManufacturer(station.manufacturer);
+  const markerLogo = getMarkerLogoByManufacturer(station.manufacturer, logoUrlMap);
 
   if (!leaflet) return null;
 
@@ -142,6 +166,7 @@ export default function Map() {
   const coordinate = useUserStore((state) => state.user.coordinate);
   const isOpen = useRoutingStore((state) => state.isOpen);
   const location = useRoutingStore((state) => state.location);
+  const [logoUrlMap, setLogoUrlMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!navigator.geolocation) return;
@@ -172,6 +197,28 @@ export default function Map() {
     };
   }, [updateUser]);
 
+  useEffect(() => {
+    const loadEnterpriseLogos = async () => {
+      try {
+        const logos = await getEnterpriseLogos();
+        const nextLogoMap = logos.reduce<Record<string, string>>(
+          (acc, item: EnterpriseLogo) => {
+            const normalizedLogo = item.logoUrl?.trim();
+            if (!normalizedLogo) return acc;
+            acc[item.companyName] = normalizedLogo;
+            return acc;
+          },
+          {},
+        );
+        setLogoUrlMap(nextLogoMap);
+      } catch {
+        // Keep fallback marker logos if public logo API fails.
+      }
+    };
+
+    void loadEnterpriseLogos();
+  }, []);
+
   return (
     <div className="relative h-screen w-full">
       <MapContainer
@@ -198,7 +245,7 @@ export default function Map() {
         <FlyTo />
         <MapCenterTracker />
         {stationMarkerDatas.map((station) => (
-          <CustomMarker key={station.id} station={station} />
+          <CustomMarker key={station.id} station={station} logoUrlMap={logoUrlMap} />
         ))}
 
         {/*

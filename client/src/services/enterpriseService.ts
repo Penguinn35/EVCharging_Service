@@ -9,6 +9,9 @@ export type BusinessProfile = {
   managerFullName: string;
   managerEmail: string;
   managerAddress: string;
+  serverUrl: string | null;
+  token: string | null;
+  isVerified: boolean;
 };
 
 export type UpdateBusinessProfileRequest = {
@@ -18,6 +21,8 @@ export type UpdateBusinessProfileRequest = {
   managerFullName: string;
   managerEmail: string;
   managerAddress: string;
+  serverUrl: string | null;
+  token: string | null;
 };
 
 export type UpdateBusinessProfileResponse = {
@@ -27,6 +32,10 @@ export type UpdateBusinessProfileResponse = {
   managerFullName: string;
   managerEmail: string;
   managerAddress: string;
+  logoUrl: string | null;
+  serverUrl: string | null;
+  token: string | null;
+  isVerified: boolean;
 };
 
 export type BusinessStationSummary = {

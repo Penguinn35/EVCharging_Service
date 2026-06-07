@@ -1,8 +1,13 @@
 "use client";
 
 import { ChangeEvent, SyntheticEvent, useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import {
+  FiCheckCircle,
+  FiClock,
+  FiGlobe,
   FiImage,
+  FiKey,
   FiLoader,
   FiLogOut,
   FiMail,
@@ -39,19 +44,18 @@ export function EnterpriseProfile() {
     managerFullName: enterprise.managerFullName ?? "",
     managerEmail: enterprise.managerEmail ?? "",
     managerAddress: enterprise.managerAddress ?? "",
+    serverUrl: enterprise.serverUrl ?? "",
+    token: enterprise.token ?? "",
   });
   const [selectedLogoFile, setSelectedLogoFile] = useState<File | null>(null);
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isSavingLogo, setIsSavingLogo] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     const loadEnterpriseProfile = async () => {
       setIsLoading(true);
-      setError(null);
 
       try {
         const profile = await getEnterpriseProfile();
@@ -63,9 +67,11 @@ export function EnterpriseProfile() {
           managerFullName: profile.managerFullName ?? "",
           managerEmail: profile.managerEmail ?? "",
           managerAddress: profile.managerAddress ?? "",
+          serverUrl: profile.serverUrl ?? "",
+          token: profile.token ?? "",
         });
       } catch {
-        setError("Không thể tải thông tin doanh nghiệp.");
+        toast.error("Không thể tải thông tin doanh nghiệp.");
       } finally {
         setIsLoading(false);
       }
@@ -102,16 +108,12 @@ export function EnterpriseProfile() {
     const nextPreview = URL.createObjectURL(file);
     setSelectedLogoFile(file);
     setLogoPreviewUrl(nextPreview);
-    setSuccess(null);
-    setError(null);
   };
 
   const handleSaveLogo = async () => {
     if (!selectedLogoFile) return;
 
     setIsSavingLogo(true);
-    setError(null);
-    setSuccess(null);
 
     try {
       const isSuccess = await updateBusinessImage(selectedLogoFile);
@@ -126,9 +128,9 @@ export function EnterpriseProfile() {
         URL.revokeObjectURL(logoPreviewUrl);
       }
       setLogoPreviewUrl(null);
-      setSuccess("Cập nhật logo thành công.");
+      toast.success("Cập nhật logo thành công.");
     } catch {
-      setError("Không thể cập nhật logo doanh nghiệp.");
+      toast.error("Không thể cập nhật logo doanh nghiệp.");
     } finally {
       setIsSavingLogo(false);
     }
@@ -136,21 +138,19 @@ export function EnterpriseProfile() {
 
   const handleSaveProfile = async () => {
     setIsSavingProfile(true);
-    setError(null);
-    setSuccess(null);
 
     try {
       const updatedProfile = await updateBusinessProfile(formData);
       updateEnterprise({
         ...updatedProfile,
       });
-      setSuccess("Đã lưu thông tin doanh nghiệp.");
+      toast.success("Đã lưu thông tin doanh nghiệp.");
     } catch (err) {
       const apiError = err as ApiError;
       if (apiError.status === 403) {
-        setError("Không có quyền cập nhật hồ sơ doanh nghiệp (403). Vui lòng đăng nhập lại tài khoản BUSINESS.");
+        toast.error("Không có quyền cập nhật hồ sơ doanh nghiệp (403). Vui lòng đăng nhập lại tài khoản BUSINESS.");
       } else {
-        setError("Không thể lưu thông tin doanh nghiệp.");
+        toast.error("Không thể lưu thông tin doanh nghiệp.");
       }
     } finally {
       setIsSavingProfile(false);
@@ -162,6 +162,18 @@ export function EnterpriseProfile() {
   };
 
   const displayLogo = logoPreviewUrl || enterprise.logoUrl || LOGO_FALLBACK;
+  const verificationConfig = enterprise.isVerified
+    ? {
+        label: "Đã xác minh",
+        className: "bg-green-100 text-green-700 border-green-200",
+        icon: FiCheckCircle,
+      }
+    : {
+        label: "Chưa xác minh",
+        className: "bg-amber-100 text-amber-700 border-amber-200",
+        icon: FiClock,
+      };
+  const VerificationIcon = verificationConfig.icon;
 
   const handleLogout = () => {
     clearUser();
@@ -200,18 +212,6 @@ export function EnterpriseProfile() {
           </button>
         </div>
       </div>
-
-      {error ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
-      ) : null}
-
-      {success ? (
-        <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-          {success}
-        </div>
-      ) : null}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
         <section className="rounded-lg border border-gray-200 bg-white p-6">
@@ -261,6 +261,14 @@ export function EnterpriseProfile() {
           <h3 className="text-base font-semibold text-gray-900">
             Thông tin doanh nghiệp
           </h3>
+          <div className="mt-3">
+            <span
+              className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold ${verificationConfig.className}`}
+            >
+              <VerificationIcon className="h-3.5 w-3.5" />
+              Trạng thái hồ sơ: {verificationConfig.label}
+            </span>
+          </div>
 
           <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
             <label className="space-y-1">
@@ -334,6 +342,37 @@ export function EnterpriseProfile() {
                 placeholder="Nhập địa chỉ người quản lý"
               />
             </label>
+          </div>
+
+          <div className="mt-6 rounded-lg border border-gray-200 bg-gray-50 p-4">
+            <h4 className="text-sm font-semibold text-gray-900">Thông tin kết nối hệ thống</h4>
+            <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2">
+              <label className="space-y-1 md:col-span-2">
+                <span className="text-sm font-medium text-gray-700">Server URL</span>
+                <div className="relative">
+                  <FiGlobe className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <input
+                    value={formData.serverUrl ?? ""}
+                    onChange={handleInputChange("serverUrl")}
+                    className="w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-green-500 focus:ring-2 focus:ring-green-100"
+                    placeholder="Chưa cấu hình"
+                  />
+                </div>
+              </label>
+
+              <label className="space-y-1 md:col-span-2">
+                <span className="text-sm font-medium text-gray-700">Token</span>
+                <div className="relative w-full">
+                  <FiKey className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <input
+                    value={formData.token ?? ""}
+                    onChange={handleInputChange("token")}
+                    className="w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-green-500 focus:ring-2 focus:ring-green-100"
+                    placeholder="Nhập token hệ thống"
+                  />
+                </div>
+              </label>
+            </div>
           </div>
 
           <div className="mt-6 flex justify-end">

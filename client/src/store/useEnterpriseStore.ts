@@ -17,6 +17,9 @@ const defaultEnterprise: BusinessProfile = {
   managerFullName: "",
   managerEmail: "",
   managerAddress: "",
+  serverUrl: null,
+  token: null,
+  isVerified: false,
 };
 
 export const useEnterpriseStore = create<EnterpriseStore>()(
