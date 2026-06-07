@@ -24,8 +24,9 @@ public class BusinessHotspotService {
     @Autowired
     private HitfullStatisticRepo hitfullStatisticRepo;
 
-    public List<UserSuggestedStationDTO> getSuggestions(Double longitude, Double latitude, Double radius) {
-        return suggestionRepo.getSuggestions(longitude, latitude, radius);
+    public List<UserSuggestedStationDTO> getSuggestions(Double longitude, Double latitude, Double radius,
+                                                        LocalDate fromDate, LocalDate toDate) {
+        return suggestionRepo.getSuggestions(longitude, latitude, radius, fromDate, toDate);
     }
 
     public List<UserLocationHistoryDTO> getLocationHistory() {

@@ -33,9 +33,17 @@ public class BusinessHotspotController {
     @GetMapping("suggestion")
     @Operation(summary = "API trả về tất cả các dữ liệu gợi ý từ người dùng")
     public ResponseEntity<ResponseObject<List<UserSuggestedStationDTO>>> getSuggestionData(
-            @RequestParam Double longitude, @RequestParam Double latitude, @RequestParam Double radius
+            @RequestParam Double longitude, @RequestParam Double latitude, @RequestParam Double radius,
+            @RequestParam(value = "fromDate")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate fromDate,
+
+            @RequestParam(value = "toDate")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate toDate
     ) {
-        List<UserSuggestedStationDTO> response = hotspotService.getSuggestions(longitude, latitude, radius);
+        List<UserSuggestedStationDTO> response = hotspotService.getSuggestions(longitude, latitude, radius,
+                fromDate, toDate);
         return new ResponseEntity<>(new ResponseObject<>(
                 HttpStatus.OK,
                 "Suggestion list returned",
