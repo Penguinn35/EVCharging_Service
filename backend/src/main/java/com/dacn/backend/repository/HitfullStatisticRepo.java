@@ -1,5 +1,6 @@
 package com.dacn.backend.repository;
 
+import com.dacn.backend.dto.HitfullGeneralDTO;
 import com.dacn.backend.dto.HitfullResponseDTO;
 import com.dacn.backend.model.HitfullStatistic;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,7 +15,7 @@ import java.util.List;
 public interface HitfullStatisticRepo extends JpaRepository<HitfullStatistic, String> {
 
     @Query(nativeQuery = true, value = """
-SELECT s.id, s.name, s.address || ', ' || s.district AS address, hs.hitfull_count, hs.date
+SELECT s.id, s.name, s.address || ', ' || s.district AS address, s.longitude, s.latitude, hs.hitfull_count, hs.date
 FROM hitfull_statistic hs JOIN charging_station s ON hs.charging_station_id = s.id
 WHERE s.manufacturer_id = :companyId AND ST_DWithin(
     ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography,
@@ -27,4 +28,12 @@ WHERE s.manufacturer_id = :companyId AND ST_DWithin(
                                            @Param("radius") Double radius,
                                            @Param("fromDate") LocalDate fromDate,
                                            @Param("toDate") LocalDate toDate);
+
+    @Query(nativeQuery = true, value = """
+SELECT s.longitude, s.latitude, hs.hitfull_count
+FROM hitfull_statistic hs JOIN charging_station s ON hs.charging_station_id = s.id
+WHERE s.manufacturer_id = :companyId AND hs.date >= :fromDate AND hs.date <= :toDate
+""")
+    List<HitfullGeneralDTO> getHitfullGeneral(String companyId, @Param("fromDate") LocalDate fromDate,
+                                              @Param("toDate") LocalDate toDate);
 }

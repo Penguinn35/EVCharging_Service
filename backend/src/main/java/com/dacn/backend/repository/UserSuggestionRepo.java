@@ -27,4 +27,12 @@ WHERE ST_DWithin(
                                                  @Param("radius") Double radius,
                                                  @Param("fromDate") LocalDate fromDate,
                                                  @Param("toDate") LocalDate toDate);
+
+    @Query(nativeQuery = true, value = """
+SELECT longitude, latitude
+FROM user_suggested_station
+WHERE timestamp >= :fromDate AND timestamp <= :toDate
+""")
+    List<CoordinateDTO> getGeneralSuggestions(@Param("fromDate") LocalDate fromDate,
+                                              @Param("toDate") LocalDate toDate);
 }

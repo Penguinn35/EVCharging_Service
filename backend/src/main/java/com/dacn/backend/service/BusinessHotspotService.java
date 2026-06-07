@@ -1,8 +1,6 @@
 package com.dacn.backend.service;
 
-import com.dacn.backend.dto.HitfullResponseDTO;
-import com.dacn.backend.dto.UserLocationHistoryDTO;
-import com.dacn.backend.dto.UserSuggestedStationDTO;
+import com.dacn.backend.dto.*;
 import com.dacn.backend.repository.ChargingStationRepo;
 import com.dacn.backend.repository.HitfullStatisticRepo;
 import com.dacn.backend.repository.UserLocationHistoryRepo;
@@ -29,6 +27,10 @@ public class BusinessHotspotService {
         return suggestionRepo.getSuggestions(longitude, latitude, radius, fromDate, toDate);
     }
 
+    public List<CoordinateDTO> getSuggestionsGenerally(LocalDate fromDate, LocalDate toDate) {
+        return suggestionRepo.getGeneralSuggestions(fromDate, toDate);
+    }
+
     public List<UserLocationHistoryDTO> getLocationHistory(LocalDate fromDate, LocalDate toDate) {
         return locationHistoryRepo.getLocations(fromDate, toDate);
     }
@@ -38,5 +40,9 @@ public class BusinessHotspotService {
                                                     LocalDate fromDate, LocalDate toDate) {
 //        return stationRepo.getAllHitfull(companyId);
         return hitfullStatisticRepo.getAllHitfull(companyId, longitude, latitude, radius, fromDate, toDate);
+    }
+
+    public List<HitfullGeneralDTO> getHitfullGenerally(String companyId, LocalDate fromDate, LocalDate toDate) {
+        return hitfullStatisticRepo.getHitfullGeneral(companyId, fromDate, toDate);
     }
 }

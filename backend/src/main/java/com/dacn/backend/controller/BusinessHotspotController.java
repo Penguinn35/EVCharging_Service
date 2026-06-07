@@ -1,9 +1,7 @@
 package com.dacn.backend.controller;
 
 import com.dacn.backend.annotation.RequiresVerifiedCpo;
-import com.dacn.backend.dto.HitfullResponseDTO;
-import com.dacn.backend.dto.UserLocationHistoryDTO;
-import com.dacn.backend.dto.UserSuggestedStationDTO;
+import com.dacn.backend.dto.*;
 import com.dacn.backend.model.UserPrincipal;
 import com.dacn.backend.object.ResponseObject;
 import com.dacn.backend.service.BusinessHotspotService;
@@ -52,6 +50,25 @@ public class BusinessHotspotController {
         ), HttpStatus.OK);
     }
 
+    @GetMapping("suggestion/general")
+    public ResponseEntity<ResponseObject<List<CoordinateDTO>>> getSuggestionDataGenerally(
+            @RequestParam(value = "fromDate")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate fromDate,
+
+            @RequestParam(value = "toDate")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate toDate
+    ) {
+        List<CoordinateDTO> response = hotspotService.getSuggestionsGenerally(fromDate, toDate);
+        return new ResponseEntity<>(new ResponseObject<>(
+                HttpStatus.OK,
+                "Suggestion list returned",
+                response,
+                response.size()
+        ), HttpStatus.OK);
+    }
+
     @GetMapping("users/locations")
     @Operation(summary = "API trả về các dữ liệu vị trí khi người dùng gọi gợi ý trạm sạc")
     public ResponseEntity<ResponseObject<List<UserLocationHistoryDTO>>> getUserLocationHistory(
@@ -92,6 +109,25 @@ public class BusinessHotspotController {
                 latitude, radius, fromDate, toDate);
         return new ResponseEntity<>(new ResponseObject<>(
                 HttpStatus.OK, "Hitfull count list is returned", response, response.size()
+        ), HttpStatus.OK);
+    }
+
+    @GetMapping("stations/hit-full-count/general")
+    public ResponseEntity<ResponseObject<List<HitfullGeneralDTO>>> getHitfullOfStations(
+            @RequestParam(value = "fromDate")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate fromDate,
+
+            @RequestParam(value = "toDate")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate toDate,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        List<HitfullGeneralDTO> generalHitfullList = hotspotService.getHitfullGenerally(
+                principal.getCompanyId(), fromDate, toDate
+        );
+        return new ResponseEntity<>(new ResponseObject<>(
+                HttpStatus.OK, "Hitfull count list is returned", generalHitfullList, generalHitfullList.size()
         ), HttpStatus.OK);
     }
 }
