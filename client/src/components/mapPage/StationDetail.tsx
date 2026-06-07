@@ -313,6 +313,44 @@ const StationDetail = ({
     void loadCurrentUserRating();
   }, [loadCurrentUserRating]);
 
+  // --- BẮT ĐẦU: Hook lắng nghe SSE Realtime ---
+  useEffect(() => {
+    if (!station?.id) return;
+
+    // Thay đổi domain cho khớp với cấu hình Next.js hoặc Backend của bạn
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+    const sseUrl = `${apiBaseUrl}/api/stations/${station.id}/stream`;
+
+    // Khởi tạo kết nối SSE
+    const eventSource = new EventSource(sseUrl);
+
+    // Bắt event 'station-update' mà Spring Boot gửi xuống
+    eventSource.addEventListener("station-update", (event) => {
+      try {
+        const updatedStationData = JSON.parse(event.data);
+        console.log("Bắt được dữ liệu SSE mới:", updatedStationData);
+        
+        // Gọi hàm của Zustand store để cập nhật dữ liệu cục bộ
+        // Giao diện sẽ tự động re-render theo data mới
+        updateStation(updatedStationData);
+      } catch (error) {
+        console.error("Lỗi khi parse dữ liệu SSE:", error);
+      }
+    });
+
+    eventSource.onerror = (error) => {
+      console.error("Lỗi kết nối SSE:", error);
+      // Trình duyệt sẽ tự động thử reconnect lại, không cần viết thêm logic
+    };
+
+    // Cleanup: Tự động đóng kết nối khi người dùng tắt modal trạm sạc
+    // hoặc chuyển sang xem trạm khác
+    return () => {
+      eventSource.close();
+    };
+  }, [station.id, updateStation]);
+  // --- KẾT THÚC: Hook lắng nghe SSE Realtime ---
+
   const availableGroups = groupConnectors(station.connectors, true);
   const busyGroups = groupConnectors(station.connectors, false);
 
