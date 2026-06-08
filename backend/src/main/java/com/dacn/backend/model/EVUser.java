@@ -25,18 +25,18 @@ public class EVUser {
     private String address;
     private String password;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Rating> ratings;
 
-    @OneToMany(mappedBy = "eVUser")
+    @OneToMany(mappedBy = "eVUser", cascade = CascadeType.ALL)
     private List<UserSavesStation> savedStations;
 
-    @OneToOne(mappedBy = "manager")
+    @OneToOne(mappedBy = "manager", cascade = CascadeType.ALL)
     private CPO company;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<UserSuggestedStation> suggestedStation;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<UserLocationHistory> locationHistories;
 }
