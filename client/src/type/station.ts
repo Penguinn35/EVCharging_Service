@@ -19,7 +19,7 @@ export type Connector = {
   price: number;
   voltage: number;
   maxPower: number;
-  available: boolean;
+  status: "OFFLINE" | "AVAILABLE" | "MAINTENANCE" | "IN_USE";
 };
 
 export type StationDetail = {

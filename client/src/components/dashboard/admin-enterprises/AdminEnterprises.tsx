@@ -2,12 +2,23 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { FiRefreshCw } from "react-icons/fi";
+import { toast } from "react-toastify";
+import { Modal } from "@/components/Modal";
 import {
+  deleteAdminEnterprise,
   disableAdminEnterprise,
   getAdminEnterprises,
   verifyAdminEnterprise,
   type AdminEnterprise,
 } from "@/services/adminService";
+
+type ConfirmAction = {
+  title: string;
+  description: string;
+  confirmText: string;
+  confirmVariant?: "primary" | "danger";
+  onConfirm: () => Promise<void>;
+};
 
 export function AdminEnterprises() {
   const [enterprises, setEnterprises] = useState<AdminEnterprise[]>([]);
@@ -15,7 +26,12 @@ export function AdminEnterprises() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
+  const [confirmCountdown, setConfirmCountdown] = useState(5);
+  const [isConfirmSubmitting, setIsConfirmSubmitting] = useState(false);
 
   const selectedEnterprise = useMemo(
     () => enterprises.find((enterprise) => enterprise.companyId === selectedEnterpriseId) ?? null,
@@ -35,8 +51,11 @@ export function AdminEnterprises() {
       } else if (!selectedEnterpriseId || !response.some((item) => item.companyId === selectedEnterpriseId)) {
         setSelectedEnterpriseId(response[0].companyId);
       }
+
+      return true;
     } catch {
-      setError("Khong the tai danh sach doanh nghiep.");
+      setError("Không thể tải danh sách doanh nghiệp.");
+      return false;
     } finally {
       setIsRefreshing(false);
       setIsLoading(false);
@@ -46,6 +65,26 @@ export function AdminEnterprises() {
   useEffect(() => {
     void loadEnterprises();
   }, []);
+
+  useEffect(() => {
+    if (!confirmAction) {
+      return;
+    }
+
+    setConfirmCountdown(5);
+    const interval = window.setInterval(() => {
+      setConfirmCountdown((prev) => {
+        if (prev <= 1) {
+          window.clearInterval(interval);
+          return 0;
+        }
+
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => window.clearInterval(interval);
+  }, [confirmAction]);
 
   const handleToggleVerification = async () => {
     if (!selectedEnterprise) return;
@@ -72,10 +111,101 @@ export function AdminEnterprises() {
             : enterprise,
         ),
       );
+      toast.success(
+        selectedEnterprise.isVerified
+          ? "Bỏ xác minh doanh nghiệp thành công."
+          : "Xác minh doanh nghiệp thành công.",
+      );
     } catch {
-      setError("Khong the cap nhat trang thai xac minh doanh nghiep.");
+      setError("Không thể cập nhật trạng thái xác minh doanh nghiệp.");
+      toast.error("Không thể cập nhật trạng thái xác minh doanh nghiệp.");
     } finally {
       setIsToggling(false);
+    }
+  };
+
+  const handleDeleteEnterprise = async (enterpriseId: string) => {
+    setIsDeleting(true);
+    setError(null);
+
+    try {
+      const isDeleted = await deleteAdminEnterprise(enterpriseId);
+
+      if (!isDeleted) {
+        throw new Error("Delete failed");
+      }
+
+      setEnterprises((prev) => {
+        const updated = prev.filter((enterprise) => enterprise.companyId !== enterpriseId);
+
+        if (updated.length === 0) {
+          setSelectedEnterpriseId("");
+        } else {
+          setSelectedEnterpriseId((currentSelectedId) =>
+            currentSelectedId === enterpriseId ? updated[0].companyId : currentSelectedId,
+          );
+        }
+
+        return updated;
+      });
+
+      toast.success("Xóa doanh nghiệp thành công.");
+    } catch {
+      setError("Không thể xóa doanh nghiệp.");
+      toast.error("Không thể xóa doanh nghiệp.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleSyncEnterprise = async () => {
+    setIsSyncing(true);
+    const success = await loadEnterprises();
+
+    if (success) {
+      toast.success("Đồng bộ dữ liệu doanh nghiệp thành công.");
+    } else {
+      toast.error("Đồng bộ dữ liệu doanh nghiệp thất bại.");
+    }
+
+    setIsSyncing(false);
+  };
+
+  const handleRefresh = async () => {
+    const success = await loadEnterprises();
+
+    if (success) {
+      toast.success("Tải lại danh sách doanh nghiệp thành công.");
+    } else {
+      toast.error("Tải lại danh sách doanh nghiệp thất bại.");
+    }
+  };
+
+  const openConfirm = (action: ConfirmAction) => {
+    setConfirmAction(action);
+  };
+
+  const closeConfirm = () => {
+    if (isConfirmSubmitting) {
+      return;
+    }
+
+    setConfirmAction(null);
+    setConfirmCountdown(5);
+  };
+
+  const handleConfirm = async () => {
+    if (!confirmAction || confirmCountdown > 0 || isConfirmSubmitting) {
+      return;
+    }
+
+    setIsConfirmSubmitting(true);
+    try {
+      await confirmAction.onConfirm();
+      setConfirmAction(null);
+      setConfirmCountdown(5);
+    } finally {
+      setIsConfirmSubmitting(false);
     }
   };
 
@@ -86,7 +216,14 @@ export function AdminEnterprises() {
           <h2 className="text-2xl font-bold text-gray-900">Quản lý doanh nghiệp</h2>
         </div>
         <button
-          onClick={() => void loadEnterprises()}
+          onClick={() =>
+            openConfirm({
+              title: "Xác nhận tải lại",
+              description: "Bạn có chắc chắn muốn tải lại danh sách doanh nghiệp?",
+              confirmText: "Refresh",
+              onConfirm: handleRefresh,
+            })
+          }
           disabled={isRefreshing}
           className="inline-flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-60"
         >
@@ -174,8 +311,19 @@ export function AdminEnterprises() {
 
                 <div className="flex flex-wrap gap-3">
                   <button
-                    onClick={() => void handleToggleVerification()}
-                    disabled={isToggling}
+                    onClick={() =>
+                      openConfirm({
+                        title: selectedEnterprise.isVerified
+                          ? "Xác nhận bỏ xác minh"
+                          : "Xác nhận xác minh",
+                        description: selectedEnterprise.isVerified
+                          ? "Bạn có chắc chắn muốn bỏ xác minh doanh nghiệp này?"
+                          : "Bạn có chắc chắn muốn xác minh doanh nghiệp này?",
+                        confirmText: selectedEnterprise.isVerified ? "Bỏ xác minh" : "Xác minh",
+                        onConfirm: handleToggleVerification,
+                      })
+                    }
+                    disabled={isToggling || isDeleting || isSyncing}
                     className={`rounded-lg px-4 py-2 text-sm font-medium text-white transition disabled:cursor-not-allowed disabled:opacity-60 ${
                       selectedEnterprise.isVerified
                         ? "bg-red-600 hover:bg-red-700"
@@ -190,9 +338,35 @@ export function AdminEnterprises() {
                   </button>
                   <button
                     type="button"
-                    className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                    onClick={() =>
+                      openConfirm({
+                        title: "Xác nhận đồng bộ",
+                        description: "Bạn có chắc chắn muốn đồng bộ danh sách doanh nghiệp?",
+                        confirmText: "Sync",
+                        onConfirm: handleSyncEnterprise,
+                      })
+                    }
+                    disabled={isToggling || isDeleting || isSyncing}
+                    className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    Sync
+                    {isSyncing ? "Dang sync..." : "Sync"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      openConfirm({
+                        title: "Xác nhận xóa doanh nghiệp",
+                        description: `Bạn có chắc chắn muốn xóa doanh nghiệp ${selectedEnterprise.companyName}?`,
+                        confirmText: "Xóa",
+                        confirmVariant: "danger",
+                        onConfirm: async () =>
+                          handleDeleteEnterprise(selectedEnterprise.companyId),
+                      })
+                    }
+                    disabled={isToggling || isDeleting || isSyncing}
+                    className="rounded-lg border border-red-300 px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {isDeleting ? "Đang xóa..." : "Delete"}
                   </button>
                 </div>
               </div>
@@ -202,6 +376,44 @@ export function AdminEnterprises() {
           </div>
         </div>
       )}
+
+      <Modal open={Boolean(confirmAction)} onClose={closeConfirm} panelClassName="max-w-lg">
+        {confirmAction ? (
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-gray-900">{confirmAction.title}</h3>
+            <p className="text-sm text-gray-600">{confirmAction.description}</p>
+            <p className="text-xs text-amber-700">
+              Vui lòng chờ {confirmCountdown}s để bật nút xác nhận.
+            </p>
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={closeConfirm}
+                disabled={isConfirmSubmitting}
+                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleConfirm()}
+                disabled={confirmCountdown > 0 || isConfirmSubmitting}
+                className={`rounded-lg px-4 py-2 text-sm font-medium text-white transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                  confirmAction.confirmVariant === "danger"
+                    ? "bg-red-600 hover:bg-red-700"
+                    : "bg-green-600 hover:bg-green-700"
+                }`}
+              >
+                {isConfirmSubmitting
+                  ? "Đang xử lý..."
+                  : confirmCountdown > 0
+                    ? `${confirmAction.confirmText} (${confirmCountdown}s)`
+                    : confirmAction.confirmText}
+              </button>
+            </div>
+          </div>
+        ) : null}
+      </Modal>
     </div>
   );
 }

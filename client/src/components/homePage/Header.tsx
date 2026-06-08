@@ -82,7 +82,7 @@ export function Header() {
                   <div className="absolute right-0 top-12 w-56 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-xl">
                     <div className="border-b border-gray-100 px-4 py-3">
                       <p className="text-sm font-semibold text-gray-900">
-                        {user.userName || "Người dùng"}
+                        {user.userName ||user.fullName|| "Người dùng"}
                       </p>
                       <p className="truncate text-xs text-gray-500">{user.email}</p>
                     </div>
@@ -138,7 +138,7 @@ export function Header() {
                 <div className="rounded-2xl border border-gray-100 bg-white shadow-sm">
                   <div className="border-b border-gray-100 px-4 py-3">
                     <p className="text-sm font-semibold text-gray-900">
-                      {user.userName || "Người dùng"}
+                      {user.userName || user.fullName|| "Người dùng"}
                     </p>
                     <p className="truncate text-xs text-gray-500">{user.email}</p>
                   </div>
