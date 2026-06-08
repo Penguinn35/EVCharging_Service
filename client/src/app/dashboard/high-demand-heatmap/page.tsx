@@ -1,7 +1,7 @@
 "use client";
 
-import { HighDemandHeatmap } from "@/components/dashboard/heatmap/HighDemandHeatmap";
+import { HighDemandHeatmapV2 } from "@/components/dashboard/heatmap/HighDemandHeatmapV2";
 
 export default function HighDemandHeatmapPage() {
-  return <HighDemandHeatmap />;
+  return <HighDemandHeatmapV2 />;
 }

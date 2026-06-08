@@ -54,6 +54,8 @@ type GroupedConnector = {
   count: number;
 };
 
+type ConnectorStatus = Connector["status"];
+
 const DEFAULT_RATING_PAGE_SIZE = 5;
 const FALLBACK_IMAGE =
   "https://images.unsplash.com/photo-1593941707882-a5bac6861d75?w=1200&h=600&fit=crop";
@@ -63,8 +65,8 @@ const MIN_COLLAPSED_HEIGHT = 150;
 
 const statusColor = {
   active: "bg-green-100 text-green-700",
+  busy: "bg-orange-100 text-orange-700",
   inactive: "bg-gray-100 text-gray-600",
-  maintenance: "bg-orange-100 text-orange-700",
 };
 
 const typeMap: Record<number, string> = {
@@ -167,14 +169,14 @@ const StationDetail = ({
 
   const groupConnectors = (
     connectors: Connector[],
-    available: boolean,
+    statuses: ConnectorStatus[],
   ): GroupedConnector[] => {
     return Object.values(
       connectors
-        .filter((c) => c.available === available)
+        .filter((c) => statuses.includes(c.status))
         .sort((a, b) => b.maxPower - a.maxPower)
         .reduce<Record<string, GroupedConnector>>((acc, curr) => {
-          const key = `${curr.maxPower}-${curr.available}`;
+          const key = `${curr.maxPower}-${curr.status}`;
 
           if (!acc[key]) {
             acc[key] = {
@@ -351,8 +353,18 @@ const StationDetail = ({
   }, [station.id, updateStation]);
   // --- KẾT THÚC: Hook lắng nghe SSE Realtime ---
 
-  const availableGroups = groupConnectors(station.connectors, true);
-  const busyGroups = groupConnectors(station.connectors, false);
+  const availableGroups = groupConnectors(station.connectors, ["AVAILABLE"]);
+  const busyGroups = groupConnectors(station.connectors, ["IN_USE"]);
+  const availableCount = station.connectors.filter(
+    (connector) => connector.status === "AVAILABLE",
+  ).length;
+  const busyCount = station.connectors.filter(
+    (connector) => connector.status === "IN_USE",
+  ).length;
+  const inactiveCount = station.connectors.filter(
+    (connector) =>
+      connector.status === "OFFLINE" || connector.status === "MAINTENANCE",
+  ).length;
 
   const ratingDistribution = useMemo(() => {
     const totals = new Map<number, number>(
@@ -671,7 +683,7 @@ const StationDetail = ({
             </span>
 
             <span className="text-sm text-gray-600">
-              {station.connectors.filter((c) => c.available).length} điểm sạc
+              {availableCount} điểm sạc
             </span>
           </div>
 
@@ -698,13 +710,26 @@ const StationDetail = ({
           <div className="mb-0 flex items-center gap-3 py-3">
             <span
               className={`rounded-full px-3 py-1 text-xs font-medium ${
-                statusColor.maintenance ?? "bg-gray-100 text-gray-600"
+                statusColor.busy ?? "bg-gray-100 text-gray-600"
               }`}
             >
               ĐANG BẬN
             </span>
             <span className="text-sm text-gray-600">
-              {station.connectors.filter((c) => !c.available).length} điểm sạc
+              {busyCount} điểm sạc
+            </span>
+          </div>
+
+          <div className="mb-0 flex items-center gap-3 py-3">
+            <span
+              className={`rounded-full px-3 py-1 text-xs font-medium ${
+                statusColor.inactive ?? "bg-gray-100 text-gray-600"
+              }`}
+            >
+              BẢO TRÌ/TẮT
+            </span>
+            <span className="text-sm text-gray-600">
+              {inactiveCount} điểm sạc
             </span>
           </div>
         </div>
@@ -838,7 +863,7 @@ const StationDetail = ({
                       disabled={isSavingUserRating}
                       className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      Huy
+                      Hủy
                     </button>
                     <button
                       type="button"

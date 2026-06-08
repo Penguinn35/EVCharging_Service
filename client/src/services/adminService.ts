@@ -40,3 +40,13 @@ export const disableAdminEnterprise = async (
 
   return response.data.responseData;
 };
+
+export const deleteAdminEnterprise = async (
+  enterpriseId: string,
+): Promise<boolean> => {
+  const response = await apiClient.delete<ApiResponse<boolean>>(
+    `/api/admin/cpo/${enterpriseId}`,
+  );
+
+  return response.data.responseData;
+};

@@ -274,7 +274,8 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
   }, [station]);
 
   const availableConnectors =
-    station?.connectors.filter((connector) => connector.available) ?? [];
+    station?.connectors.filter((connector) => connector.status === "AVAILABLE") ??
+    [];
 
   const ratingDistribution = useMemo(() => {
     const totals = new Map<number, number>(
@@ -846,9 +847,19 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
                    
                     <td className="px-4 py-3">
                       <span
-                        className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${connector.available ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}`}
+                        className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
+                          connector.status === "AVAILABLE"
+                            ? "bg-green-100 text-green-700"
+                            : connector.status === "IN_USE"
+                              ? "bg-orange-100 text-orange-700"
+                              : "bg-gray-100 text-gray-700"
+                        }`}
                       >
-                        {connector.available ? "Available" : "Busy"}
+                        {connector.status === "AVAILABLE"
+                          ? "Available"
+                          : connector.status === "IN_USE"
+                            ? "Busy"
+                            : "Maintenance/Offline"}
                       </span>
                     </td>
                   </tr>
