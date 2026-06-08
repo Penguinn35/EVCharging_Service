@@ -52,4 +52,20 @@ public class UserPrincipal implements UserDetails {
         return cpo.getEnterpriseId();
     }
 
+    public String getCPOServerUrl() {
+        if (!user.getRole().equals("BUSINESS")) {
+            return null;
+        }
+        CPO cpo = user.getCompany();
+        return cpo.getServerUrl();
+    }
+
+    public String getCPOServerToken() {
+        if (!user.getRole().equals("BUSINESS")) {
+            return null;
+        }
+        CPO cpo = user.getCompany();
+        return cpo.getToken();
+    }
+
 }
