@@ -29,7 +29,7 @@ public class CPO {
     @OneToMany(mappedBy = "cpo", cascade = CascadeType.ALL)
     private List<ChargingStation> managingStations;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "manager_id")
     private EVUser manager;
 
