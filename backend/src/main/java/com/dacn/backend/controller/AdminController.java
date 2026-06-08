@@ -52,4 +52,17 @@ public class AdminController {
                 HttpStatus.BAD_REQUEST, "Disable failed, please recheck input", false
         ), HttpStatus.BAD_REQUEST);
     }
+
+    @DeleteMapping("cpo/{id}")
+    @Operation(summary = "API xóa tài khoản doanh nghiệp")
+    public ResponseEntity<ResponseObject<Boolean>> deleteCPOProfile(@PathVariable("id") String enterpriseId) {
+        if (adminAccountService.deleteCPOAccount(enterpriseId)) {
+            return new ResponseEntity<>(new ResponseObject<>(
+                    HttpStatus.OK, "Deleted cpo", true
+            ), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(new ResponseObject<>(
+                HttpStatus.BAD_REQUEST, "Delete failed, please recheck input", false
+        ), HttpStatus.BAD_REQUEST);
+    }
 }
