@@ -228,6 +228,10 @@ public class BusinessService {
                 // if (connectorDto.getAvailable() != null || isNewConnector) { ... }
                 connector.setAvailable(connectorDto.isAvailable());
 
+                if (connectorDto.getStatus() != null || isNewConnector) {
+                    connector.setStatus(connectorDto.getStatus());
+                }
+
                 updatedConnectors.add(connector);
             }
         }
