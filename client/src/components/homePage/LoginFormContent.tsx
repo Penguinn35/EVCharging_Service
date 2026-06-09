@@ -28,6 +28,9 @@ export default function LoginFormContent({
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  
+  // State mới để quản lý việc hiển thị loading khi đang chuyển hướng
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -56,35 +59,33 @@ export default function LoginFormContent({
         role: result.user.role,
       });
 
-      if (result.user.role === "ADMIN") {
-        toast.success("Đăng nhập thành công");
-        closeModal();
-        router.push("/dashboard/admin-enterprises");
-        return;
-      }
+      // Bật hiệu ứng loading
+      setIsRedirecting(true);
+      toast.success("Đăng nhập thành công");
 
-      if (result.user.role === "BUSINESS") {
+      if (result.user.role === "ADMIN") {
+        router.push("/dashboard/admin-enterprises");
+      } else if (result.user.role === "BUSINESS") {
         const businessProfile = await getEnterpriseProfile();
         useEnterpriseStore.getState().updateEnterprise(businessProfile);
-
-        toast.success("Đăng nhập thành công");
-        closeModal();
         router.push("/dashboard");
-        return;
+      } else {
+        const userDetail = await getUserDetails();
+        useUserStore.getState().updateUser({
+          fullName: userDetail.fullName,
+          email: userDetail.email,
+          address: userDetail.address ?? "",
+          savedStation: userDetail.savedStationList ?? [],
+        });
+        router.push("/Map");
       }
 
-      const userDetail = await getUserDetails();
-
-      useUserStore.getState().updateUser({
-        fullName: userDetail.fullName,
-        email: userDetail.email,
-        address: userDetail.address ?? "",
-        savedStation: userDetail.savedStationList ?? [],
-      });
-
-      toast.success("Đăng nhập thành công");
-      closeModal();
-      router.push("/Map");
+      // Đảm bảo modal được đóng và state được reset sau khi router.push thực thi
+      // 800ms là đủ để user nhìn thấy hiệu ứng chuyển trang mượt mà
+      setTimeout(() => {
+        closeModal();
+        setIsRedirecting(false);
+      }, 800);
     } catch (err: unknown) {
       const error = err as ApiError;
 
@@ -98,7 +99,19 @@ export default function LoginFormContent({
   };
 
   return (
-    <div >
+    <div className="relative">
+      {/* MÀN HÌNH LOADING OVERLAY
+        Chỉ hiển thị khi isRedirecting = true
+      */}
+      {isRedirecting && (
+        <div className="fixed inset-0 z-[9999] bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center">
+          <div className="w-12 h-12 border-4 border-green-400 border-t-transparent rounded-full animate-spin"></div>
+          <p className="mt-4 text-green-600 font-semibold animate-pulse">
+            Đăng nhập thành công, vui lòng đợi trong giây lát...
+          </p>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -173,15 +186,14 @@ export default function LoginFormContent({
 
         <button
           type="submit"
-          disabled={loading || !formData.username || !formData.password}
+          disabled={loading || !formData.username || !formData.password || isRedirecting}
           className="w-full bg-amber-400 hover:bg-amber-300 cursor-pointer text-white py-3 rounded-lg hover:bg-primary-dark transition font-semibold disabled:opacity-50"
         >
           {loading ? "Đang đăng nhập..." : "Đăng Nhập"}
         </button>
-
       </form>
 
-      <div className="text-center w-full  text-gray-600 mt-6 flex flex-row mx-auto">
+      <div className="text-center w-full text-gray-600 mt-6 flex flex-row mx-auto justify-center">
         Chưa có tài khoản?{" "}
         <div
           className="text-primary hover:text-primary-dark font-semibold cursor-pointer mx-2"
