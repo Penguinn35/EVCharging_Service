@@ -10,7 +10,8 @@ import {
   type BusinessStationSummary,
 } from "@/services/enterpriseService";
 import { StationsTable } from "./StationsTable";
-import { FiRefreshCw } from "react-icons/fi";
+import { FiRefreshCw, FiPlus } from "react-icons/fi";
+import { deleteBusinessStation } from "@/services/enterpriseService";
 
 type StationStatusLabel = "AVAILABLE" | "BUSY" | "FULL" | "OFF";
 
@@ -84,6 +85,7 @@ export function ManageStations() {
   const [isSyncing, setIsSyncing] = useState(false);
   // Thêm state quản lý việc hiển thị màn hình chờ chuyển hướng
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const loadStations = async (
     page = 1,
@@ -184,6 +186,27 @@ export function ManageStations() {
     }
   };
 
+  const handleDeleteStation = async (stationId: string) => {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa trạm sạc này? Mọi dữ liệu liên quan sẽ bị mất.")) return;
+
+    setIsDeleting(true);
+    setError(null);
+    try {
+      await deleteBusinessStation(stationId);
+      setSuccessMessage("Xóa trạm sạc thành công.");
+      void loadStations(currentPage, appliedKeyword, appliedDistrict);
+    } catch {
+      setError("Không thể xóa trạm sạc. Có thể trạm đang có giao dịch.");
+    } finally {
+      setIsDeleting(false);
+      setTimeout(() => setSuccessMessage(null), 3000);
+    }
+  };
+
+  const handleEditStation = (stationId: string) => {
+    router.push(`/dashboard/manage-stations/edit/${stationId}`);
+  };
+
   const isUnfilteredEmpty = stations.length === 0 && !appliedKeyword && !appliedDistrict;
 
   return (
@@ -194,6 +217,13 @@ export function ManageStations() {
           <h2 className="text-2xl font-bold text-gray-900">Quản lý trạm</h2>
         </div>
         <div className="flex gap-3">
+          <button
+            onClick={() => router.push("/dashboard/manage-stations/new")}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 transition-colors"
+          >
+            <FiPlus className="w-4 h-4" />
+            Thêm trạm mới
+          </button>
           <button
             onClick={() => void loadStations(currentPage)}
             disabled={isRefreshing || isSyncing}
@@ -240,6 +270,8 @@ export function ManageStations() {
           isUnfilteredEmpty={isUnfilteredEmpty}
           isSyncing={isSyncing}
           onSyncCpoData={() => void handleSyncCpoData()}
+          onEdit={handleEditStation}
+          onDelete={handleDeleteStation}
         />
       )}
 

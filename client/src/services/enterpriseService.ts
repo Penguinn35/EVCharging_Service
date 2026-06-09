@@ -148,6 +148,30 @@ export interface PullCpoDataResponse {
   objectCount: number;
 }
 
+export type ConnectorPayload = {
+  id: string; // Bắt buộc dùng full UUID (VD: 123e4567-e89b-12d3-a456-426614174000)
+  type: number;
+  price: number;
+  voltage: number;
+  maxPower: number;
+  available: boolean;
+};
+
+export type ChargingPointPayload = {
+  id: string; // Full UUID
+  status: number;
+  connectors: ConnectorPayload[];
+};
+
+export type StationPayload = {
+  id: string; // Full UUID, chuỗi rỗng nếu tạo mới
+  name: string;
+  position: { longitude: number; latitude: number };
+  address: string;
+  district: string;
+  chargingPoints: ChargingPointPayload[];
+};
+
 // const businessRegistrationBearerToken =
 //   "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ2aW5ncm91cC1vd25lciIsImlhdCI6MTc4MDc0MDEzNiwiZXhwIjoxNzgwODI2NTM2fQ.p2dAhD1tXIUrn75im3KKJoEH-GV1npPZu-Ni8wODkVI";
 
@@ -313,4 +337,49 @@ export const pullStationsFromCPO = async (): Promise<PullCpoDataResponse> => {
   );
 
   return response.data;
+};
+
+
+export const saveBusinessStation = async (
+  station: StationPayload,
+  imageFiles: File[]
+): Promise<boolean> => {
+  const formData = new FormData();
+  
+  // Đóng gói JSON thành Blob để Spring Boot có thể map RequestPart sang Object
+  const stationBlob = new Blob([JSON.stringify(station)], { type: "application/json" });
+  formData.append("newStation", stationBlob);
+
+  // Append từng file ảnh
+  imageFiles.forEach((file) => {
+    formData.append("imageFiles", file);
+  });
+
+  const response = await apiClient.put<ApiResponse<boolean>>(
+    "/api/business/stations",
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
+
+  return response.data.responseData;
+};
+
+// API Xóa
+export const deleteBusinessStation = async (id: string): Promise<boolean> => {
+  const response = await apiClient.delete<ApiResponse<boolean>>(`/api/business/stations/${id}`);
+  return response.data.responseData;
+};
+
+export const deleteChargingPoint = async (id: string): Promise<boolean> => {
+  const response = await apiClient.delete<ApiResponse<boolean>>(`/api/business/stations/charging_points/${id}`);
+  return response.data.responseData;
+};
+
+export const deleteConnector = async (id: string): Promise<boolean> => {
+  const response = await apiClient.delete<ApiResponse<boolean>>(`/api/business/stations/charging_points/connectors/${id}`);
+  return response.data.responseData;
 };

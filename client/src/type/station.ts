@@ -20,6 +20,7 @@ export type Connector = {
   voltage: number;
   maxPower: number;
   status: "OFFLINE" | "AVAILABLE" | "MAINTENANCE" | "IN_USE";
+  chargingPointId: string;
 };
 
 export type StationDetail = {
