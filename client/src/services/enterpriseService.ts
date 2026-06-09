@@ -148,8 +148,8 @@ export interface PullCpoDataResponse {
   objectCount: number;
 }
 
-const businessRegistrationBearerToken =
-  "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ2aW5ncm91cC1vd25lciIsImlhdCI6MTc4MDc0MDEzNiwiZXhwIjoxNzgwODI2NTM2fQ.p2dAhD1tXIUrn75im3KKJoEH-GV1npPZu-Ni8wODkVI";
+// const businessRegistrationBearerToken =
+//   "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ2aW5ncm91cC1vd25lciIsImlhdCI6MTc4MDc0MDEzNiwiZXhwIjoxNzgwODI2NTM2fQ.p2dAhD1tXIUrn75im3KKJoEH-GV1npPZu-Ni8wODkVI";
 
 
 export const getEnterpriseProfile = async (): Promise<BusinessProfile> => {
