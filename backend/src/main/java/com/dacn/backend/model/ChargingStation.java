@@ -37,10 +37,10 @@ public class ChargingStation {
     @OneToMany(mappedBy = "chargingStation", cascade = CascadeType.ALL)
     private List<ChargingPoint> chargingPoints;
 
-    @OneToMany(mappedBy = "station")
+    @OneToMany(mappedBy = "station", cascade = CascadeType.ALL)
     private List<Rating> ratings;
 
-    @OneToMany(mappedBy = "station")
+    @OneToMany(mappedBy = "station", cascade = CascadeType.ALL)
     private List<UserSavesStation> savingUsers;
 
     @ManyToOne
