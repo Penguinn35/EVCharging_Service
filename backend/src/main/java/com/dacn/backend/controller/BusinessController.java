@@ -21,7 +21,6 @@ import java.io.IOException;
 @RestController
 @RequestMapping("/api/business")
 @Tag(name = "API tài khoản doanh nghiệp")
-@RequiresVerifiedCpo
 public class BusinessController {
     @Autowired
     private BusinessAccountService businessAccountService;

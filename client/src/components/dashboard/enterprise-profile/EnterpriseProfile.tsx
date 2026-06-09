@@ -15,6 +15,7 @@ import {
   FiSave,
   FiUpload,
   FiUser,
+  FiHelpCircle,
 } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import {
@@ -166,11 +167,15 @@ export function EnterpriseProfile() {
     ? {
         label: "Đã xác minh",
         className: "bg-green-100 text-green-700 border-green-200",
+        tooltipBg: "bg-green-50 border-green-200 text-green-800",
+        arrowBg: "bg-green-50 border-green-200",
         icon: FiCheckCircle,
       }
     : {
         label: "Chưa xác minh",
         className: "bg-amber-100 text-amber-700 border-amber-200",
+        tooltipBg: "bg-amber-50 border-amber-200 text-amber-800",
+        arrowBg: "bg-amber-50 border-amber-200",
         icon: FiClock,
       };
   const VerificationIcon = verificationConfig.icon;
@@ -261,13 +266,26 @@ export function EnterpriseProfile() {
           <h3 className="text-base font-semibold text-gray-900">
             Thông tin doanh nghiệp
           </h3>
-          <div className="mt-3">
+          
+          <div className="mt-3 flex items-center gap-2 relative">
             <span
               className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold ${verificationConfig.className}`}
             >
               <VerificationIcon className="h-3.5 w-3.5" />
               Trạng thái hồ sơ: {verificationConfig.label}
             </span>
+
+            {/* Khối Tooltip nằm ngang tại đây */}
+            <div className="group relative flex items-center">
+              <FiHelpCircle className="h-4 w-4 cursor-help text-gray-400 hover:text-gray-600 transition-colors" />
+              
+              {/* Box hiển thị nội dung nằm bên phải (left-full) và lấp đầy khoảng trống (max-w, w-max) */}
+              <div className={`pointer-events-none absolute left-full top-1/2 z-10 ml-3 w-max max-w-[280px] sm:max-w-[350px] lg:max-w-[420px] -translate-y-1/2 scale-95 rounded-md border px-3 py-2 text-xs leading-relaxed opacity-0 shadow-sm transition-all duration-200 group-hover:pointer-events-auto group-hover:scale-100 group-hover:opacity-100 ${verificationConfig.tooltipBg}`}>
+                Nếu chưa được xác minh bởi quản trị viên, doanh nghiệp sẽ không thể sử dụng dữ liệu trạm sạc hay đồng bộ trạm sạc từ server,...
+                {/* Mũi tên trỏ sang trái */}
+                <div className={`absolute -left-1.5 top-1/2 h-3 w-3 -translate-y-1/2 rotate-45 border-b border-l ${verificationConfig.arrowBg}`}></div>
+              </div>
+            </div>
           </div>
 
           <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -395,4 +413,3 @@ export function EnterpriseProfile() {
     </div>
   );
 }
-
