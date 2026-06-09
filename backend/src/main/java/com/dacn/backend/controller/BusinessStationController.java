@@ -1,6 +1,7 @@
 package com.dacn.backend.controller;
 
 import com.dacn.backend.annotation.RequiresVerifiedCpo;
+import com.dacn.backend.constants.ConnectorStatus;
 import com.dacn.backend.dto.*;
 import com.dacn.backend.model.UserPrincipal;
 import com.dacn.backend.object.ResponseObject;
@@ -44,6 +45,7 @@ public class BusinessStationController {
         CHARGEPOINT_DELETE,
         CONNECTOR_ADD,
         CONNECTOR_EDIT,
+        CONNECTOR_EDIT_STATUS,
         CONNECTOR_DELETE
     }
 
@@ -68,6 +70,7 @@ public class BusinessStationController {
         private String chargePointId;
         private ConnectorCreationDTO connector;
         private String connectorId;
+        private ConnectorStatus status;
     }
 
     @GetMapping("stations")
@@ -171,6 +174,8 @@ public class BusinessStationController {
             case CONNECTOR_ADD:
             case CONNECTOR_EDIT:
                 return handleConnectorUpsertEvent(buildConnectorEventPayload(payload), companyId);
+            case CONNECTOR_EDIT_STATUS:
+                return handleConnectorStatusEditEvent(payload.getConnectorId(), payload.getStatus(), companyId);
             case CONNECTOR_DELETE:
                 return handleConnectorDeleteEvent(payload.getConnectorId(), companyId);
             default:
@@ -335,6 +340,26 @@ public class BusinessStationController {
         }
         return new ResponseEntity<>(new ResponseObject<>(
                 HttpStatus.BAD_REQUEST, "Something went wrong when deleting connector", false
+        ), HttpStatus.BAD_REQUEST);
+    }
+
+    private ResponseEntity<ResponseObject<Object>> handleConnectorStatusEditEvent(
+            String connectorId,
+            ConnectorStatus status,
+            String companyId
+    ) {
+        if (connectorId == null || status == null) {
+            return new ResponseEntity<>(new ResponseObject<>(
+                    HttpStatus.BAD_REQUEST, "Connector id and status are required", null
+            ), HttpStatus.BAD_REQUEST);
+        }
+        if (businessService.updateConnectorStatus(connectorId, status, companyId)) {
+            return new ResponseEntity<>(new ResponseObject<>(
+                    HttpStatus.OK, "Updated connector status successfully", true
+            ), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(new ResponseObject<>(
+                HttpStatus.BAD_REQUEST, "Something went wrong when updating connector status", false
         ), HttpStatus.BAD_REQUEST);
     }
 

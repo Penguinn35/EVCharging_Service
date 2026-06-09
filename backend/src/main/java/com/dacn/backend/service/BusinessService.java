@@ -1,5 +1,6 @@
 package com.dacn.backend.service;
 
+import com.dacn.backend.constants.ConnectorStatus;
 import com.dacn.backend.constants.StationStatus;
 import com.dacn.backend.dto.*;
 import com.dacn.backend.model.ChargingPoint;
@@ -273,6 +274,19 @@ public class BusinessService {
             return false;
         }
         connectorRepo.delete(deletingConnector);
+        return true;
+    }
+
+    @Transactional
+    public boolean updateConnectorStatus(String connectorId, ConnectorStatus status, String companyId) {
+        Connector connector = connectorRepo.findById(connectorId).orElse(null);
+        if (connector == null
+                || status == null
+                || !Objects.equals(connector.getChargingPoint().getChargingStation().getCpo().getEnterpriseId(), companyId)) {
+            return false;
+        }
+        connector.setStatus(status);
+        connectorRepo.save(connector);
         return true;
     }
 
