@@ -102,30 +102,61 @@ public class BusinessAccountService {
         if (!isValidImageFormat(newImage)) {
             return false;
         }
+
         CPO cpo = cpoRepo.findById(companyId).orElse(null);
         if (cpo == null) {
             return false;
         }
-        String logoKey = companyId + "-logo";
-        if (cpo.getLogoUrl() != null) {
-            deleteFromS3(logoKey);
+
+        String oldLogoUrl = cpo.getLogoUrl();
+
+        // 1. Tạo key mới hoàn toàn bằng cách gắn thêm Timestamp để tránh lỗi Cache
+        String newLogoKey = companyId + "-logo-" + System.currentTimeMillis();
+
+        try {
+            // 2. Upload file mới lên S3 (Dùng InputStream tối ưu RAM)
+            String newUrl = uploadToS3(newImage, newLogoKey);
+
+            // 3. Update Database
+            cpo.setLogoUrl(newUrl);
+            cpoRepo.save(cpo);
+
+            // 4. (Tùy chọn) Xóa logo cũ ĐỂ TIẾT KIỆM DUNG LƯỢNG S3 sau khi mọi thứ đã thành công
+            if (oldLogoUrl != null) {
+                String oldKey = extractKeyFromUrl(oldLogoUrl); // Cần viết hàm trích xuất key từ URL
+                if (oldKey != null) {
+                    deleteFromS3(oldKey);
+                }
+            }
+
+            return true;
+        } catch (Exception e) {
+            // Log lỗi ở đây: log.error("Failed to upload logo", e);
+            return false;
         }
-        String url = uploadToS3(newImage, logoKey);
-        cpo.setLogoUrl(url);
-        cpoRepo.save(cpo);
-        return true;
     }
 
     private String uploadToS3(MultipartFile file, String key) throws IOException {
         s3Client.putObject(PutObjectRequest.builder()
-                .bucket(bucketName)
-                .key(key)
-                .build(), RequestBody.fromBytes(file.getBytes()));
+                        .bucket(bucketName)
+                        .key(key)
+                        .contentType(file.getContentType()) // Nên set ContentType để trình duyệt render ảnh đúng
+                        .build(),
+                RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
 
         return s3Client.utilities().getUrl(GetUrlRequest.builder()
                 .bucket(bucketName)
                 .key(key)
                 .build()).toExternalForm();
+    }
+
+    private String extractKeyFromUrl(String url) {
+        try {
+            // Cắt chuỗi lấy phần sau tên bucket. Phụ thuộc vào cấu trúc URL thực tế của bạn.
+            return url.substring(url.lastIndexOf("/") + 1);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private void deleteFromS3(String key) {

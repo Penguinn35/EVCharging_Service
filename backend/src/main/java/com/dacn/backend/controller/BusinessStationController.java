@@ -205,7 +205,7 @@ public class BusinessStationController {
     @DeleteMapping("stations/{id}")
     @Operation(summary = "API xóa trạm sạc bằng id")
     public ResponseEntity<ResponseObject<Boolean>> deleteStation(
-            @RequestParam String id,
+            @PathVariable String id,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
         if (businessService.deleteStation(id, principal.getCompanyId())) {

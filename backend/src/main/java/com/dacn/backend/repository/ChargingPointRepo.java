@@ -16,7 +16,7 @@ public interface ChargingPointRepo extends JpaRepository<ChargingPoint, String> 
     public List<ChargingPoint> findByCableType(@Param("cableType") String cableType);
 
     @Query(value = """
-        SELECT c.id, c.type, c.price, c.voltage, c.max_power, c.is_available, c.status
+        SELECT c.id, c.type, c.price, c.voltage, c.max_power, c.is_available, c.status, c.charging_point_id
         FROM charging_point p JOIN connector c ON p.id = c.charging_point_id
         WHERE p.charging_station_id = :stationId
 """, nativeQuery = true)
