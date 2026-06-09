@@ -156,7 +156,7 @@ export const registerBusinessAccount = async (
     {
       headers: {
         Accept: "*/*",
-        Authorization: businessRegistrationBearerToken,
+        // Authorization: businessRegistrationBearerToken,
         "Content-Type": "application/json",
       },
     },
