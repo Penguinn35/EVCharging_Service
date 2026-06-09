@@ -25,7 +25,7 @@ export default function RegisterFormContent({
     password: "",
     address: "",
   });
-  const usernameRegex = /^[a-zA-Z][a-zA-Z0-9]{7,}$/;
+  const usernameRegex = /^[a-zA-Z][a-zA-Z0-9_-]{7,}$/;
   const passwordRegex =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/;
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -44,6 +44,7 @@ export default function RegisterFormContent({
     email: "",
     password: "",
     confirmPassword: "",
+    address: "",
     companyId: "",
     companyName: "",
     taxCode: "",
@@ -57,6 +58,7 @@ export default function RegisterFormContent({
       email: "",
       password: "",
       confirmPassword: "",
+      address: "",
       companyId: "",
       companyName: "",
       taxCode: "",
@@ -162,10 +164,11 @@ export default function RegisterFormContent({
       <form onSubmit={handleSubmit} className="space-y-4">
         {accountType === "BUSINESS" ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* CỘT TRÁI */}
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Username
+                  Tên đăng nhập
                 </label>
                 <input
                   name="username"
@@ -240,7 +243,7 @@ export default function RegisterFormContent({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Company ID
+                  ID Doanh nghiệp
                 </label>
                 <input
                   name="companyId"
@@ -255,8 +258,28 @@ export default function RegisterFormContent({
                   <p className="text-red-500 text-sm mt-1">{errors.companyId}</p>
                 )}
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Địa chỉ doanh nghiệp
+                </label>
+                <input
+                  name="companyAddress"
+                  type="text"
+                  value={businessData.companyAddress}
+                  onChange={handleBusinessChange}
+                  className={`w-full px-4 py-3 border rounded-lg ${
+                    errors.companyAddress ? "border-red-500" : "border-gray-300"
+                  }`}
+                />
+                {errors.companyAddress && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.companyAddress}
+                  </p>
+                )}
+              </div>
             </div>
 
+            {/* CỘT PHẢI */}
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -300,9 +323,29 @@ export default function RegisterFormContent({
                 </div>
               </div>
 
+              {/* THÊM TRƯỜNG ĐỊA CHỈ CÁ NHÂN VÀO ĐÂY */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Company name
+                  Địa chỉ cá nhân
+                </label>
+                <input
+                  name="personalAddress"
+                  type="text"
+                  value={formData.address}
+                  onChange={handleChange}
+                  className={`w-full px-4 py-3 border rounded-lg ${
+                    errors.address ? "border-red-500" : "border-gray-300"
+                  }`}
+                />
+                {errors.address && (
+                  <p className="text-red-500 text-sm mt-1">{errors.address  }</p>
+                )}
+              </div>
+              {/* KẾT THÚC THÊM MỚI */}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tên doanh nghiệp
                 </label>
                 <input
                   name="companyName"
@@ -320,7 +363,7 @@ export default function RegisterFormContent({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Tax code
+                  Mã số thuế
                 </label>
                 <input
                   name="taxCode"
@@ -335,37 +378,18 @@ export default function RegisterFormContent({
                   <p className="text-red-500 text-sm mt-1">{errors.taxCode}</p>
                 )}
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Company address
-                </label>
-                <input
-                  name="companyAddress"
-                  type="text"
-                  value={businessData.companyAddress}
-                  onChange={handleBusinessChange}
-                  className={`w-full px-4 py-3 border rounded-lg ${
-                    errors.companyAddress ? "border-red-500" : "border-gray-300"
-                  }`}
-                />
-                {errors.companyAddress && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.companyAddress}
-                  </p>
-                )}
-              </div>
             </div>
           </div>
         ) : (
           <>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Username
+                Tên đăng nhập
               </label>
               <input
                 name="username"
                 type="text"
+                placeholder="Ví dụ: johndoe"
                 value={formData.username}
                 onChange={handleChange}
                 className={`w-full px-4 py-3 border rounded-lg ${
@@ -386,6 +410,7 @@ export default function RegisterFormContent({
                 <input
                   name="fullName"
                   type="text"
+                  placeholder="Ví dụ: John Doe"
                   value={formData.fullName}
                   onChange={handleChange}
                   className={`w-full pl-10 pr-4 py-3 border rounded-lg ${
@@ -407,6 +432,7 @@ export default function RegisterFormContent({
                 <input
                   name="email"
                   type="email"
+                  placeholder="Ví dụ: johndoe@example.com"
                   value={formData.email}
                   onChange={handleChange}
                   className={`w-full pl-10 pr-4 py-3 border rounded-lg ${
