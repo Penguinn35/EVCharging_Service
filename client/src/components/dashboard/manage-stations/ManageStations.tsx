@@ -1,9 +1,11 @@
 ﻿"use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   getBusinessStations,
   toggleBusinessStationStatus,
+  pullStationsFromCPO,
   type BusinessStationListResponse,
   type BusinessStationSummary,
 } from "@/services/enterpriseService";
@@ -58,11 +60,13 @@ const mapStationsForTable = (
     address: station.address,
     district: extractDistrictFromAddress(station.address),
     status: mapStatusToLabel(station.status),
-    numberOfChargingPoints: station.numberOfChargingPoints??0
+    numberOfChargingPoints: station.numberOfChargingPoints ?? 0
   }));
 };
 
 export function ManageStations() {
+  const router = useRouter();
+
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [stations, setStations] = useState<ManageStationRow[]>([]);
   const [pagination, setPagination] = useState<BusinessStationListResponse | null>(null);
@@ -73,7 +77,13 @@ export function ManageStations() {
   const [appliedDistrict, setAppliedDistrict] = useState("");
   const [togglingStationIds, setTogglingStationIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  
+  const [isSyncing, setIsSyncing] = useState(false);
+  // Thêm state quản lý việc hiển thị màn hình chờ chuyển hướng
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const loadStations = async (
     page = 1,
@@ -94,7 +104,7 @@ export function ManageStations() {
       setPagination(response);
       setCurrentPage(response.number + 1);
     } catch {
-      setError("Khong the tai danh sach tram.");
+      setError("Không thể tải danh sách trạm. Vui lòng thử lại sau.");
     } finally {
       setIsRefreshing(false);
       setIsLoading(false);
@@ -114,41 +124,79 @@ export function ManageStations() {
   const handleToggleStationStatus = async (stationId: string) => {
     setTogglingStationIds((prev) => [...prev, stationId]);
     setError(null);
+    setSuccessMessage(null);
 
     try {
       const isSuccess = await toggleBusinessStationStatus(stationId);
-      if (!isSuccess) {
-        throw new Error("Toggle failed");
-      }
+      if (!isSuccess) throw new Error("Toggle failed");
 
       setStations((prev) =>
         prev.map((station) =>
           station.id === stationId
-            ? {
-                ...station,
-                status: getNextStatus(station.status),
-              }
+            ? { ...station, status: getNextStatus(station.status) }
             : station,
         ),
       );
     } catch {
-      setError("Khong the thay doi trang thai tram.");
+      setError("Không thể thay đổi trạng thái trạm.");
     } finally {
       setTogglingStationIds((prev) => prev.filter((id) => id !== stationId));
     }
   };
 
+  const handleSyncCpoData = async () => {
+    setIsSyncing(true);
+    setError(null);
+    setSuccessMessage(null);
+    
+    try {
+      const result = await pullStationsFromCPO();
+      if (result.responseData) {
+        setSuccessMessage(`Đồng bộ thành công! Các trạm sạc từ CPO được cập nhật.`);
+        void loadStations(1, appliedKeyword, appliedDistrict);
+        
+        setTimeout(() => setSuccessMessage(null), 5000);
+      } else {
+        setError("Đồng bộ hoàn tất nhưng trạng thái trả về thất bại.");
+      }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      console.error(err);
+      
+      const errorStatus = err?.status || err?.response?.status;
+      const errorData = err?.response?.data;
+      
+      if (
+        errorStatus === 400 || 
+        (errorData?.status === "BAD_REQUEST" && errorData?.message?.includes("URI with undefined scheme"))
+      ) {
+        // Kích hoạt popup mờ màn hình thay vì chỉ hiện dòng chữ lỗi nhỏ
+        setIsRedirecting(true);
+        
+        setTimeout(() => {
+          router.push("/dashboard/enterpriseProfile");
+        }, 3000);
+      } else {
+        setError("Có lỗi xảy ra khi đồng bộ trạm sạc từ CPO."); 
+      }
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const isUnfilteredEmpty = stations.length === 0 && !appliedKeyword && !appliedDistrict;
+
   return (
+    // Thêm relative ở đây để chắc chắn overlay được định vị chuẩn (nếu dùng absolute, ở đây ta đang dùng fixed nên không sao)
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Quản lý trạm</h2>
-          
         </div>
         <div className="flex gap-3">
           <button
             onClick={() => void loadStations(currentPage)}
-            disabled={isRefreshing}
+            disabled={isRefreshing || isSyncing}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 text-gray-700 font-medium hover:bg-gray-200 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <FiRefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} />
@@ -157,13 +205,20 @@ export function ManageStations() {
         </div>
       </div>
 
-      {error ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 transition-all duration-300">
           {error}
         </div>
-      ) : isLoading ? (
+      )}
+      {successMessage && (
+        <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700 transition-all duration-300">
+          {successMessage}
+        </div>
+      )}
+
+      {isLoading ? (
         <div className="rounded-lg border border-gray-200 bg-white px-4 py-8 text-center text-sm text-gray-500">
-         Đang tải danh sách trạm...
+          Đang tải danh sách trạm...
         </div>
       ) : (
         <StationsTable
@@ -181,13 +236,30 @@ export function ManageStations() {
           onToggleStationStatus={(stationId) => void handleToggleStationStatus(stationId)}
           togglingStationIds={togglingStationIds}
           isPageLoading={isRefreshing}
+          
+          isUnfilteredEmpty={isUnfilteredEmpty}
+          isSyncing={isSyncing}
+          onSyncCpoData={() => void handleSyncCpoData()}
         />
       )}
 
-    
+      {/* Overlay Popup xuất hiện khi chuẩn bị chuyển trang */}
+      {isRedirecting && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm transition-opacity">
+          <div className="bg-white p-8 rounded-2xl shadow-2xl flex flex-col items-center max-w-sm w-full mx-4 text-center animate-in fade-in zoom-in duration-300">
+            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-6"></div>
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Lỗi cấu hình CPO</h3>
+            <p className="text-gray-600 text-sm leading-relaxed">
+              URL hoặc Token tích hợp chưa được thiết lập đúng.
+              <br />
+              <br />
+              <span className="font-medium text-gray-900">
+                Hệ thống đang chuyển hướng...
+              </span>
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
-
-

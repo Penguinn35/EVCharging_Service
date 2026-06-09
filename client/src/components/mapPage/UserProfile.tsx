@@ -87,6 +87,7 @@ const UserProfile = () => {
   const handleLogout = () => {
     setIsProfileOpen(false);
     clearUser();
+    router.push("/");
   };
 
   const handleGoToDashboard = () => {

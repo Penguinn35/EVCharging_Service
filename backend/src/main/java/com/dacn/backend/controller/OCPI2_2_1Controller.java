@@ -1,5 +1,6 @@
 package com.dacn.backend.controller;
 
+import com.dacn.backend.annotation.RequiresVerifiedCpo;
 import com.dacn.backend.constants.ConnectorStatus;
 import com.dacn.backend.dto.response_from_externals.CpoResponse;
 import com.dacn.backend.model.UserPrincipal;
@@ -18,6 +19,7 @@ import org.springframework.web.client.RestClient;
 @RestController
 @RequestMapping("/ocpi/cpo/2.2.1/stations")
 @Tag(name = "OCPI API", description = "Dành cho các CPO gọi API đến để update trạm sạc")
+@RequiresVerifiedCpo
 public class OCPI2_2_1Controller {
 
     @Autowired
