@@ -1,5 +1,6 @@
 package com.dacn.backend.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.dacn.backend.constants.StationStatus;
@@ -21,8 +22,8 @@ public class ChargingStation {
     private String name;
 //    private String imageUrl;
 
-    @OneToMany(mappedBy = "station", cascade = CascadeType.ALL)
-    private List<StationImage> images;
+    @OneToMany(mappedBy = "station", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<StationImage> images = new ArrayList<>();
 
     private Coordinate position;
     private String address;
@@ -34,8 +35,8 @@ public class ChargingStation {
     private Long currentVehicleCount;
     private Long availableConnectorsCount;
 
-    @OneToMany(mappedBy = "chargingStation", cascade = CascadeType.ALL)
-    private List<ChargingPoint> chargingPoints;
+    @OneToMany(mappedBy = "chargingStation", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ChargingPoint> chargingPoints = new ArrayList<>();
 
     @OneToMany(mappedBy = "station", cascade = CascadeType.ALL)
     private List<Rating> ratings;

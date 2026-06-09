@@ -16,9 +16,10 @@ public class ConnectorDTO {
     private Double maxPower;
     private boolean isAvailable;
     private ConnectorStatus status;
+    private String chargingPointId;
 
     public ConnectorDTO(String id, int type, Double price, Double voltage, Double maxPower,
-                        boolean isAvailable, int status) {
+                        boolean isAvailable, int status, String chargingPointId) {
         this.id = id;
         this.type = type;
         this.price = price;
@@ -26,5 +27,6 @@ public class ConnectorDTO {
         this.maxPower = maxPower;
         this.isAvailable = isAvailable;
         this.status = ConnectorStatus.fromCode(status);
+        this.chargingPointId = chargingPointId;
     }
 }

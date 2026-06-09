@@ -133,7 +133,8 @@ public class BusinessService {
         }
 
         // 4. Process Hierarchy (Points & Connectors)
-        mapPointsAndConnectors(stationDto, station);
+        for (PointCreationDTO pointCreationDTO : stationDto.getChargingPoints())
+            addOrModifyChargingPoint(pointCreationDTO, station.getId(), companyId);
 
         stationRepo.save(station);
         return true;
