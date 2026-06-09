@@ -159,6 +159,7 @@ export function ManageStations() {
       } else {
         setError("Đồng bộ hoàn tất nhưng trạng thái trả về thất bại.");
       }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(err);
       
