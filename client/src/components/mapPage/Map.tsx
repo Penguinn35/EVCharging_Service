@@ -56,8 +56,6 @@ const LOGO_VARIANTS = {
   "V-Green": { src: "/CPOLogo/vgreen.png", alt: "V-Green" },
 } as const;
 
-const DEFAULT_MARKER_LOGO = LOGO_VARIANTS["V-Green"];
-
 const getMarkerLogoByManufacturer = (
   manufacturer: string,
   logoUrlMap: Record<string, string>,
@@ -70,10 +68,7 @@ const getMarkerLogoByManufacturer = (
     };
   }
 
-  return (
-    LOGO_VARIANTS[manufacturer as keyof typeof LOGO_VARIANTS] ??
-    DEFAULT_MARKER_LOGO
-  );
+  return LOGO_VARIANTS[manufacturer as keyof typeof LOGO_VARIANTS] ?? null;
 };
 
 const CustomMarker = ({
@@ -115,8 +110,12 @@ const CustomMarker = ({
     html: `
       <div class="marker-shell">
         <div class="marker-outer-ring">
-          <div class="marker-inner-circle">
-            <img class="marker-logo" src="${markerLogo.src}" alt="${markerLogo.alt}" />
+          <div class="marker-inner-circle${markerLogo ? "" : " marker-inner-circle--no-logo"}">
+            ${
+              markerLogo
+                ? `<img class="marker-logo" src="${markerLogo.src}" alt="${markerLogo.alt}" />`
+                : `<div class="marker-logo-placeholder" aria-hidden="true"></div>`
+            }
           </div>
         </div>
       </div>

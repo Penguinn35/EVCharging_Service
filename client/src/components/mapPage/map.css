@@ -33,9 +33,20 @@
   overflow: hidden;
 }
 
+.marker-inner-circle--no-logo {
+  background: #e5e7eb;
+}
+
 .marker-logo {
   width: 28px;
   height: 28px;
   border-radius: 9999px;
   object-fit: cover;
+}
+
+.marker-logo-placeholder {
+  width: 28px;
+  height: 28px;
+  border-radius: 9999px;
+  background: #d1d5db;
 }
