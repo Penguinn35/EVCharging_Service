@@ -141,6 +141,13 @@ export type BusinessRegistrationRequest = {
   companyAddress: string;
 };
 
+export interface PullCpoDataResponse {
+  httpStatus: string;
+  message: string;
+  responseData: boolean;
+  objectCount: number;
+}
+
 const businessRegistrationBearerToken =
   "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ2aW5ncm91cC1vd25lciIsImlhdCI6MTc4MDc0MDEzNiwiZXhwIjoxNzgwODI2NTM2fQ.p2dAhD1tXIUrn75im3KKJoEH-GV1npPZu-Ni8wODkVI";
 
@@ -299,4 +306,11 @@ export const getBusinessStationRatings = async (
   return response.data.responseData;
 };
 
+export const pullStationsFromCPO = async (): Promise<PullCpoDataResponse> => {
+  // cURL sử dụng method PUT
+  const response = await apiClient.put<PullCpoDataResponse>(
+    "/ocpi/cpo/2.2.1/stations/pull-data"
+  );
 
+  return response.data;
+};

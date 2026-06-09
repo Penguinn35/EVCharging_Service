@@ -13,7 +13,6 @@ type StationTableRow = {
   district: string;
   status: StationStatus;
   numberOfChargingPoints: number;
-  
 };
 
 interface StationsTableProps {
@@ -31,6 +30,9 @@ interface StationsTableProps {
   onToggleStationStatus: (stationId: string) => void;
   togglingStationIds: string[];
   isPageLoading?: boolean;
+  isUnfilteredEmpty?: boolean;
+  isSyncing?: boolean;
+  onSyncCpoData?: () => void;
 }
 
 const DISTRICTS = [
@@ -106,6 +108,9 @@ export function StationsTable({
   onToggleStationStatus,
   togglingStationIds,
   isPageLoading = false,
+  isUnfilteredEmpty = false,
+  isSyncing = false,
+  onSyncCpoData,
 }: StationsTableProps) {
   const router = useRouter();
   const [stationData, setStationData] = useState(stations);
@@ -244,8 +249,21 @@ export function StationsTable({
               })
             ) : (
               <tr>
-                <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
-                  Không tìm thấy trạm nào phù hợp với bộ lọc.
+                <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                  {isUnfilteredEmpty ? (
+                    <div className="flex flex-col items-center justify-center gap-4">
+                      <p className="text-gray-500">Hệ thống hiện chưa có trạm sạc nào.</p>
+                      <button
+                        onClick={onSyncCpoData}
+                        disabled={isSyncing}
+                        className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 transition-colors"
+                      >
+                        {isSyncing ? "Đang đồng bộ..." : "Đồng bộ từ CPO ngay"}
+                      </button>
+                    </div>
+                  ) : (
+                    <p>Không tìm thấy trạm nào phù hợp với bộ lọc.</p>
+                  )}
                 </td>
               </tr>
             )}
@@ -300,5 +318,3 @@ export function StationsTable({
     </div>
   );
 }
-
-
