@@ -300,7 +300,7 @@ export default function RegisterFormContent({
               Địa chỉ cá nhân
             </label>
             <input
-              name="personalAddress"
+              name="address"
               type="text"
               value={formData.address}
               onChange={handleChange}
