@@ -163,224 +163,251 @@ export default function RegisterFormContent({
     <div>
       <form onSubmit={handleSubmit} className="space-y-4">
         {accountType === "BUSINESS" ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* CỘT TRÁI */}
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Tên đăng nhập
-                </label>
-                <input
-                  name="username"
-                  type="text"
-                  value={formData.username}
-                  onChange={handleChange}
-                  className={`w-full px-4 py-3 border rounded-lg ${
-                    errors.username ? "border-red-500" : "border-gray-300"
-                  }`}
-                />
-                {errors.username && (
-                  <p className="text-red-500 text-sm mt-1">{errors.username}</p>
-                )}
-              </div>
+  <div className="space-y-8">
+    
+    {/* =========================================
+        PHẦN 1: THÔNG TIN CÁ NHÂN 
+        ========================================= */}
+    <div>
+      <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">
+        Thông tin người đại diện doanh nghiệp
+      </h3>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* CỘT TRÁI - CÁ NHÂN */}
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Tên đăng nhập
+            </label>
+            <input
+              name="username"
+              type="text"
+              value={formData.username}
+              onChange={handleChange}
+              className={`w-full px-4 py-3 border rounded-lg ${
+                errors.username ? "border-red-500" : "border-gray-300"
+              }`}
+            />
+            {errors.username && (
+              <p className="text-red-500 text-sm mt-1">{errors.username}</p>
+            )}
+          </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Mật khẩu
-                </label>
-                <div className="relative">
-                  <FiLock className="absolute left-3 top-3 text-gray-400" />
-                  <input
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    value={formData.password}
-                    onChange={handleChange}
-                    className={`w-full pl-10 pr-12 py-3 border rounded-lg ${
-                      errors.password ? "border-red-500" : "border-gray-300"
-                    }`}
-                  />
-                  {errors.password && (
-                    <p className="text-red-500 text-sm mt-1">{errors.password}</p>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3 cursor-pointer"
-                  >
-                    {showPassword ? <FiEyeOff /> : <FiEye />}
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Xác Nhận Mật Khẩu
-                </label>
-                <div className="relative">
-                  <FiLock className="absolute left-3 top-3 text-gray-400" />
-                  <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className={`w-full pl-10 pr-12 py-3 border rounded-lg ${
-                      errors.confirmPassword ? "border-red-500" : "border-gray-300"
-                    }`}
-                  />
-                  {errors.confirmPassword && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.confirmPassword}
-                    </p>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-3 cursor-pointer"
-                  >
-                    {showConfirmPassword ? <FiEyeOff /> : <FiEye />}
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  ID Doanh nghiệp
-                </label>
-                <input
-                  name="companyId"
-                  type="text"
-                  value={businessData.companyId}
-                  onChange={handleBusinessChange}
-                  className={`w-full px-4 py-3 border rounded-lg ${
-                    errors.companyId ? "border-red-500" : "border-gray-300"
-                  }`}
-                />
-                {errors.companyId && (
-                  <p className="text-red-500 text-sm mt-1">{errors.companyId}</p>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Địa chỉ doanh nghiệp
-                </label>
-                <input
-                  name="companyAddress"
-                  type="text"
-                  value={businessData.companyAddress}
-                  onChange={handleBusinessChange}
-                  className={`w-full px-4 py-3 border rounded-lg ${
-                    errors.companyAddress ? "border-red-500" : "border-gray-300"
-                  }`}
-                />
-                {errors.companyAddress && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.companyAddress}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* CỘT PHẢI */}
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Họ và Tên
-                </label>
-                <div className="relative">
-                  <FiUser className="absolute left-3 top-3 text-gray-400" />
-                  <input
-                    name="fullName"
-                    type="text"
-                    value={formData.fullName}
-                    onChange={handleChange}
-                    className={`w-full pl-10 pr-4 py-3 border rounded-lg ${
-                      errors.fullName ? "border-red-500" : "border-gray-300"
-                    }`}
-                  />
-                  {errors.fullName && (
-                    <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email
-                </label>
-                <div className="relative">
-                  <FiMail className="absolute left-3 top-3 text-gray-400" />
-                  <input
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className={`w-full pl-10 pr-4 py-3 border rounded-lg ${
-                      errors.email ? "border-red-500" : "border-gray-300"
-                    }`}
-                  />
-                  {errors.email && (
-                    <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* THÊM TRƯỜNG ĐỊA CHỈ CÁ NHÂN VÀO ĐÂY */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Địa chỉ cá nhân
-                </label>
-                <input
-                  name="personalAddress"
-                  type="text"
-                  value={formData.address}
-                  onChange={handleChange}
-                  className={`w-full px-4 py-3 border rounded-lg ${
-                    errors.address ? "border-red-500" : "border-gray-300"
-                  }`}
-                />
-                {errors.address && (
-                  <p className="text-red-500 text-sm mt-1">{errors.address  }</p>
-                )}
-              </div>
-              {/* KẾT THÚC THÊM MỚI */}
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Tên doanh nghiệp
-                </label>
-                <input
-                  name="companyName"
-                  type="text"
-                  value={businessData.companyName}
-                  onChange={handleBusinessChange}
-                  className={`w-full px-4 py-3 border rounded-lg ${
-                    errors.companyName ? "border-red-500" : "border-gray-300"
-                  }`}
-                />
-                {errors.companyName && (
-                  <p className="text-red-500 text-sm mt-1">{errors.companyName}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Mã số thuế
-                </label>
-                <input
-                  name="taxCode"
-                  type="text"
-                  value={businessData.taxCode}
-                  onChange={handleBusinessChange}
-                  className={`w-full px-4 py-3 border rounded-lg ${
-                    errors.taxCode ? "border-red-500" : "border-gray-300"
-                  }`}
-                />
-                {errors.taxCode && (
-                  <p className="text-red-500 text-sm mt-1">{errors.taxCode}</p>
-                )}
-              </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Mật khẩu
+            </label>
+            <div className="relative">
+              <FiLock className="absolute left-3 top-3 text-gray-400" />
+              <input
+                name="password"
+                type={showPassword ? "text" : "password"}
+                value={formData.password}
+                onChange={handleChange}
+                className={`w-full pl-10 pr-12 py-3 border rounded-lg ${
+                  errors.password ? "border-red-500" : "border-gray-300"
+                }`}
+              />
+              {errors.password && (
+                <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+              )}
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-3 cursor-pointer"
+              >
+                {showPassword ? <FiEyeOff /> : <FiEye />}
+              </button>
             </div>
           </div>
-        ) : (
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Xác Nhận Mật Khẩu
+            </label>
+            <div className="relative">
+              <FiLock className="absolute left-3 top-3 text-gray-400" />
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className={`w-full pl-10 pr-12 py-3 border rounded-lg ${
+                  errors.confirmPassword ? "border-red-500" : "border-gray-300"
+                }`}
+              />
+              {errors.confirmPassword && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.confirmPassword}
+                </p>
+              )}
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-3 cursor-pointer"
+              >
+                {showConfirmPassword ? <FiEyeOff /> : <FiEye />}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* CỘT PHẢI - CÁ NHÂN */}
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Họ và Tên
+            </label>
+            <div className="relative">
+              <FiUser className="absolute left-3 top-3 text-gray-400" />
+              <input
+                name="fullName"
+                type="text"
+                value={formData.fullName}
+                onChange={handleChange}
+                className={`w-full pl-10 pr-4 py-3 border rounded-lg ${
+                  errors.fullName ? "border-red-500" : "border-gray-300"
+                }`}
+              />
+              {errors.fullName && (
+                <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Email
+            </label>
+            <div className="relative">
+              <FiMail className="absolute left-3 top-3 text-gray-400" />
+              <input
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                className={`w-full pl-10 pr-4 py-3 border rounded-lg ${
+                  errors.email ? "border-red-500" : "border-gray-300"
+                }`}
+              />
+              {errors.email && (
+                <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Địa chỉ cá nhân
+            </label>
+            <input
+              name="personalAddress"
+              type="text"
+              value={formData.address}
+              onChange={handleChange}
+              className={`w-full px-4 py-3 border rounded-lg ${
+                errors.address ? "border-red-500" : "border-gray-300"
+              }`}
+            />
+            {errors.address && (
+              <p className="text-red-500 text-sm mt-1">{errors.address}</p>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* =========================================
+        PHẦN 2: THÔNG TIN DOANH NGHIỆP 
+        ========================================= */}
+    <div>
+      <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">
+        Thông tin doanh nghiệp
+      </h3>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* CỘT TRÁI - DOANH NGHIỆP */}
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Tên doanh nghiệp
+            </label>
+            <input
+              name="companyName"
+              type="text"
+              value={businessData.companyName}
+              onChange={handleBusinessChange}
+              className={`w-full px-4 py-3 border rounded-lg ${
+                errors.companyName ? "border-red-500" : "border-gray-300"
+              }`}
+            />
+            {errors.companyName && (
+              <p className="text-red-500 text-sm mt-1">{errors.companyName}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              ID Doanh nghiệp
+            </label>
+            <input
+              name="companyId"
+              type="text"
+              value={businessData.companyId}
+              onChange={handleBusinessChange}
+              className={`w-full px-4 py-3 border rounded-lg ${
+                errors.companyId ? "border-red-500" : "border-gray-300"
+              }`}
+            />
+            {errors.companyId && (
+              <p className="text-red-500 text-sm mt-1">{errors.companyId}</p>
+            )}
+          </div>
+        </div>
+
+        {/* CỘT PHẢI - DOANH NGHIỆP */}
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Mã số thuế
+            </label>
+            <input
+              name="taxCode"
+              type="text"
+              value={businessData.taxCode}
+              onChange={handleBusinessChange}
+              className={`w-full px-4 py-3 border rounded-lg ${
+                errors.taxCode ? "border-red-500" : "border-gray-300"
+              }`}
+            />
+            {errors.taxCode && (
+              <p className="text-red-500 text-sm mt-1">{errors.taxCode}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Địa chỉ doanh nghiệp
+            </label>
+            <input
+              name="companyAddress"
+              type="text"
+              value={businessData.companyAddress}
+              onChange={handleBusinessChange}
+              className={`w-full px-4 py-3 border rounded-lg ${
+                errors.companyAddress ? "border-red-500" : "border-gray-300"
+              }`}
+            />
+            {errors.companyAddress && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.companyAddress}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+) : (
           <>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
