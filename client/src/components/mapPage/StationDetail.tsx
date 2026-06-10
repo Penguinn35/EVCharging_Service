@@ -669,7 +669,11 @@ const StationDetail = ({
         </div>
         <div className="flex flex-row place-content-between p-2">
           <p>Trạm sạc: {station.manufacturer}</p>
-          <p className="text-sm text-gray-500">44 km</p>
+          {(routingDistanceInKilometers ?? distance) != null && (
+              <p className="text-sm text-gray-500">
+                {(routingDistanceInKilometers ?? distance)?.toFixed(2)} km
+              </p>
+            )}
         </div>
 
         <div className="flex-1 space-y-3 px-4">
