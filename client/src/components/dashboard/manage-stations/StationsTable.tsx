@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { FiPower, FiSearch, FiFilter } from "react-icons/fi";
+import { FiPower, FiSearch, FiFilter, FiEdit2, FiTrash2 } from "react-icons/fi";
 
 type StationStatus = "AVAILABLE" | "BUSY" | "FULL" | "OFF";
 
@@ -33,6 +33,8 @@ interface StationsTableProps {
   isUnfilteredEmpty?: boolean;
   isSyncing?: boolean;
   onSyncCpoData?: () => void;
+  onEdit: (stationId: string) => void;
+  onDelete: (stationId: string) => void;
 }
 
 const DISTRICTS = [
@@ -111,6 +113,8 @@ export function StationsTable({
   isUnfilteredEmpty = false,
   isSyncing = false,
   onSyncCpoData,
+  onEdit,
+  onDelete,
 }: StationsTableProps) {
   const router = useRouter();
   const [stationData, setStationData] = useState(stations);
@@ -223,7 +227,7 @@ export function StationsTable({
                     <td className="px-6 py-4 text-sm text-gray-600">
                       {station.numberOfChargingPoints}
                     </td>
-                    <td className="px-6 py-4">
+                    {/* <td className="px-6 py-4">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -243,6 +247,50 @@ export function StationsTable({
                             ? "Enable"
                             : "Disable"}
                       </button>
+                    </td> */}
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onToggleStationStatus(station.id);
+                          }}
+                          disabled={isToggling}
+                          className={`inline-flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+                            station.status === "OFF"
+                              ? "bg-green-100 text-green-700 hover:bg-green-200"
+                              : "bg-red-100 text-red-700 hover:bg-red-200"
+                          }`}
+                        >
+                          <FiPower className={`w-4 h-4 ${isToggling ? "animate-spin" : ""}`} />
+                          {isToggling ? "..." : station.status === "OFF" ? "Bật" : "Tắt"}
+                        </button>
+
+                        {/* Nút Sửa */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // onEdit(station.id);
+                            router.push(`/dashboard/manage-stations/${encodeURIComponent(station.id)}/edit`);
+                          }}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Sửa trạm"
+                        >
+                          <FiEdit2 className="w-4 h-4" />
+                        </button>
+
+                        {/* Nút Xóa */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete(station.id);
+                          }}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Xóa trạm"
+                        >
+                          <FiTrash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );

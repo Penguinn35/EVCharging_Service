@@ -44,6 +44,7 @@ import {
 } from "@/services/stationService";
 import {
   deleteBusinessStationImage,
+  deleteConnector,
   updateBusinessStationImage,
   uploadBusinessStationImage,
 } from "@/services/enterpriseService";
@@ -160,6 +161,7 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
   const [detailCountError, setDetailCountError] = useState<string | null>(null);
   const uploadInputRef = useRef<HTMLInputElement | null>(null);
   const replaceInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const [isDeletingConnector, setIsDeletingConnector] = useState<string | null>(null);
 
   const loadStationDetail = useCallback(async () => {
     setIsLoading(true);
@@ -230,6 +232,21 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
       setIsDetailCountLoading(false);
     }
   }, [stationId]);
+
+  const handleDeleteConnector = async (connectorId: string) => {
+    if (!window.confirm(`Bạn có chắc chắn muốn xóa đầu sạc ${connectorId}?`)) return;
+    
+    setIsDeletingConnector(connectorId);
+    try {
+      await deleteConnector(connectorId);
+      showTemporaryMessage("Xóa đầu sạc thành công!");
+      await loadStationDetail(); // Reload lại data
+    } catch {
+      setError("Không thể xóa đầu sạc này.");
+    } finally {
+      setIsDeletingConnector(null);
+    }
+  };
 
   useEffect(() => {
     void loadStationDetail();
@@ -824,6 +841,9 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
                     Trạng thái
                   </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    Hành động
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -861,6 +881,20 @@ export function StationDetail({ stationId, backHref }: StationDetailProps) {
                             ? "Busy"
                             : "Maintenance/Offline"}
                       </span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        onClick={() => handleDeleteConnector(connector.id)}
+                        disabled={isDeletingConnector === connector.id}
+                        className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
+                        title="Xóa đầu sạc"
+                      >
+                        {isDeletingConnector === connector.id ? (
+                          <FiLoader className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <FiTrash2 className="w-4 h-4" />
+                        )}
+                      </button>
                     </td>
                   </tr>
                 ))}

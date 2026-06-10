@@ -123,7 +123,7 @@ public class BusinessService {
             for (MultipartFile image : imageFiles) {
                 // Lưu ý: Logic gốc của bạn là `if (isNotValidImageFormat) return false`.
                 // Thường thì phải là `if (!isNotValidImageFormat)` mới đúng. Bạn kiểm tra lại nhé.
-                if (!isNotValidImageFormat(image)) return false;
+                if (isNotValidImageFormat(image)) return false;
 
                 String key = station.getId() + "-" + image.getOriginalFilename();
                 String url = uploadToS3(image, key);
