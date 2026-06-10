@@ -15,7 +15,7 @@ export default async function EditStationPage({ params }: EditStationPageProps) 
   let stationData = null;
   try {
     stationData = await getStationById(stationId);
-  } catch (error) {
+  } catch {
     return (
       <div className="p-6 text-center text-red-600">
         Không thể tải dữ liệu trạm sạc. Vui lòng thử lại sau.
@@ -43,7 +43,7 @@ export default async function EditStationPage({ params }: EditStationPageProps) 
       price: connector.price,
       voltage: connector.voltage,
       maxPower: connector.maxPower,
-      available: (connector as any).available ?? (connector.status === "AVAILABLE"),
+      available: connector.status === "AVAILABLE",
     });
 
     return acc;

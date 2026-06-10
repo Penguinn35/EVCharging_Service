@@ -130,6 +130,41 @@ export function StationForm({ initialData }: { initialData?: StationPayload }) {
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">Địa chỉ chi tiết <span className="text-red-500">*</span></label>
               <input required value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all" placeholder="VD: 72 Lê Thánh Tôn, Bến Nghé..." />
             </div>
+
+            {/* BỔ SUNG: Vĩ độ (Latitude) */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Vĩ độ (Latitude) <span className="text-red-500">*</span></label>
+              <input 
+                type="number"
+                step="any"
+                required 
+                value={formData.position.latitude} 
+                onChange={e => setFormData({
+                  ...formData, 
+                  position: { ...formData.position, latitude: Number(e.target.value) }
+                })} 
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all" 
+                placeholder="VD: 10.762622" 
+              />
+            </div>
+
+            {/* BỔ SUNG: Kinh độ (Longitude) */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Kinh độ (Longitude) <span className="text-red-500">*</span></label>
+              <input 
+                type="number"
+                step="any"
+                required 
+                value={formData.position.longitude} 
+                onChange={e => setFormData({
+                  ...formData, 
+                  position: { ...formData.position, longitude: Number(e.target.value) }
+                })} 
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all" 
+                placeholder="VD: 106.660172" 
+              />
+            </div>
+
             <div className="col-span-1 md:col-span-2">
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">Hình ảnh trạm sạc</label>
               <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer" onClick={() => document.getElementById('file-upload')?.click()}>
