@@ -112,6 +112,7 @@ public class BusinessService {
         if (stationDto.getDistrict() != null) station.setDistrict(stationDto.getDistrict());
         if (companyId != null) station.setCpo(cpoRepo.getReferenceById(companyId));
 
+        stationRepo.saveAndFlush(station);
         // 3. Xử lý Images (Chỉ xử lý nếu có file gửi lên)
         if (imageFiles != null && !imageFiles.isEmpty()) {
             // Lấy danh sách ảnh cũ (nếu có) để giữ nguyên, sau đó append ảnh mới
@@ -127,11 +128,12 @@ public class BusinessService {
 
                 String key = station.getId() + "-" + image.getOriginalFilename();
                 String url = uploadToS3(image, key);
-                currentImages.add(buildStationImage(key, url, image.getContentType(), station));
+                StationImage newImage = buildStationImage(key, url, image.getContentType(), station);
+                currentImages.add(newImage);
+                imageRepo.save(newImage);
             }
-            station.setImages(currentImages);
+//            station.setImages(currentImages);
         }
-        stationRepo.saveAndFlush(station);
 //        System.out.println("Charging points: " + stationDto.getChargingPoints().size());
         // 4. Process Hierarchy (Points & Connectors)
         for (PointCreationDTO pointCreationDTO : stationDto.getChargingPoints()) {
