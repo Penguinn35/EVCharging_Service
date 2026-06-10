@@ -19,6 +19,7 @@ import {
   FiChevronRight,
   FiLoader,
   FiMessageSquare,
+  FiChevronDown,
 } from "react-icons/fi";
 import { IoClose } from "react-icons/io5";
 
@@ -52,6 +53,7 @@ type GroupedConnector = {
   voltage: number;
   type: number;
   count: number;
+  connectors: Connector[];
 };
 
 type ConnectorStatus = Connector["status"];
@@ -98,6 +100,97 @@ const handleImageError = (event: SyntheticEvent<HTMLImageElement, Event>) => {
   }
 
   event.currentTarget.src = FALLBACK_IMAGE;
+};
+
+const ConnectorGroupItem = ({
+  group,
+  icon,
+  shadowClass,
+  allConnectors,
+}: {
+  group: GroupedConnector;
+  icon: React.ReactNode;
+  shadowClass: string;
+  allConnectors: Connector[];
+}) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  return (
+    <div className={`flex flex-col rounded-2xl p-3 shadow-md/30 ${shadowClass} mb-3`}>
+      {/* Phần Header Click để mở Accordion */}
+      <div
+        className="flex flex-row items-center cursor-pointer select-none"
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        <div className="mr-[8px]">{icon}</div>
+        <div className="w-full">
+          <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 text-sm transition-colors hover:bg-gray-100">
+            <p className="text-sm font-medium text-gray-800">
+              {typeMap[group.type] || group.type} · {group.maxPower} kW × {group.count}
+            </p>
+            <FiChevronDown
+              className={`text-gray-500 transition-transform duration-300 ${
+                isExpanded ? "rotate-180" : ""
+              }`}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Danh sách các cổng */}
+      <div
+        className={`grid transition-all duration-300 ease-in-out ${
+          isExpanded ? "grid-rows-[1fr] opacity-100 mt-2" : "grid-rows-[0fr] opacity-0"
+        }`}
+      >
+        <div className="overflow-hidden min-h-0 space-y-2 pl-8 pr-1">
+          {group.connectors.map((connector) => {
+            
+            // XỬ LÝ LÕI Ở ĐÂY: 
+            // Soi ID của cổng hiện tại vào mảng gốc để lấy đúng số thứ tự tự nhiên ban đầu.
+            // +1 vì mảng bắt đầu từ 0.
+            const originalIndex = allConnectors.findIndex((c) => c.id === connector.id) + 1;
+
+            return (
+              <div
+                key={connector.id}
+                className="rounded-lg border border-gray-100 bg-white p-3 shadow-sm relative overflow-hidden"
+              >
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-green-400 rounded-l-lg"></div>
+
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-semibold text-gray-700 text-sm">
+                    Cổng #{originalIndex}
+                  </span>
+                  <span
+                    className="text-[10px] text-gray-400 font-mono bg-gray-50 px-1.5 py-0.5 rounded break-all max-w-[120px] truncate"
+                    title={connector.id}
+                  >
+                    {connector.id}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="flex flex-col">
+                    <span className="text-[11px] text-gray-500 uppercase tracking-wider">Đơn giá</span>
+                    <span className="font-medium text-green-700">
+                      {connector.price.toLocaleString("vi-VN")} đ/kWh
+                    </span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[11px] text-gray-500 uppercase tracking-wider">Điện áp</span>
+                    <span className="font-medium text-gray-800">
+                      {connector.voltage} V
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
 };
 
 const StationDetail = ({
@@ -184,9 +277,11 @@ const StationDetail = ({
               voltage: curr.voltage,
               type: curr.type,
               count: 1,
+              connectors: [curr],
             };
           } else {
             acc[key].count += 1;
+            acc[key].connectors.push(curr);
           }
 
           return acc;
@@ -355,6 +450,7 @@ const StationDetail = ({
 
   const availableGroups = groupConnectors(station.connectors, ["AVAILABLE"]);
   const busyGroups = groupConnectors(station.connectors, ["IN_USE"]);
+  const inactiveGroups = groupConnectors(station.connectors, ["OFFLINE", "MAINTENANCE"]);
   const availableCount = station.connectors.filter(
     (connector) => connector.status === "AVAILABLE",
   ).length;
@@ -669,7 +765,11 @@ const StationDetail = ({
         </div>
         <div className="flex flex-row place-content-between p-2">
           <p>Trạm sạc: {station.manufacturer}</p>
-          <p className="text-sm text-gray-500">44 km</p>
+          {(routingDistanceInKilometers ?? distance) != null && (
+              <p className="text-sm text-gray-500">
+                {(routingDistanceInKilometers ?? distance)?.toFixed(2)} km
+              </p>
+            )}
         </div>
 
         <div className="flex-1 space-y-3 px-4">
@@ -688,23 +788,13 @@ const StationDetail = ({
           </div>
 
           {availableGroups.map((group, index: number) => (
-            <div
-              key={index}
-              className="flex flex-row items-center rounded-2xl p-3 shadow-md/30 shadow-green-500"
-            >
-              <BsFillLightningChargeFill className="mr-[8px] text-green-500" />
-
-              <div className="w-full space-y-2">
-                <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 text-sm">
-                  <div>
-                    <p className="text-sm font-medium text-gray-800">
-                      {typeMap[group.type] || group.type} · {group.maxPower} kW
-                      × {group.count}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <ConnectorGroupItem
+              key={`available-${group.type}-${group.maxPower}`}
+              group={group}
+              icon={<BsFillLightningChargeFill className="text-green-500" />}
+              shadowClass="shadow-green-500"
+              allConnectors={station.connectors} // <-- Thêm dòng này
+            />
           ))}
 
           <div className="mb-0 flex items-center gap-3 py-3">
@@ -718,6 +808,17 @@ const StationDetail = ({
             <span className="text-sm text-gray-600">
               {busyCount} điểm sạc
             </span>
+          </div>
+          <div className="space-y-3 px-4">
+            {busyGroups.map((group, index: number) => (
+              <ConnectorGroupItem
+                key={`busy-${group.type}-${group.maxPower}`}
+                group={group}
+                icon={<BsFillLightningChargeFill className="text-orange-500" />}
+                shadowClass="shadow-orange-400"
+                allConnectors={station.connectors} // <-- Thêm dòng này
+              />
+            ))}
           </div>
 
           <div className="mb-0 flex items-center gap-3 py-3">
@@ -735,24 +836,14 @@ const StationDetail = ({
         </div>
 
         <div className="space-y-3 px-4">
-          {busyGroups.map((group, index: number) => (
-            <div
-              key={index}
-              className="flex flex-row items-center rounded-2xl p-3 shadow-md/30 shadow-gray-400"
-            >
-              <BsFillLightningChargeFill className="mr-[8px] text-gray-500" />
-
-              <div className="w-full space-y-2">
-                <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 text-sm">
-                  <div>
-                    <p className="text-sm font-medium text-gray-800">
-                      {typeMap[group.type] || group.type} · {group.maxPower} kW ×{" "}
-                      {group.count}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+          {inactiveGroups.map((group, index: number) => (
+            <ConnectorGroupItem
+              key={`inactive-${group.type}-${group.maxPower}`}
+              group={group}
+              icon={<BsFillLightningChargeFill className="text-gray-500" />}
+              shadowClass="shadow-gray-400"
+              allConnectors={station.connectors} // <-- Thêm dòng này
+            />
           ))}
         </div>
 
