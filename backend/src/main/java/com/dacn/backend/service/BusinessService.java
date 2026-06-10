@@ -131,12 +131,12 @@ public class BusinessService {
             }
             station.setImages(currentImages);
         }
-
+        stationRepo.saveAndFlush(station);
+//        System.out.println("Charging points: " + stationDto.getChargingPoints().size());
         // 4. Process Hierarchy (Points & Connectors)
-        for (PointCreationDTO pointCreationDTO : stationDto.getChargingPoints())
+        for (PointCreationDTO pointCreationDTO : stationDto.getChargingPoints()) {
             addOrModifyChargingPoint(pointCreationDTO, station.getId(), companyId);
-
-        stationRepo.save(station);
+        }
         return true;
     }
 
@@ -230,7 +230,7 @@ public class BusinessService {
                 connector.setAvailable(connectorDto.isAvailable());
 
                 if (connectorDto.getStatus() != null || isNewConnector) {
-                    connector.setStatus(connectorDto.getStatus());
+                    connector.setStatus(connectorDto.getStatus() == null ? ConnectorStatus.AVAILABLE : connectorDto.getStatus());
                 }
 
                 updatedConnectors.add(connector);
