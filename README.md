@@ -1,50 +1,64 @@
-# Hệ thống Quản lý và Tìm kiếm Trạm sạc Xe điện (EV Charging Station Management & Search System)
+# EV Charging Station Management & Search System
 
-Đồ án tốt nghiệp (HK252) - Khoa Khoa học và Kỹ thuật Máy tính, Trường Đại học Bách khoa - ĐHQG-HCM.
+**Graduation Project (HK252)** - Faculty of Computer Science and Engineering, Ho Chi Minh City University of Technology (HCMUT) - VNU-HCM.
 
-## 📖 Giới thiệu
-Đây là nền tảng tập trung thông tin trạm sạc xe điện, được xây dựng nhằm giải quyết hội chứng "Range Anxiety" (lo lắng về quãng đường) của người dùng xe điện tại Việt Nam. 
+## 📖 Introduction
+This project is a centralized platform for EV charging station information, built to address the "Range Anxiety" commonly experienced by electric vehicle users in Vietnam.
 
-Hệ thống cung cấp giải pháp toàn diện cho hai đối tượng chính:
-- **Người dùng cá nhân (End-user):** Hỗ trợ tìm kiếm, chỉ đường, đánh giá và quản lý thông tin các trạm sạc trong khu vực một cách trực quan trên bản đồ.
-- **Doanh nghiệp vận hành (CPO/Admin):** Cung cấp công cụ quản lý trạm sạc, phân tích dữ liệu người dùng, xem bản đồ nhiệt (heatmap) để đánh giá nhu cầu và hỗ trợ ra quyết định quy hoạch hạ tầng sạc điện.
+The system provides a comprehensive solution for two main target audiences:
+- **End-users:** Assists in searching, navigating, reviewing, and managing charging station information intuitively on a map.
+- **Business Operators (CPO/Admin):** Provides tools for station management, user data analysis, and heatmaps to evaluate demand and support infrastructure planning decisions.
 
-## ✨ Các tính năng nổi bật
+## ✨ Key Features
 
-### Dành cho Người dùng (End-user)
-- 🗺️ **Bản đồ trực quan:** Hiển thị vị trí các trạm sạc xung quanh người dùng.
-- 🔍 **Tìm kiếm & Lọc:** Lọc trạm sạc theo khoảng cách, loại cổng sạc, công suất, đánh giá,...
-- 📍 **Chỉ đường (Routing):** Tìm đường đi ngắn nhất đến trạm sạc mong muốn.
-- ⭐ **Đánh giá & Phản hồi:** Cho phép người dùng để lại nhận xét và điểm đánh giá cho trạm sạc.
-- 🚗 **Cá nhân hóa:** Lưu trữ thông tin phương tiện cá nhân và danh sách các trạm sạc yêu thích.
+### For Users (End-users)
+- 🗺️ **Visual Map:** Displays charging stations around the user's current location.
+- 🔍 **Search & Filter:** Filter stations by distance, connector type, power output, ratings, etc.
+- 📍 **Routing:** Finds the shortest path to the desired charging station using the Dijkstra algorithm.
+- ⭐ **Reviews & Feedback:** Allows users to leave comments and ratings for charging stations.
+- 🚗 **Personalization:** Save personal vehicle information and favorite charging stations.
 
-### Dành cho Doanh nghiệp (Business/CPO)
-- 🏢 **Quản lý trạm sạc:** Thêm, sửa, xóa, và cập nhật trạng thái các trạm sạc do doanh nghiệp quản lý.
-- 📊 **Thống kê & Báo cáo:** Theo dõi các chỉ số quan tâm của người dùng, lượt xem, lượt đánh giá.
-- 🌡️ **Bản đồ nhiệt (Heatmap):** Trực quan hóa mật độ nhu cầu tìm kiếm và sử dụng trạm sạc, hỗ trợ quy hoạch các "điểm nóng" cần đầu tư hạ tầng.
+### For Businesses (Business/CPO)
+- 🏢 **Station Management:** Add, edit, delete, and update the status of managed charging stations.
+- 📊 **Statistics & Reports:** Track user interest metrics, views, and review counts.
+- 🌡️ **Heatmap:** Visualize the density of search demand and station usage, helping to identify "hotspots" for future infrastructure investments.
 
-## 🛠️ Công nghệ sử dụng
+## 🛠️ Technology Stack
 
-Dự án được xây dựng theo mô hình kiến trúc nhiều tầng (Layered Architecture) kết hợp với RESTful API:
-- **Frontend:** NextJS
+The project is built on a Layered Architecture combined with RESTful APIs:
+- **Frontend:** Next.js
 - **Backend:** Java Spring Boot
 - **Database:** PostgreSQL
-- **Bản đồ & Geocoding:** OpenStreetMap (OSM)
-- **Thuật toán chỉ đường:** Dijkstra / Dịch vụ Routing tương đương.
+- **Map & Geocoding:** OpenStreetMap (OSM)
+- **Routing Algorithm:** Dijkstra / Equivalent Routing Services
 
-## 🚀 Hướng dẫn cài đặt (Installation)
+## 🚀 Installation
 
-*(Bạn hãy cập nhật các bước clone repo, cài đặt dependencies và chạy dự án thực tế tại đây)*
+Follow these steps to set up the project locally:
 
-```bash
-# 1. Clone repository
+```
+1. Clone the repository
 git clone [https://github.com/your-username/ev-charging-management.git](https://github.com/your-username/ev-charging-management.git)
 
-# 2. Setup Database (PostgreSQL)
-# Import file script database hoặc chạy migration...
+2. Setup Database (PostgreSQL)
+Setup a Postgres
 
-# 3. Chạy Backend (Spring Boot)
-# cd backend && ./mvnw spring-boot:run
+# 3. Run Backend (Spring Boot)
+cd backend
+./mvnw spring-boot:run
 
-# 4. Chạy Frontend (NextJS)
-# cd frontend && npm install && npm run dev
+# 4. Run Frontend (Next.js)
+cd frontend
+npm install
+npm run dev
+```
+
+## 👥 Contributors
+- Nguyễn Sỹ Công (Student ID: 2210409)
+
+- Nguyễn Minh Toàn (Student ID: 2213533)
+
+- Supervisor: MSc. Trần Trương Tuấn Phát
+
+## 🙏 Acknowledgments
+We would like to express our deepest gratitude to our supervisor, MSc. Trần Trương Tuấn Phát, for his dedicated guidance. We also extend our thanks to the professors and lecturers at the Faculty of Computer Science and Engineering - HCMUT for providing the valuable knowledge that made this project possible.
