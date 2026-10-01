@@ -53,12 +53,12 @@ npm install
 npm run dev
 ```
 
-👥 Contributors
-Nguyễn Sỹ Công (Student ID: 2210409)
+## 👥 Contributors
+- Nguyễn Sỹ Công (Student ID: 2210409)
 
-Nguyễn Minh Toàn (Student ID: 2213533)
+- Nguyễn Minh Toàn (Student ID: 2213533)
 
-Supervisor: MSc. Trần Trương Tuấn Phát
+- Supervisor: MSc. Trần Trương Tuấn Phát
 
-🙏 Acknowledgments
+## 🙏 Acknowledgments
 We would like to express our deepest gratitude to our supervisor, MSc. Trần Trương Tuấn Phát, for his dedicated guidance. We also extend our thanks to the professors and lecturers at the Faculty of Computer Science and Engineering - HCMUT for providing the valuable knowledge that made this project possible.
