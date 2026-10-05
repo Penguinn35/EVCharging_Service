@@ -1,4 +1,4 @@
-# EV Charging Station Management & Search System
+# EV Charging Station Management & Search System (https://www.ev-charging-service.site/)
 
 **Graduation Project (HK252)** - Faculty of Computer Science and Engineering, Ho Chi Minh City University of Technology (HCMUT) - VNU-HCM.
 
