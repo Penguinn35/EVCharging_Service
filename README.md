@@ -1,4 +1,4 @@
-# EV Charging Station Management & Search System (https://www.ev-charging-service.site/)
+# EV Charging Station Management & Search System
 
 **Graduation Project (HK252)** - Faculty of Computer Science and Engineering, Ho Chi Minh City University of Technology (HCMUT) - VNU-HCM.
 
@@ -8,6 +8,9 @@ This project is a centralized platform for EV charging station information, buil
 The system provides a comprehensive solution for two main target audiences:
 - **End-users:** Assists in searching, navigating, reviewing, and managing charging station information intuitively on a map.
 - **Business Operators (CPO/Admin):** Provides tools for station management, user data analysis, and heatmaps to evaluate demand and support infrastructure planning decisions.
+
+## Deployment:
+You can access and use the system by accessing ![ev-charging-service.site](https://www.ev-charging-service.site/)
 
 ## ✨ Key Features
 
